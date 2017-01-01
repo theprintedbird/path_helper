@@ -1,15 +1,28 @@
 #!/bin/bash -
 
-declare -a path_dirs
+## A better path helper - don't put the standard bins first.
 
-while read -r dir ; do
-    if [ "${#path_dirs[@]}" == "0" ]; then
-        path_dirs=${dir}
-    else
-        path_dirs+=":${dir}"
-    fi
-done < <(/bin/cat /etc/paths.d/??-* 2> /dev/null)
+function path_helper {
+  local -a path_dirs
+  local envvar=$1
+  local target=`echo $1 | /usr/bin/awk '{print tolower($1)}'`
+  local etcpaths="/etc/${target}s"
+  local etcpathsd="${etcpaths}.d/*"
 
-echo "PATH=\"${path_dirs[@]}\"; export PATH;"
+  while read -r dir ; do
+      if [ "${#path_dirs[@]}" == "0" ]; then
+          path_dirs=${dir}
+      else
+          path_dirs+=":${dir}"
+      fi
+  done < <(/bin/cat ${etcpathsd} ${etcpaths})
+  echo "${envvar}=\"\${${envvar}}:${path_dirs[@]}\"; export ${envvar};"
+}
 
+path_helper "PATH"
+
+# Only handle MANPATH if the variable has already been set.
+if [ -z "$MANPATH" ]; then
+  path_helper "MANPATH"
+fi
 # EOF
