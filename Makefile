@@ -13,6 +13,6 @@ install:
 
 .PHONY: postscript
 postscript:
-	@printf "\nYou may find it helpful to add this to your env files:\n\nif [ -x /usr/local/libexec/path_helper ]; then\n"
+	@printf "\nYou may find it helpful to add this to your env files:\n\nif [ -x $(PREFIX)path_helper ]; then\n"
 	@printf "  eval \`$(PREFIX)path_helper\`"
 	@printf "\nfi\n"
