@@ -11,7 +11,7 @@ Copying script to a better location:
 
 Apple's path_helper is in /usr/libexec, so the default here is /usr/local/libexec.
 
-And checking it's output:
+And checking its output:
 
     $ /usr/local/libexec/path_helper
     PATH="/opt/pkg/sbin:/opt/pkg/bin:/opt/X11/bin:/opt/ImageMagick/bin:/usr/local/MacGPG2/bin:/usr/local/git/bin:/opt/puppetlabs/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin"; export PATH;
