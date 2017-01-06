@@ -16,6 +16,8 @@ function path_helper {
           path_dirs+=":${dir}"
       fi
   done < <(/bin/cat ${etcpathsd} ${etcpaths})
+
+  path_dirs=($(echo ${path_dirs[@]} | /usr/bin/tr [:space:] '\n' | /usr/bin/awk '!a[$0]++'))
   echo "${envvar}=\"\${${envvar}}:${path_dirs[@]}\"; export ${envvar};"
 }
 
