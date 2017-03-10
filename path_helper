@@ -23,7 +23,7 @@ function path_helper {
 
 path_helper "PATH"
 
-# Only handle MANPATH if the variable has already been set.
+# Only handle MANPATH if the variable hasn't already been set.
 if [ -z "$MANPATH" ]; then
   path_helper "MANPATH"
 fi
