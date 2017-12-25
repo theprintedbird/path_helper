@@ -2,10 +2,12 @@
 
 ## A better path helper - don't put the standard bins first.
 
+PATH="/usr/bin:$PATH"
+
 function path_helper {
   local -a path_dirs
   local envvar=$1
-  local target=`echo $1 | /usr/bin/awk '{print tolower($1)}'`
+  local target=`echo $1 | awk '{print tolower($1)}'`
   local etcpaths="/etc/${target}s"
   local etcpathsd="${etcpaths}.d/*"
 
@@ -17,7 +19,7 @@ function path_helper {
       fi
   done < <(/bin/cat ${etcpathsd} ${etcpaths})
 
-  path_dirs=($(echo ${path_dirs[@]} | /usr/bin/tr [:space:] '\n' | /usr/bin/awk '!a[$0]++'))
+  path_dirs=($(echo ${path_dirs[@]} | tr [:space:] '\n' | awk '!a[$0]++'))
   echo "${envvar}=\"\${${envvar}}:${path_dirs[@]}\"; export ${envvar};"
 }
 
