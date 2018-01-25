@@ -4,8 +4,11 @@
 
 require 'pathname'
 
-ETC_PATHS         = Pathname("/etc/paths")    # a file
-ETC_PATHS_D       = Pathname("/etc/paths.d")  # a directory
+ETC_PATHS         	= Pathname("/etc/paths")    # a file
+ETC_PATHS_D       	= Pathname("/etc/paths.d")  # a directory
+LOCAL_LIBRARY_PATHS	= Pathname(ENV["HOME"]).join("Library/Paths")
+LOCAL_CONFIG_PATHS	= Pathname(ENV["HOME"]).join("config/paths")
+
 
 CURRENT_PATH = ARGV.shift || ENV["PATH"]
 
@@ -39,7 +42,7 @@ def path_helper paths_file, paths_dir
 
 	paths = Pathname(paths_file)
 	if paths.exist?
-		warn "Getting paths from #{paths}"
+		warn "Getting paths from #{paths}" if ENV["DEBUG"]
 		@entries += read_file paths
 	end
   @entries
@@ -53,13 +56,15 @@ warn "DEBUG MODE" if ENV["DEBUG"]
 
 entries = []
 [
+	[LOCAL_CONFIG_PATHS.join("paths"), LOCAL_CONFIG_PATHS.join("paths.d")],
+	[LOCAL_LIBRARY_PATHS.join("paths"), LOCAL_LIBRARY_PATHS.join("paths.d")],
 	[ETC_PATHS, ETC_PATHS_D],
 ].each do |(paths_file, paths_dir)|
 	entries += path_helper( paths_file, paths_dir )
 end
 
 unless CURRENT_PATH.nil? or CURRENT_PATH.empty?
-	warn "Current path:"
+	warn "Current path:" if ENV["DEBUG"]
 	lines = CURRENT_PATH.split(/\:+/)
   output_debug_lines lines
 	entries += lines
@@ -69,6 +74,7 @@ final = join_up entries
 
 if ENV["DEBUG"]
   warn "PATH:\n#{final}"
+  warn "\nIf you expected items you'd inserted in the path manually to show up earlier then either clear the path before running this and reinsert or add paths via (~/Library/Paths|~/config)/paths and (~/Library/Paths|~/config)/paths.d/*)"
 else
  print final
 end
