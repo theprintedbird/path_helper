@@ -11,10 +11,22 @@ OptionParser.new do |opts|
 	opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
 		OPTIONS[:verbose] = v
 	end
-	opts.on("-d", "--[no-]debug", "Debug mode, more output") do |d|
+	opts.on("-d", "--[no-]debug", "Debug mode, even more output") do |d|
 		OPTIONS[:debug] = d
 	end
+	opts.on("-m", "--man", 'Run for man pages but perhaps read `man manpages` first') do |m|
+		OPTIONS[:man] = m
+	end
+	opts.on("-pPATH", "--path=""", "Current path") do |cp|
+		OPTIONS[:path] = cp
+	end
+	opts.on( '-h', '--help', 'Display this screen') do
+    warn opts
+    exit 1
+  end
 end.parse!
+
+warn "OPTIONS = #{OPTIONS.inspect}" if OPTIONS[:debug]
 
 if ENV["DEBUG"]
 	OPTIONS[:debug] = true
@@ -28,13 +40,22 @@ BASE_PATHS = [
 	Pathname(ENV["HOME"]).join("Library/Paths"),
 	Pathname("/etc"),
 ]
+warn "BASE_PATHS = #{BASE_PATHS.inspect}" if OPTIONS[:debug]
 
 DEFAULT_PATHS = ["paths", "paths.d"]
+if OPTIONS[:man]
+	DEFAULT_PATHS.map!{|x| "man#{x}" }
+end
+warn "DEFAULT_PATHS = #{DEFAULT_PATHS.inspect}" if OPTIONS[:debug]
 
 PATHS= Hash[ BASE_PATHS.map{|base| DEFAULT_PATHS.map{|x| base.join x } }]
 
+warn "PATHS = #{PATHS.inspect}" if OPTIONS[:debug]
 
-CURRENT_PATH = ARGV.shift || ENV["PATH"]
+CURRENT_PATH = OPTIONS[:man] ?
+	ENV["MANPATH"] || `man -w` :
+	OPTIONS[:path] || ENV["PATH"]
+warn "CURRENT_PATH = #{CURRENT_PATH.inspect}" if OPTIONS[:debug]
 
 def output_debug_lines lines
 	warn lines.map{|x| "\t#{x}\n" }.join if OPTIONS[:debug]
