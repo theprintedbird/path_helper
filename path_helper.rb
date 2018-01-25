@@ -10,7 +10,9 @@ BASE_PATHS = [
 	Pathname("/etc"),
 ]
 
-PATHS= Hash[ BASE_PATHS.map{|base| ["paths", "paths.d"].map{|x| base.join x } }]
+DEFAULT_PATHS = ["paths", "paths.d"]
+
+PATHS= Hash[ BASE_PATHS.map{|base| DEFAULT_PATHS.map{|x| base.join x } }]
 
 
 CURRENT_PATH = ARGV.shift || ENV["PATH"]
