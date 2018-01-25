@@ -2,7 +2,26 @@
 
 ## A better path helper - don't put the standard bins first.
 
+require 'optparse'
 require 'pathname'
+
+OPTIONS = {}
+OptionParser.new do |opts|
+	opts.banner = "Usage: path_helper.rb [options]"
+	opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+		OPTIONS[:verbose] = v
+	end
+	opts.on("-d", "--[no-]debug", "Debug mode, more output") do |d|
+		OPTIONS[:debug] = d
+	end
+end.parse!
+
+if ENV["DEBUG"]
+	OPTIONS[:debug] = true
+end
+if OPTIONS[:debug]
+	OPTIONS[:verbose] = true
+end
 
 BASE_PATHS = [
 	Pathname(ENV["HOME"]).join("config/paths"),
@@ -18,7 +37,7 @@ PATHS= Hash[ BASE_PATHS.map{|base| DEFAULT_PATHS.map{|x| base.join x } }]
 CURRENT_PATH = ARGV.shift || ENV["PATH"]
 
 def output_debug_lines lines
-	warn lines.map{|x| "\t#{x}\n" }.join if ENV["DEBUG"]
+	warn lines.map{|x| "\t#{x}\n" }.join if OPTIONS[:debug]
 end
 
 def read_file file
@@ -39,7 +58,7 @@ def path_helper paths_file, paths_dir
 	if pathsd.exist?
 		_pathsd = pathsd.children.select{|file| file.file? and not file.basename.to_s =~ /^\./ }
 		if not _pathsd.empty?
-			warn "Getting paths from #{pathsd}" if ENV["DEBUG"]
+			warn "Getting paths from #{pathsd}" if OPTIONS[:verbose]
 			_pathsd.each do |file|
 				@entries += read_file file
 			end
@@ -48,7 +67,7 @@ def path_helper paths_file, paths_dir
 
 	paths = Pathname(paths_file)
 	if paths.exist?
-		warn "Getting paths from #{paths}" if ENV["DEBUG"]
+		warn "Getting paths from #{paths}" if OPTIONS[:verbose]
 		@entries += read_file paths
 	end
   @entries
@@ -58,7 +77,7 @@ def join_up entries
 	entries.reject(&:empty?).uniq.join(":")
 end
 
-warn "DEBUG MODE" if ENV["DEBUG"]
+warn "DEBUG MODE" if OPTIONS[:debug]
 
 entries = []
 PATHS.each do |(paths_file, paths_dir)|
@@ -66,7 +85,7 @@ PATHS.each do |(paths_file, paths_dir)|
 end
 
 unless CURRENT_PATH.nil? or CURRENT_PATH.empty?
-	warn "Current path:" if ENV["DEBUG"]
+	warn "Current path:" if OPTIONS[:debug]
 	lines = CURRENT_PATH.split(/\:+/)
   output_debug_lines lines
 	entries += lines
@@ -74,11 +93,11 @@ end
 
 final = join_up entries
 
-if ENV["DEBUG"]
+if OPTIONS[:verbose]
   warn "PATH:\n#{final}"
-  warn "\nIf you expected items you'd inserted in the path manually to show up earlier then either clear the path before running this and reinsert or add paths via (~/Library/Paths|~/config)/paths and (~/Library/Paths|~/config)/paths.d/*)"
-else
- print final
+  warn "\nIf you expected items you'd inserted in the path manually to show up earlier then either clear the path before running this and reinsert or add paths via (~/Library/Paths|~/config)/paths and (~/Library/Paths|~/config)/paths.d/*)\n\n"
 end
+
+print final
 
 exit 0
