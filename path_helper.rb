@@ -36,7 +36,7 @@ if OPTIONS[:debug]
 end
 
 BASE_PATHS = [
-	Pathname(ENV["HOME"]).join("config/paths"),
+	Pathname(ENV["HOME"]).join(".config/paths"),
 	Pathname(ENV["HOME"]).join("Library/Paths"),
 	Pathname("/etc"),
 ]
@@ -95,7 +95,10 @@ def path_helper paths_file, paths_dir
 end
 
 def join_up entries
-	entries.reject(&:empty?).uniq.join(":")
+	entries.reject(&:empty?)
+				.uniq
+				.map{|x| x.sub /\~/, ENV["HOME"]}
+				.join(":")
 end
 
 warn "DEBUG MODE" if OPTIONS[:debug]
