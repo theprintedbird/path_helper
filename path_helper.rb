@@ -4,10 +4,13 @@
 
 require 'pathname'
 
-ETC_PATHS         	= Pathname("/etc/paths")    # a file
-ETC_PATHS_D       	= Pathname("/etc/paths.d")  # a directory
-LOCAL_LIBRARY_PATHS	= Pathname(ENV["HOME"]).join("Library/Paths")
-LOCAL_CONFIG_PATHS	= Pathname(ENV["HOME"]).join("config/paths")
+BASE_PATHS = [
+	Pathname(ENV["HOME"]).join("config/paths"),
+	Pathname(ENV["HOME"]).join("Library/Paths"),
+	Pathname("/etc"),
+]
+
+PATHS= Hash[ BASE_PATHS.map{|base| ["paths", "paths.d"].map{|x| base.join x } }]
 
 
 CURRENT_PATH = ARGV.shift || ENV["PATH"]
@@ -32,11 +35,12 @@ def path_helper paths_file, paths_dir
 
 	pathsd = Pathname(paths_dir)
 	if pathsd.exist?
-		warn "Getting paths from #{pathsd}" if ENV["DEBUG"]
-		pathsd.each_child do |file|
-			next unless file.file?
-			next if file.basename.to_s =~ /^\./
-			@entries += read_file file
+		_pathsd = pathsd.children.select{|file| file.file? and not file.basename.to_s =~ /^\./ }
+		if not _pathsd.empty?
+			warn "Getting paths from #{pathsd}" if ENV["DEBUG"]
+			_pathsd.each do |file|
+				@entries += read_file file
+			end
 		end
 	end
 
@@ -55,11 +59,7 @@ end
 warn "DEBUG MODE" if ENV["DEBUG"]
 
 entries = []
-[
-	[LOCAL_CONFIG_PATHS.join("paths"), LOCAL_CONFIG_PATHS.join("paths.d")],
-	[LOCAL_LIBRARY_PATHS.join("paths"), LOCAL_LIBRARY_PATHS.join("paths.d")],
-	[ETC_PATHS, ETC_PATHS_D],
-].each do |(paths_file, paths_dir)|
+PATHS.each do |(paths_file, paths_dir)|
 	entries += path_helper( paths_file, paths_dir )
 end
 
