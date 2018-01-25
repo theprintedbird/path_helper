@@ -1,6 +1,6 @@
 # path_helper #
 
-A replacement for Apple's `/usr/libexec/path_helper` using a shell script to set the path with the system dirs at the back, e.g. /bin /usr/bin etc are last in the path, because if I've installed anything I want it to come first in the path (or why install it?)
+A replacement for Apple's `/usr/libexec/path_helper` using a shell script to set the path with the system dirs at the back, e.g. `/bin` and `/usr/bin` etc are last in the path, because if I've installed anything I want it to come first in the path (or why install it?)
 
 Because the string munging is difficult with a shell script I soon became bored fighting a seemingly intractable battle and decided to rewrite it in Ruby, with extra features (see below). It uses the system Ruby on OS X (v2.0) so it should work regardless of whether Ruby has been upgraded or not. I favour the Ruby script, it's better but the shell script will replace Apple's `path_helper` and still be an improvement. Note the slight difference in calling it though.
 
