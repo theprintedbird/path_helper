@@ -2,6 +2,13 @@
 
 ## Friday the 26th of January 2018 ##
 
+### v2.3.0 ##
+
+- Added support for `C_INCLUDE_PATH`.
+
+----
+
+
 ### v2.2.0 ##
 
 - Added support for DYLD paths.
