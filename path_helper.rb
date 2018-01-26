@@ -19,6 +19,9 @@ OptionParser.new do |opts|
 	opts.on("--dyld [DYLD]", 'DYLD_FALLBACK_FRAMEWORK_PATH env var') do |dyld|
 		OPTIONS[:dyld] = dyld || true
 	end
+	opts.on("-c", "--c-include [C_INCLUDE]", 'C_INCLUDE_PATH env var') do |ci|
+		OPTIONS[:ci] = ci || true
+	end
 	opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
 		OPTIONS[:verbose] = v
 	end
@@ -56,6 +59,8 @@ if OPTIONS[:man]
 	DEFAULT_PATHS.map!{|x| "man#{x}" }
 elsif OPTIONS[:dyld]
 	DEFAULT_PATHS.map!{|x| "dyld_#{x}" }
+elsif OPTIONS[:ci]
+	DEFAULT_PATHS.map!{|x| "include_#{x}" }
 end
 warn "DEFAULT_PATHS = #{DEFAULT_PATHS.inspect}" if OPTIONS[:debug]
 
@@ -70,6 +75,12 @@ elsif OPTIONS[:dyld]
 		CURRENT_PATH = OPTIONS[:dyld]
 	else
 		CURRENT_PATH = ENV["DYLD_FALLBACK_FRAMEWORK_PATH"]
+	end
+elsif OPTIONS[:ci]
+	if OPTIONS[:ci].respond_to? :split
+		CURRENT_PATH = OPTIONS[:ci]
+	else
+		CURRENT_PATH = ENV["C_INCLUDE_PATH"]
 	end
 else
 	if OPTIONS[:path].respond_to? :split
