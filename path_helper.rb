@@ -5,7 +5,7 @@
 require 'optparse'
 require 'pathname'
 
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 
 OPTIONS = {}
 OptionParser.new do |opts|
