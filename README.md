@@ -4,6 +4,8 @@ A replacement for Apple's `/usr/libexec/path_helper` using a shell script to set
 
 Because the string munging is difficult with a shell script I soon became bored fighting a seemingly intractable battle and decided to rewrite it in Ruby, with extra features (see below). It uses the system Ruby on OS X (v2.0) so it should work regardless of whether Ruby has been upgraded or not. I favour the Ruby script, it's better but the shell script will replace Apple's `path_helper` and still be an improvement. Note the slight difference in calling it though.
 
+Additionally, it'll provided `MANPATH`, and the Ruby script with also do `DYLD_FALLBACK_FRAMEWORK_PATH` / `DYLD_LIBRARY_PATH`. 
+
 ## Install ##
 
 Run `sudo make` and it will install it.
@@ -91,3 +93,9 @@ The Ruby script will also allow use of the tilde `~` character in a path by repl
     ~/Library/Haskell/bin
 
 That puts `/Users/iainb/Library/Haskell/bin` at the front of my path and will only apply to my account's `PATH`.
+
+## Man paths and DYLD ##
+
+Apple has already dictated that `/etc/manpath` and `/etc/manpath.d/` are the default paths for setting `MANPATH`, so the same pattern has been followed for that as with `PATH`, so just add `~/Library/Paths/manpath` or `~/.config/paths/manpath` along with the `manpath.d` sub directory if you wish.
+
+Same goes for DYLD (if using the Ruby script), `~/Library/Paths/dyld_path` or `~/.config/paths/dyld_path` (and the `dyld_path.d` sub dir too, if you wish).
