@@ -25,13 +25,13 @@ OptionParser.new do |opts|
 	opts.on("-d", "--[no-]debug", "Debug mode, even more output") do
 		OPTIONS[:debug] = true
 	end
+	opts.on( '--version', 'Print version') do
+    warn VERSION
+    exit 0
+  end
 	opts.on( '-h', '--help', 'Display this screen') do
     warn opts
     exit 1
-  end
-	opts.on( '-v', '--version', 'Print version') do
-    warn VERSION
-    exit 0
   end
 end.parse!
 
