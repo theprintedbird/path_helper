@@ -1,5 +1,12 @@
 # CHANGES #
 
+## v2.1.0 Friday the 26th of January 2018 ##
+
+- Added --version option.
+
+----
+
+
 ## v2.0.0 Thursday the 25th of January 2018 ##
 
 - Added a Ruby script that has more features.

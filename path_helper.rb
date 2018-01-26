@@ -5,6 +5,8 @@
 require 'optparse'
 require 'pathname'
 
+VERSION = "2.1.0"
+
 OPTIONS = {}
 OptionParser.new do |opts|
 	opts.banner = "Usage: path_helper.rb [options]"
@@ -23,6 +25,10 @@ OptionParser.new do |opts|
 	opts.on( '-h', '--help', 'Display this screen') do
     warn opts
     exit 1
+  end
+	opts.on( '-v', '--version', 'Print version') do
+    warn VERSION
+    exit 0
   end
 end.parse!
 
