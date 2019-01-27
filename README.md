@@ -44,7 +44,7 @@ We also need to inform `ZSH` or `Bash` about the new `path_helper`. Using the sh
 The Ruby version:
 
     if [ -x /usr/local/libexec/path_helper.rb ]; then
-      PATH=$(/usr/local/libexec/path_helper.rb -p "")
+      PATH=$(/usr/local/libexec/path_helper.rb -p)
     fi
 
 The `Makefile` will print out what needs to go in, if you change any of the settings.
@@ -93,6 +93,8 @@ The Ruby script will also allow use of the tilde `~` character in a path by repl
     ~/Library/Haskell/bin
 
 That puts `/Users/iainb/Library/Haskell/bin` at the front of my path and will only apply to my account's `PATH`.
+
+The order of per user paths shouldn't be that important as they'll all go before the system ones but `~/Library/Paths` will be checked first as it's more Mac-ish.
 
 ## Man paths and DYLD and C_INCLUDE ##
 
