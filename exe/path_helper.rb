@@ -149,14 +149,14 @@ module PathHelper
 								}.sort_by{|pn| pn.basename }
 								.each do |pn|
 									@tree[leaf] << pn
-									pn.readlines(chomp: true )
+									pn.readlines.map(&:chomp)
 										.each do |line|
 											@entries.add line, pn
 										end
 								end
 					else
 						@tree[leaf] << leaf
-						leaf.readlines(chomp: true )
+						leaf.readlines.map(&:chomp)
 								.each do |line|
 									@entries.add line, leaf
 								end
