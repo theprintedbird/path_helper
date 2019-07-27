@@ -9,7 +9,6 @@ CHMOD   := 0755
 install:
 	@printf "Installing…\n"
 	$(MKDIR) $(PREFIX)
-	install -m $(CHMOD) ./path_helper $(PREFIX)
 	install -m $(CHMOD) ./path_helper.rb $(PREFIX)
 
 .PHONY: postscript
