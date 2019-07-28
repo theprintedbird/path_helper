@@ -1,10 +1,31 @@
-# path_helper #
+# path_helper
 
-A replacement for Apple's `/usr/libexec/path_helper` using a shell script to set the path with the system dirs at the back, e.g. `/bin` and `/usr/bin` etc are last in the path, because if I've installed anything I want it to come first in the path (or why install it?)
+## WHAT?
 
-Because the string munging is difficult with a shell script I soon became bored fighting a seemingly intractable battle and decided to rewrite it in Ruby, with extra features (see below). It uses the system Ruby on OS X (v2.0) so it should work regardless of whether Ruby has been upgraded or not. I favour the Ruby script, it's better but the shell script will replace Apple's `path_helper` and still be an improvement. Note the slight difference in calling it though.
+A replacement for Apple's `/usr/libexec/path_helper`.
 
-Additionally, it'll provided `MANPATH`, and the Ruby script with also do `DYLD_FALLBACK_FRAMEWORK_PATH` / `DYLD_LIBRARY_PATH` and `C_INCLUDE_PATH`. 
+## WHAT DOES THAT DO?
+
+It helps set the PATH environment variable.
+
+## WHY REPLACE IT?
+
+Because Apple's one loads the system libraries to the front, which almost certainly isn't what you want.
+
+## WHAT ELSE DOES IT DO?
+
+I'm glad you asked. Apple has some good ideas (lots of them, actually) that developers overlook for whatever reason. One of them is the way path_helper works. By putting the paths in well known locations (e.g. /etc/paths and /etc/paths.d/*) it's easy to create a PATH that works for you. This library extends that to:
+
+MANPATH  
+C_INCLUDE_PATH  
+DYLD_FALLBACK_FRAMEWORK_PATH  
+DYLD_FALLBACK_LIBRARY_PATH  
+
+and of course, PATH.
+
+## DO I NEED TO BE ON APPLE TO USE IT?
+
+No, it should work on any unix system.
 
 ## Install ##
 
@@ -12,7 +33,6 @@ Run `sudo make` and it will install it.
 
     $ sudo make
     install -m 0755 ./path_helper /usr/local/libexec/
-    install -m 0755 ./path_helper.rb /usr/local/libexec/
 
 Apple's path_helper is in `/usr/libexec`, so the default here is `/usr/local/libexec`, this install won't break anything.
 
@@ -21,13 +41,8 @@ And checking its output:
     $ /usr/local/libexec/path_helper
     PATH="/opt/pkg/sbin:/opt/pkg/bin:/opt/X11/bin:/opt/ImageMagick/bin:/usr/local/MacGPG2/bin:/usr/local/git/bin:/opt/puppetlabs/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin"; export PATH;
 
-Or using the Ruby version:
 
-    $ /usr/local/libexec/path_helper.rb
-
-    /Users/yb66/Library/Haskell/bin:/opt/pkg/bin:/opt/pkg/sbin:/usr/local/MacGPG2/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
-
-The Ruby script doesn't set the path, it returns a path, you have to set the path with it e.g. `PATH=$(/usr/local/libexec/path_helper.rb -p "")`. Call `/usr/local/libexec/path_helper.rb -h` to see all the options.
+The script doesn't set the PATH, it returns a path, you have to set the path with it e.g. `PATH=$(/usr/local/libexec/path_helper.rb -p "")`. Call `/usr/local/libexec/path_helper -h` to see all the options.
 
 ### Note: ###
 
@@ -80,6 +95,8 @@ The `/etc/paths` file in Apple isn't set out fully or in the order I'd want so I
 
 ## Per user paths ##
 
+This is the bit I like best.
+
 There's not really any help made for paths that might be local to the user, like `~/.rubies` or something like that so I've added two places the Ruby script will check for further paths, `~/Library/Paths/` and `~/.config/paths/`. The directory layout is the same but if you can't be bothered to use the `paths.d/` subdir then you don't have to, the script will handle it.
 
 The Ruby script will also allow use of the tilde `~` character in a path by replacing it with the `HOME` env variable. For example, I installed Haskell:
@@ -112,14 +129,21 @@ Apple has already dictated that `/etc/manpath` and `/etc/manpath.d/` are the def
 
 ### DYLD ###
 
-Same goes for DYLD (if using the Ruby script):
+Same goes for DYLD_FALLBACK_LIBRARY_PATH and DYLD_FALLBACK_FRAMEWORK_PATH (if using the Ruby script):
 
-- `/etc/dyld_paths.d/`
-- `/etc/dyld_paths`
-- `~/Library/Paths/dyld_path`
-- `~/.config/paths/dyld_path` 
+- `/etc/dyld_library_paths.d/`
+- `/etc/dyld_library_paths`
+- `~/Library/Paths/dyld_library_path`
+- `~/.config/paths/dyld_library_path`
 
-(and the `dyld_path.d` sub dir too, for the last two if you wish).
+and:
+
+- `/etc/dyld_framework_paths.d/`
+- `/etc/dyld_framework_paths`
+- `~/Library/Paths/dyld_framework_path`
+- `~/.config/paths/dyld_framework_path` 
+
+(and the corresponding `dyld_NAME_path.d` sub dir too, for the last two if you wish).
 
 
 ### C_INCLUDE ###
@@ -132,3 +156,15 @@ Same again for `C_INCLUDE`:
 - `~/.config/paths/include_path`
 
 (and the `include_path.d` sub dir too, for the last two if you wish).
+
+
+## Development
+
+I'm happy to hear from you, email me or open an issue. Pull requests are fine too, try to bring me a spec or an example if you want a feature or find a bug.
+
+Sorry the current specs aren't in such good shape, I hope to improve that.
+
+## Licence
+
+See the LICENCE file.
+
