@@ -1,5 +1,14 @@
 # CHANGES #
 
+## Tuesday the 19th of May 2020 ##
+
+- No need for those debugging tools to be part of the project now.
+- Added a set up switch to make it easier to get going.
+- Moved the lib into the one script file, the Ruby ecosystem won't actually be helpful.
+- Updated the Makefile for the new project layout and abilities.
+- Added support for `PKG_CONFIG_PATH`
+
+
 ## Friday the 26th of January 2018 ##
 
 ### v2.3.0 ##

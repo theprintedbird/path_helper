@@ -39,46 +39,7 @@ and of course, `PATH` and `MANPATH`.
 
 No, it should work on any unix-like system.
 
-## Install ##
-
-    gem install path_helper
-
-or system wide:
-
-    sudo gem install path_helper
-
-Apple's path_helper is in `/usr/libexec`, this install won't touch it, you can always use it or return to it if you wish.
-
-And checking its output:
-
-    $ path_helper
-    PATH="/opt/pkg/sbin:/opt/pkg/bin:/opt/X11/bin:/opt/ImageMagick/bin:/usr/local/MacGPG2/bin:/usr/local/git/bin:/opt/puppetlabs/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin"; export PATH;
-
-## NOTE!
-
-The script **doesn't set the PATH**, it *returns* a path, **you have to set the path** with it e.g. `PATH=$(/usr/local/libexec/path_helper.rb -p "")`. Call `/usr/local/libexec/path_helper -h` to see all the options.
-
-### Another Note (slightly less important) ###
-
-The output is just an example, I ran these at different times on different systems so they have slightly different output (aside from the aforementioned slight difference in API).
-
-### ZSH/Bash
-
-We also need to inform `ZSH` or `Bash` about the new `path_helper`. Using the shell version:
-
-    if [ -x /usr/local/libexec/path_helper ]; then
-      eval `/usr/local/libexec/path_helper`
-    fi
-
-The Ruby version:
-
-    if [ -x /usr/local/libexec/path_helper.rb ]; then
-      PATH=$(/usr/local/libexec/path_helper.rb -p)
-    fi
-
-The `Makefile` will print out what needs to go in, if you change any of the settings.
-
-## Source Files ##
+## HOW DOES PATH_HELPER KNOW WHAT TO PUT IN THE PATH?
 
 Apple has put paths in `/etc/paths` and further files are there for the user or apps to add under `/etc/paths.d/`. If you want to order them then prefixing a number works well, e.g.
 
@@ -101,6 +62,9 @@ The format of the file is simply a path per line, e.g.
     /usr/sbin
     /bin
     /sbin
+
+
+The order *within* the file matters as well as the order the files are read/concatenated.
 
 ### Note: ###
 
@@ -232,24 +196,44 @@ Same again for `C_INCLUDE`:
 
 (and the `include_paths.d` sub dir too, for the last two if you wish).
 
-## Setting your .zshenv or .bashenv
+## HOW DO I GET THIS WONDERFUL JOYFUL EVENT MAKER INTO MY LIFE? ##
 
-You may find it helpful to add this to your ~/.zshenv or ~/.bashenv etc:
+I was going to make this into a Ruby gem but that is such a faff. Here's the gist of it:
 
-    if [ -x /usr/local/libexec/path_helper ]; then
-      PATH=$(/usr/local/libexec/path_helper -p "")
-      DYLD_FALLBACK_FRAMEWORK_PATH=$(/usr/local/libexec/path_helper --dyld-fram "")
-      DYLD_FALLBACK_LIBRARY_PATH=$(/usr/local/libexec/path_helper --dyld-lib "")
-      C_INCLUDE_PATH=$(/usr/local/libexec/path_helper -c "")
-      MANPATH=$(/usr/local/libexec/path_helper -m "")
-    fi
+- Download it (use `git clone` or a download link, you can even just copy and past the [script](exe/path_helper))
+- Make sure it has the correct permissions (`chmod +x`)
+- Run the `--setup`
+- Copy and paste the bit setup tells you to, and put it in your `~/.zshenv` or `~/.bashenv`
+- Find your life is so much better now it's easy to manage your paths
+
+For example:
+
+# I put my path_helper in `/usr/local/libexec` because I'm the only person using this machine
+# and I want my other accounts to be able to access its goodness.
+sudo mkdir -p /usr/local/libexec
+cd /usr/local/libexec
+# ~/Projects/path_helper is where I keep the project
+ln ~/Projects/path_helper/exe/path_helper .
+chmod +x path_helper
+# Look at the help because you're not like everyone else, you read instructions ;-)
+path_helper --help
+# You need sudo to add the folders in /etc, see the --help if you don't want that
+sudo path_helper --setup
+# See what's already there
+path_helper --debug
 
 
-    export PATH
-    export DYLD_FALLBACK_FRAMEWORK_PATH
-    export DYLD_FALLBACK_LIBRARY_PATH
-    export C_INCLUDE_PATH
-    export MANPATH
+Apple's path_helper is in `/usr/libexec`, this install won't touch it, you can always use it or return to it if you wish.
+
+And checking its output:
+
+    $ path_helper
+    PATH="/opt/pkg/sbin:/opt/pkg/bin:/opt/X11/bin:/opt/ImageMagick/bin:/usr/local/MacGPG2/bin:/usr/local/git/bin:/opt/puppetlabs/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin"; export PATH;
+
+## NOTE!
+
+The script **doesn't set the PATH**, it *returns* a path, **you have to set the path** with it e.g. `PATH=$(/usr/local/libexec/path_helper.rb -p "")`. Call `/usr/local/libexec/path_helper -h` to see all the options.
+
 
 ## My actual system
 
