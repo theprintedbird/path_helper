@@ -1,61 +1,396 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 
-## A better path helper - don't put the standard bins first.
+# A better path helper - don't put the standard bins first.
+module PathHelper
+  # see semver https://semver.org/spec/v2.0.0.html
+  VERSION="3.0.0"
+end
 
 require 'optparse'
 
-require_relative "../lib/path_helper/version.rb"
-require_relative "../lib/path_helper.rb"
-
 options = {}
 OptionParser.new do |opts|
-	opts.banner = "Usage: path_helper.rb [options]"
-	opts.on("-p", "--path [PATH]", "Either pass the current path, a path you wish appended, or an empty string / nothing at all to start with a clean slate") do |cp|
-		options[:path] = cp || false
-	end
-	opts.on("-m", "--man", 'Run for man pages but perhaps read `man manpages` first') do
-		options[:man] = true
-	end
-	opts.on("--dyld-fram [DYLD]", 'DYLD_FALLBACK_FRAMEWORK_PATH env var') do |dyld|
-		options[:dyld_fram] = dyld || true
-	end
-	opts.on("--dyld-lib [DYLD]", "DYLD_FALLBACK_LIBRARY_PATH env var") do |dyld|
-		options[:dyld_lib] = dyld || true
-	end
-	opts.on("-c", "--c-include [C_INCLUDE]", 'C_INCLUDE_PATH env var') do |ci|
-		options[:ci] = ci || true
-	end
-	opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
-		options[:verbose] = v
-	end
-	opts.on("-d", "--[no-]debug", "Debug mode, even more output") do
-		options[:debug] = true
-	end
-	opts.on( '--version', 'Print version') do
-    warn VERSION
+  opts.banner = "Usage: path_helper.rb [options]"
+  opts.on("-p", "--path [PATH]",
+    <<~EXPL
+      To start with a fresh PATH pass any of:
+                                             the current path,
+                                             a path you wish appended,
+                                             or an empty string or nothing at all
+    EXPL
+  ) do |cp|
+    options[:path] = cp || false
+  end
+  opts.on("-m", "--man", 'Run for man pages but perhaps read `man manpages` first') do
+    options[:man] = true
+  end
+  opts.on("--dyld-fram [DYLD]", 'DYLD_FALLBACK_FRAMEWORK_PATH env var') do |dyld|
+    options[:dyld_fram] = dyld || true
+  end
+  opts.on("--dyld-lib [DYLD]", "DYLD_FALLBACK_LIBRARY_PATH env var") do |dyld|
+    options[:dyld_lib] = dyld || true
+  end
+  opts.on("-c", "--c-include [C_INCLUDE]", 'C_INCLUDE_PATH env var') do |ci|
+    options[:ci] = ci || true
+  end
+  opts.on("-v", "--verbose" "Run verbosely") do |v|
+    options[:verbose] = true
+  end
+  opts.on("-q", "--quiet", "Quiet, no output") do |v|
+    options[:quiet] = true
+  end
+  opts.on("-d", "--[no-]debug", "Debug mode, even more output") do |v|
+    options[:debug] = v
+  end
+  opts.on("--setup", <<~SETUP
+  Set up directory structure, add specific switches 
+                                         (see --etc --lib --config) if specific setups required, 
+                                         else --setup own its own will do all of them.
+  SETUP
+  ) do
+    options[:setup] = true
+  end
+  opts.on("--[no-]etc", "Use with --setup. Sets up /etc/paths, erm, etc") do |v|
+    options[:etc] = v
+  end
+  opts.on("--[no-]lib", "Use with --setup. Sets up ~/Library/Paths") do |v|
+    options[:lib] = v
+  end
+  opts.on("--[no-]config", "Use with --setup. Sets up ~/.config/paths") do |v|
+    options[:config] = v
+  end
+  opts.on( '--version', 'Print version') do
+    require_relative "../lib/path_helper/version.rb"
+    warn PathHelper::VERSION
     exit 0
   end
-	opts.on_tail("-h", "--help", "Show this message") do
-		warn opts
-		exit
-	end
-	
-	if ARGV.empty?
-		warn opts
-		exit
-	end
+  opts.on_tail("-h", "--help", "Show this message") do
+    warn opts
+    exit
+  end
+  if ARGV.empty?
+    warn opts
+    exit
+  end
 end.parse!
 
 if ENV["DEBUG"]
-	options[:debug] = true
+  options[:debug] = true
 end
 if options[:debug]
-	options[:verbose] = true
+  options[:verbose] = true
+end
+
+
+require 'pathname'
+require 'fileutils'
+
+module PathHelper
+
+  Normal    =`tput sgr0`
+  Red       =`tput setaf 1`
+  Green     =`tput setaf 2`
+  Yellow    =`tput setaf 3`
+
+  HOME = Pathname(ENV["HOME"])
+
+  BASE_PATHS = [
+    HOME.join("Library/Paths"),
+    HOME.join(".config"),
+    Pathname("/etc"),
+  ]
+
+  DEFAULT_PATHS = ["paths.d","paths"]
+
+  class CLI
+
+    ENV_NAMES = {
+      :ci         =>  "C_INCLUDE_PATH",
+      :dyld_fram  =>  "DYLD_FALLBACK_FRAMEWORK_PATH",
+      :dyld_lib   =>  "DYLD_FALLBACK_LIBRARY_PATH",
+      :man        =>  "MANPATH",
+      :path       =>  "PATH"
+    }
+
+
+    # @param [Hash] options The parsed CLI options.
+    def initialize options
+      @options = options
+      @context_paths = DEFAULT_PATHS.dup
+      @tree = {}
+      @current_path = options[:path] || ""
+    end
+
+
+    def init_tree_for_building_paths
+      @base_paths = BASE_PATHS.dup
+      @key = ENV_NAMES.keys.find{|x| @options.has_key? x } || :path
+      send "init_#{@key}"
+      @entries = Entries.new @additional_path
+    end
+
+
+    # {:setup=>true}
+    # {:setup=>true, :etc=>false, :lib=>false}
+    # {:setup=>true, :etc=>false, :lib=>true}
+    def setup!
+      bs = Hash[ %w{lib config etc}.map(&:to_sym).zip BASE_PATHS.dup ]
+      @base_paths = []
+      %w{lib config etc}.map(&:to_sym).each{|key|
+        @base_paths << bs[key] if @options.fetch( key, true )
+      }
+      ENV_NAMES.keys.each do |prefix|
+        send "init_#{prefix}"
+      end
+      permission_errors = []
+      @tree.keys
+            .chunk{|pn| pn.to_path.end_with? ".d"}
+            .each{|dir, (path)|
+              if path.exist?
+                puts "#{Yellow}#{path} already exists, skipping#{Normal}" unless @options[:quiet]
+              else
+                begin
+                  dir ? path.mkpath : FileUtils.touch(path)
+                  puts "#{Green}Created #{path}#{Normal}" unless @options[:quiet]
+                rescue Errno::EACCES
+                  warn "#{Red}Rescuing permission errors for #{path}#{Normal}"
+                  permission_errors << path
+                end
+              end
+             }
+      unless permission_errors.empty?
+        warn "Your account does not have permissions for:"
+        permission_errors.each do |path|
+          warn "- #{path}"
+        end
+        warn <<~WARNING
+          Consider whether you need to install these.
+          For example are they needed system wide? If not, use the --no-etc switch.
+          Otherwise, try again with sudo or another account.
+        WARNING
+        return false
+      end
+      script_path = Pathname(__dir__).join(Pathname(__FILE__).basename)
+
+      puts <<~SHENV
+
+
+      # Put this in your ~/.bashrc or your ~/.zshenv
+      if [ -x #{script_path} ]; then
+        PATH=$(#{script_path} -p "")
+        DYLD_FALLBACK_FRAMEWORK_PATH=$(#{script_path} --dyld-fram "")
+        DYLD_FALLBACK_LIBRARY_PATH=$(#{script_path} --dyld-lib "")
+        C_INCLUDE_PATH=$(#{script_path} -c "")
+        MANPATH=$(#{script_path} -m "")
+      fi
+
+      export PATH
+      export DYLD_FALLBACK_FRAMEWORK_PATH
+      export DYLD_FALLBACK_LIBRARY_PATH
+      export C_INCLUDE_PATH
+      export MANPATH
+      SHENV
+      true
+    end
+
+
+    def base_init item
+      @base_paths.each {|base|
+        @context_paths.each{|x|
+          @tree[ base.join item.(x) ] = []
+        }
+      }
+    end
+
+
+    def init_ci
+      base_init ->(x){ "include_#{x}" }
+      options_or_try_env :ci
+    end
+
+
+    def init_dyld_fram
+      base_init ->(x){ "dyld_framework_#{x}" }
+      options_or_try_env :dyld_fram
+    end
+
+    def init_dyld_lib
+      base_init ->(x){ "dyld_library_#{x}" }
+      options_or_try_env :dyld_lib
+    end
+
+    def init_path
+      base_init ->(x){ x }
+      options_or_try_env :path
+    end
+
+
+    def init_man
+      base_init ->(x){ "man#{x}" }
+      options_or_try_env :man do
+        @current_path = ENV["MANPATH"] || `man -w`
+      end
+    end
+
+
+    def options_or_try_env name
+      if @options[name].respond_to? :split
+        @additional_path = @options[name]
+      end
+      if block_given?
+        yield
+      else
+        @current_path = ENV[ ENV_NAMES[name] ]
+      end
+    end
+
+
+    def output_debug_lines lines
+      warn lines.map{|x| "\t#{x}\n" }.join if @options[:debug]
+    end
+
+
+    # Helper that reads lines from a file and adds them to Entries
+    # @param [Pathname] File to read.
+    def read_file pn
+      pn.readlines.map(&:chomp)
+        .each do |line|
+          @entries.add line, pn
+        end
+    end
+
+
+    def paths
+      init_tree_for_building_paths
+      @tree.keys.each do |leaf|
+        if leaf.exist?
+          if leaf.directory?
+            leaf.children
+                .select{|pn|
+                  pn.file? and not pn.basename.to_s =~ /^\./
+                }.sort_by{|pn| pn.basename }
+                .each do |pn|
+                  @tree[leaf] << pn
+                  read_file pn
+                end
+          else
+            @tree[leaf] << leaf
+            read_file leaf
+          end
+        end
+      end
+      final = @entries.ready
+
+      if @options[:verbose]
+        warn @entries.debug
+        warn "Current:\n#{@current_path}"
+        warn "\n\n"
+      end
+
+      if @options[:verbose]
+        warn <<~STR
+        If you expected items you'd inserted in the path manually to
+        show up earlier then either clear the path before running this
+        and reinsert or add paths via:
+          (~/Library/Paths|~/config)/#{DEFAULT_PATHS.first}
+          (~/Library/Paths|~/config)/#{DEFAULT_PATHS.last}/*)\n\n
+        STR
+      end
+
+      final
+    end
+
+  end
+
+
+  # Transforms lines into a path.
+  class Entries
+
+    class << self
+      # Basically, replace tildes and clean up the path.
+      def path_format xs
+        xs.compact  # no nils
+          .reject(&:empty?)
+          .uniq      # no repetitions, later loses
+          .map{|x| x.sub /\~/, ENV["HOME"]}
+          .join(":")
+      end
+    end
+
+
+    # @param [Hash,nil] additional Items to append to the path.
+    def initialize additional=nil
+      @entries = {}
+      unless additional.nil?
+        @additional = additional.respond_to?(:compact) ? additional : additional.split(":")
+      end
+    end
+
+
+    # @param [String] entry The line read from the file that will become part of the path.
+    # @param [Pathname] The file.
+    def add( entry, origin )
+      if @entries.has_key? entry
+        @entries[entry] << origin
+      else
+        @entries[entry] = [origin]
+      end
+    end
+
+
+    # Make the entries ready to format into a path
+    def ready
+      @interim = @entries.map{|entry,_| entry }
+      if @additional
+        @interim += @additional
+      end
+      @interim.freeze
+      path_format
+    end
+
+  
+    def path_format
+      self.class.path_format @interim
+    end
+
+    def tilde pn
+      pn.to_s.sub(HOME.to_s, "~")
+    end
+
+
+    def debug
+      output = []
+      output.push sprintf "\n\n%70s | %-40s | %-60s\n", "Path", "Found in", "Ignored duplicate"
+      output.push sprintf "%70s | %-40s | %-60s\n", "----", "--------", "-----------------"
+      @entries.each do |entry,pathnames|
+        if pathnames.size >= 2
+          pns = pathnames.each
+          output.push sprintf "%70s | %-40s | \n", entry, tilde(pns.next), ""
+          loop do
+            output.push sprintf "%70s | %-40s |   %-20s\n", "", tilde(pns.next), "✗"
+          end
+        else
+          output.push sprintf "%70s | %-40s | \n", entry, tilde(pathnames.first), ""
+        end
+      end
+      output << "\n\n"
+      if @additional
+        output << "Additional via commandline: \n"
+        output << self.class.path_format( @additional)
+        output << "\n\n"
+      end
+      output.join
+    end
+  end
 end
 
 
 helper = PathHelper::CLI.new options
-print helper.paths
+if options[:setup]
+  status_code = helper.setup! ? 0 : 1
+  exit status_code
+else
+  print helper.paths
+  exit 0
+end
 
-
-exit 0
