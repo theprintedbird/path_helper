@@ -9,17 +9,34 @@ CHMOD   := 0755
 install:
 	@printf "Installing…\n"
 	$(MKDIR) $(PREFIX)
-	install -m $(CHMOD) ./path_helper.rb $(PREFIX)
+	$(MKDIR) $(PHLIB)
+	install -m $(CHMOD) exe/path_helper $(PREFIX)
 
 .PHONY: postscript
 postscript:
-	@printf "\nYou may find it helpful to add this to your env files if using the shell version:\n\nif [ -x $(PREFIX)/path_helper ]; then\n"
-	@printf "  eval \`$(PREFIX)/path_helper\`"
-	@printf "\nfi\n"
-	@printf "\nIf using the ruby version (my preferred one):\n"
+	@printf "\nYou may find it helpful to add this to your ~/.zshenv or ~/.bashenv etc:\n"
 	@printf "\nif [ -x "
 	@printf $(PREFIX)
-	@printf "/path_helper.rb ]; then\n"
+	@printf "/path_helper ]; then\n"
 	@printf '  PATH=$$('
-	@printf "$(PREFIX)/path_helper.rb -p \"\""
-	@printf ")\nfi\n"
+	@printf "$(PREFIX)/path_helper -p \"\""
+	@printf ")\n"
+	@printf '  DYLD_FALLBACK_FRAMEWORK_PATH=$$('
+	@printf "$(PREFIX)/path_helper --dyld-fram \"\""
+	@printf ")\n"
+	@printf '  DYLD_FALLBACK_LIBRARY_PATH=$$('
+	@printf "$(PREFIX)/path_helper --dyld-lib \"\""
+	@printf ")\n"
+	@printf '  C_INCLUDE_PATH=$$('
+	@printf "$(PREFIX)/path_helper -c \"\""
+	@printf ")\n"
+	@printf '  MANPATH=$$('
+	@printf "$(PREFIX)/path_helper -m \"\""
+	@printf ")\n"
+	@printf "fi\n"
+	@printf "\n\n"
+	@printf "export PATH\n"
+	@printf "export DYLD_FALLBACK_FRAMEWORK_PATH\n"
+	@printf "export DYLD_FALLBACK_LIBRARY_PATH\n"
+	@printf "export C_INCLUDE_PATH\n"
+	@printf "export MANPATH\n"
