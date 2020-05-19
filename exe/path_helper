@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/ruby
 
 # A better path helper - don't put the standard bins first.
 module PathHelper
@@ -32,6 +32,9 @@ OptionParser.new do |opts|
   end
   opts.on("-c", "--c-include [C_INCLUDE]", 'C_INCLUDE_PATH env var') do |ci|
     options[:ci] = ci || true
+  end
+  opts.on("--pc [PKG_CONFIG_PATH]", 'PKG_CONFIG_PATH env var') do |pc|
+    options[:pc] = pc || true
   end
   opts.on("-v", "--verbose" "Run verbosely") do |v|
     options[:verbose] = true
@@ -104,11 +107,14 @@ module PathHelper
 
   class CLI
 
-    ENV_NAMES = {
+    BASE_PATHS_BY_SWITCH = [:etc,:lib,:config].zip BASE_PATHS
+
+    ENV_NAMES_BY_SWITCH = {
       :ci         =>  "C_INCLUDE_PATH",
       :dyld_fram  =>  "DYLD_FALLBACK_FRAMEWORK_PATH",
       :dyld_lib   =>  "DYLD_FALLBACK_LIBRARY_PATH",
       :man        =>  "MANPATH",
+      :pc         =>  "PKG_CONFIG_PATH",
       :path       =>  "PATH"
     }
 
@@ -124,7 +130,7 @@ module PathHelper
 
     def init_tree_for_building_paths
       @base_paths = BASE_PATHS.dup
-      @key = ENV_NAMES.keys.find{|x| @options.has_key? x } || :path
+      @key = ENV_NAMES_BY_SWITCH.keys.find{|x| @options.has_key? x } || :path
       send "init_#{@key}"
       @entries = Entries.new @additional_path
     end
@@ -139,7 +145,7 @@ module PathHelper
       %w{lib config etc}.map(&:to_sym).each{|key|
         @base_paths << bs[key] if @options.fetch( key, true )
       }
-      ENV_NAMES.keys.each do |prefix|
+      ENV_NAMES_BY_SWITCH.keys.each do |prefix|
         send "init_#{prefix}"
       end
       permission_errors = []
@@ -225,6 +231,12 @@ module PathHelper
     end
 
 
+    def init_pc
+      base_init ->(x){ "pkg_config_#{x}" }
+      options_or_try_env :pc
+    end
+
+
     def init_man
       base_init ->(x){ "man#{x}" }
       options_or_try_env :man do
@@ -240,7 +252,7 @@ module PathHelper
       if block_given?
         yield
       else
-        @current_path = ENV[ ENV_NAMES[name] ]
+        @current_path = ENV[ ENV_NAMES_BY_SWITCH[name] ]
       end
     end
 
