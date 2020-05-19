@@ -2,6 +2,8 @@
 
 ## Tuesday the 19th of May 2020 ##
 
+### v3.0.0
+
 - No need for those debugging tools to be part of the project now.
 - Added a set up switch to make it easier to get going.
 - Moved the lib into the one script file, the Ruby ecosystem won't actually be helpful.
