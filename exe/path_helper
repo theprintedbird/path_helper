@@ -90,10 +90,17 @@ require 'fileutils'
 
 module PathHelper
 
-  Normal    =`tput sgr0`
-  Red       =`tput setaf 1`
-  Green     =`tput setaf 2`
-  Yellow    =`tput setaf 3`
+  if STDOUT.isatty
+    Normal    = `tput sgr0`
+    Red       = `tput setaf 1`
+    Green     = `tput setaf 2`
+    Yellow    = `tput setaf 3`
+  else
+    Normal    = ''
+    Red       = ''
+    Green     = ''
+    Yellow    = ''
+  end
 
   HOME = Pathname(ENV["HOME"])
 
