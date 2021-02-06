@@ -3,7 +3,7 @@
 # A better path helper - don't put the standard bins first.
 module PathHelper
   # see semver https://semver.org/spec/v2.0.0.html
-  VERSION="3.0.0"
+  VERSION="3.1.0"
 end
 
 require 'optparse'
