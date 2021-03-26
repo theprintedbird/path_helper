@@ -225,24 +225,30 @@ I put my path_helper in `/usr/local/libexec` because I'm the only person using t
 
     sudo mkdir -p /usr/local/libexec
     cd /usr/local/libexec
-    # ~/Projects/path_helper is where I keep the project
+
+`~/Projects/path_helper` is where I keep the project so I link it, but you could just download it or `git clone` it there, or somewhere else and link it… it all works!
+
     ln ~/Projects/path_helper/exe/path_helper .
-    chmod +x path_helper
-    # Look at the help because you're not like everyone else,
-    # you read instructions ;-)
-    path_helper --help
-    # You need sudo to add the folders in /etc,
-    # see the --help if you don't want that
-    sudo path_helper --setup
-    # See what's already there
-    path_helper --debug
+    chmod +x /usr/local/libexec/path_helper
+
+Look at the help because you're not like everyone else, you read instructions ;-)
+
+    /usr/local/libexec/path_helper --help
+
+You need sudo to add the folders in /etc, see the --help if you don't want that.
+
+    sudo /usr/local/libexec/path_helper --setup
+
+See what's already there
+
+    /usr/local/libexec/path_helper --debug
 
 
 Apple's path_helper is in `/usr/libexec`, this install won't touch it, you can always use it or return to it if you wish.
 
 And checking its output:
 
-    $ path_helper
+    $ /usr/local/libexec/path_helper -p
     PATH="/opt/pkg/sbin:/opt/pkg/bin:/opt/X11/bin:/opt/ImageMagick/bin:/usr/local/MacGPG2/bin:/usr/local/git/bin:/opt/puppetlabs/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin"; export PATH;
 
 ## NOTE!
@@ -253,58 +259,58 @@ The script **doesn't set the PATH**, it *returns* a path, **you have to set the 
 ## My actual system
 
     $ tree ~/Library/Paths 
-/Users/iainb/Library/Paths
-├── c_include_paths
-├── c_include_paths.d
-│   ├── 03-bdwgc
-│   ├── 04-llvm
-│   ├── 05-gcc7
-│   ├── 06-gcc48
-│   ├── libiconv
-│   └── zig
-├── dyld_framework_paths
-├── dyld_framework_paths.d
-├── dyld_library_paths
-├── dyld_library_paths.d
-│   ├── 04-llvm
-│   ├── 05-gcc7
-│   ├── 06-gcc48
-│   ├── 61-Opam-and-OCaml
-│   └── libiconv
-├── manpaths
-├── manpaths.d
-│   ├── 02-fzf
-│   ├── 04-llvm
-│   ├── 04-pkgin
-│   ├── 05-macports
-│   └── 61-Opam-and-OCaml
-├── paths
-├── paths.d
-│   ├── 02-fzf
-│   ├── 03-libiconv
-│   ├── 04-llvm
-│   ├── 05-pkgsrc
-│   ├── 10-keybase
-│   ├── 50-ngrok
-│   ├── 55-Crystal-opt
-│   ├── 60-Crystal
-│   ├── 61-Opam-and-OCaml
-│   ├── 62-Haskell
-│   ├── 63-Erlang
-│   ├── 63-Go
-│   ├── 64-Pyenv
-│   ├── 65-Rust
-│   ├── 66-Antigen
-│   ├── 67-Lua
-│   ├── 68-Zig
-│   ├── 70-perl
-│   ├── docker-scripts
-│   └── gcc
-└── pkg_config_paths.d
-    ├── from-crystal
-    ├── libiconv
-    ├── openssl
-    └── readline
+    /Users/iainb/Library/Paths
+    ├── c_include_paths
+    ├── c_include_paths.d
+    │   ├── 03-bdwgc
+    │   ├── 04-llvm
+    │   ├── 05-gcc7
+    │   ├── 06-gcc48
+    │   ├── libiconv
+    │   └── zig
+    ├── dyld_framework_paths
+    ├── dyld_framework_paths.d
+    ├── dyld_library_paths
+    ├── dyld_library_paths.d
+    │   ├── 04-llvm
+    │   ├── 05-gcc7
+    │   ├── 06-gcc48
+    │   ├── 61-Opam-and-OCaml
+    │   └── libiconv
+    ├── manpaths
+    ├── manpaths.d
+    │   ├── 02-fzf
+    │   ├── 04-llvm
+    │   ├── 04-pkgin
+    │   ├── 05-macports
+    │   └── 61-Opam-and-OCaml
+    ├── paths
+    ├── paths.d
+    │   ├── 02-fzf
+    │   ├── 03-libiconv
+    │   ├── 04-llvm
+    │   ├── 05-pkgsrc
+    │   ├── 10-keybase
+    │   ├── 50-ngrok
+    │   ├── 55-Crystal-opt
+    │   ├── 60-Crystal
+    │   ├── 61-Opam-and-OCaml
+    │   ├── 62-Haskell
+    │   ├── 63-Erlang
+    │   ├── 63-Go
+    │   ├── 64-Pyenv
+    │   ├── 65-Rust
+    │   ├── 66-Antigen
+    │   ├── 67-Lua
+    │   ├── 68-Zig
+    │   ├── 70-perl
+    │   ├── docker-scripts
+    │   └── gcc
+    └── pkg_config_paths.d
+        ├── from-crystal
+        ├── libiconv
+        ├── openssl
+        └── readline
 
     $ tree /etc/paths.d/
     /etc/paths.d/
