@@ -1,0 +1,24 @@
+Name: PKG_CONFIG_PATH
+Options: {:name=>"PKG_CONFIG_PATH", :current_path=>nil, :debug=>true, :verbose=>true}
+Search order: [:config, :etc]
+	/root/.config/paths/pkg_config_paths.d
+	/root/.config/paths/pkg_config_paths
+	/etc/pkg_config_paths.d
+	/etc/pkg_config_paths
+
+Results: (duplicates marked by ✗)
+
+/root/.config/paths/pkg_config_paths.d/from-crystal
+ └── /opt/crystal/embedded/lib/pkgconfig
+/root/.config/paths/pkg_config_paths.d/libiconv
+ └── ~/Library/Frameworks/Libiconv.framework/Versions/Current/lib/pkgconfig
+/root/.config/paths/pkg_config_paths.d/openssl
+ └── /Users/iainb/Library/Frameworks/OpenSSL.framework/Versions/1.1.1a/lib/pkgconfig
+/root/.config/paths/pkg_config_paths.d/readline
+ └── /Users/iainb/Library/Frameworks/Readline.framework/Versions/8.0/lib/pkgconfig
+/root/.config/paths/pkg_config_paths
+/etc/pkg_config_paths
+
+Env var:
+/opt/crystal/embedded/lib/pkgconfig:/root/Library/Frameworks/Libiconv.framework/Versions/Current/lib/pkgconfig:/Users/iainb/Library/Frameworks/OpenSSL.framework/Versions/1.1.1a/lib/pkgconfig:/Users/iainb/Library/Frameworks/Readline.framework/Versions/8.0/lib/pkgconfig
+

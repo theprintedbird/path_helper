@@ -1,0 +1,1 @@
+/opt/crystal/embedded/lib/pkgconfig:/root/Library/Frameworks/Libiconv.framework/Versions/Current/lib/pkgconfig:/Users/iainb/Library/Frameworks/OpenSSL.framework/Versions/1.1.1a/lib/pkgconfig:/Users/iainb/Library/Frameworks/Readline.framework/Versions/8.0/lib/pkgconfig

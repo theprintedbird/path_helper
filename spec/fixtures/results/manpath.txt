@@ -1,0 +1,1 @@
+/root/Library/Frameworks/LLVM.framework/man:/opt/pkg/share/man:/opt/pkg/share/doc:/opt/local/share/man:/opt/local/share/doc:/root/.oh-my-zsh/custom/plugins/fzf/man:/root/.opam/4.10.0/man

@@ -1,0 +1,9 @@
+/opt/local/libexec/llvm-11/include
+/opt/pkg/include/llvm
+/opt/pkg/include/llvm-c
+~/Library/Frameworks/LLVM.framework/Headers
+~/Library/Frameworks/LLVM.framework/Headers/clang
+~/Library/Frameworks/LLVM.framework/Headers/lld
+~/Library/Frameworks/LLVM.framework/Headers/llvm
+~/Library/Frameworks/LLVM.framework/Headers/mlir
+~/Library/Frameworks/LLVM.framework/Headers/polly
