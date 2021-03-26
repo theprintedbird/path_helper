@@ -149,7 +149,7 @@ Once you start installing various things it make sense to keep their paths in th
 
 Because this is such a useful pattern that I've extended it for headers and includes, read on!
 
-## Man paths and DYLD and C_INCLUDE ##
+## Man paths and DYLD and C_INCLUDE and PKG_CONFIG ##
 
 ### Manpaths
 
@@ -197,31 +197,43 @@ Same again for `C_INCLUDE`:
 
 (and the `include_paths.d` sub dir too, for the last two if you wish).
 
+### PKG_CONFIG_PATH
+
+Did you know that there's a `PKG_CONFIG_PATH`? There is, check the man page.
+
+- `~/Library/Paths/pkg_config_paths.d/`
+- `~/Library/Paths/pkg_config_paths`
+- `~/.config/pkg_config_paths.d/`
+- `~/.config/pkg_config_paths`
+- `/etc/pkg_config_paths.d/`
+- `/etc/pkg_config_paths`
+
 ## HOW DO I GET THIS WONDERFUL JOYFUL EVENT MAKER INTO MY LIFE? ##
 
 I was going to make this into a Ruby gem but that is such a faff. Here's the gist of it:
 
 - Download it (use `git clone` or a download link, you can even just copy and past the [script](exe/path_helper))
 - Make sure it has the correct permissions (`chmod +x`)
-- Run the `--setup`
+- Have a look at the help by running it with `-h`.
+- Run the `--setup` (take note of the `--lib` and `--config` and their `--no-` counterparts)
 - Copy and paste the bit setup tells you to, and put it in your `~/.zshenv` or `~/.bashenv`
 - Find your life is so much better now it's easy to manage your paths
 
 For example:
 
-# I put my path_helper in `/usr/local/libexec` because I'm the only person using this machine
-# and I want my other accounts to be able to access its goodness.
-sudo mkdir -p /usr/local/libexec
-cd /usr/local/libexec
-# ~/Projects/path_helper is where I keep the project
-ln ~/Projects/path_helper/exe/path_helper .
-chmod +x path_helper
-# Look at the help because you're not like everyone else, you read instructions ;-)
-path_helper --help
-# You need sudo to add the folders in /etc, see the --help if you don't want that
-sudo path_helper --setup
-# See what's already there
-path_helper --debug
+    # I put my path_helper in `/usr/local/libexec` because I'm the only person using this machine
+    # and I want my other accounts to be able to access its goodness.
+    sudo mkdir -p /usr/local/libexec
+    cd /usr/local/libexec
+    # ~/Projects/path_helper is where I keep the project
+    ln ~/Projects/path_helper/exe/path_helper .
+    chmod +x path_helper
+    # Look at the help because you're not like everyone else, you read instructions ;-)
+    path_helper --help
+    # You need sudo to add the folders in /etc, see the --help if you don't want that
+    sudo path_helper --setup
+    # See what's already there
+    path_helper --debug
 
 
 Apple's path_helper is in `/usr/libexec`, this install won't touch it, you can always use it or return to it if you wish.
