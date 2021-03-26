@@ -238,93 +238,144 @@ The script **doesn't set the PATH**, it *returns* a path, **you have to set the 
 ## My actual system
 
     $ tree ~/Library/Paths 
-    /Users/iainb/Library/Paths
-    ├── include_paths
-    ├── manpaths.d
-    │   └── 30-oh-my-zshell
-    ├── paths
-    └── paths.d
-        ├── 05-pkgsrc
-        ├── 08-homebrew
-        ├── 10-keybase
-        ├── 30-oh-my-zshell
-        ├── 50-ngrok
-        ├── 55-Crystal-opt
-        ├── 60-Crystal
-        ├── 61-Opam
-        ├── 62-Haskell
-        ├── 63-Erlang
-        ├── 63-Go
-        ├── 64-Pyenv
-        ├── 65-Rust
-        └── 66-Antigen
+/Users/iainb/Library/Paths
+├── c_include_paths
+├── c_include_paths.d
+│   ├── 03-bdwgc
+│   ├── 04-llvm
+│   ├── 05-gcc7
+│   ├── 06-gcc48
+│   ├── libiconv
+│   └── zig
+├── dyld_framework_paths
+├── dyld_framework_paths.d
+├── dyld_library_paths
+├── dyld_library_paths.d
+│   ├── 04-llvm
+│   ├── 05-gcc7
+│   ├── 06-gcc48
+│   ├── 61-Opam-and-OCaml
+│   └── libiconv
+├── manpaths
+├── manpaths.d
+│   ├── 02-fzf
+│   ├── 04-llvm
+│   ├── 04-pkgin
+│   ├── 05-macports
+│   └── 61-Opam-and-OCaml
+├── paths
+├── paths.d
+│   ├── 02-fzf
+│   ├── 03-libiconv
+│   ├── 04-llvm
+│   ├── 05-pkgsrc
+│   ├── 10-keybase
+│   ├── 50-ngrok
+│   ├── 55-Crystal-opt
+│   ├── 60-Crystal
+│   ├── 61-Opam-and-OCaml
+│   ├── 62-Haskell
+│   ├── 63-Erlang
+│   ├── 63-Go
+│   ├── 64-Pyenv
+│   ├── 65-Rust
+│   ├── 66-Antigen
+│   ├── 67-Lua
+│   ├── 68-Zig
+│   ├── 70-perl
+│   ├── docker-scripts
+│   └── gcc
+└── pkg_config_paths.d
+    ├── from-crystal
+    ├── libiconv
+    ├── openssl
+    └── readline
 
     $ tree /etc/paths.d/
     /etc/paths.d/
+    ├── 10-BitKeeper
     ├── 10-pkgsrc
     ├── 15-macports
     ├── 20-XCode
     ├── MacGPG2
+    ├── dotnet
+    ├── dotnet-cli-tools
     ├── go
-    └── mono-commands
+    ├── mono-commands
+    └── workbooks
 
 
 ## You know what else is helpful?
 
-The --debug flag. For example:
+The `--debug` flag. For example:
 
-    $ exe/path_helper --debug           
+    $ exe/path_helper -p --debug           
+    Name: PATH
+    Options: {:name=>"PATH", :current_path=>nil, :debug=>true, :verbose=>true}
+    Search order: [:config, :etc]
+      /root/.config/paths/paths.d
+      /root/.config/paths/paths
+      /etc/paths.d
+      /etc/paths
+
+    Results: (duplicates marked by ✗)
+
+    /root/.config/paths/paths.d/03-libiconv
+     └── ~/Library/Frameworks/Libiconv.framework/Versions/Current/bin
+    /root/.config/paths/paths.d/04-llvm
+     ├── /opt/local/libexec/llvm-11/bin
+     ├── /opt/pkg/bin
+     └── ~/Library/Frameworks/LLVM.framework/Programs
+    /root/.config/paths/paths.d/05-pkgsrc
+     ├── /opt/pkg/bin ✗
+     ├── /opt/pkg/sbin
+     └── /opt/pkg/gnu/bin
+    /root/.config/paths/paths.d/10-keybase
+     ├── $HOME/gopath
+     └── $HOME/gopath/bin
+    /root/.config/paths/paths.d/30-oh-my-zshell
+     └── ~/.oh-my-zsh/custom/plugins/fzf/bin
+    /root/.config/paths/paths.d/50-ngrok
+     └── ~/Applications/ngrok
+    /root/.config/paths/paths.d/55-Crystal-opt
+     ├── /opt/crystal/bin
+     └── /opt/crystal/embedded/bin
+    /root/.config/paths/paths.d/60-Crystal
+     ├── ~/Library/Frameworks/Crystal.framework/Versions/Current/bin
+     └── ~/Library/Frameworks/Crystal.framework/Versions/Current/embedded/bin
+    /root/.config/paths/paths.d/61-Opam-and-OCaml
+     ├── ~/Library/Frameworks/Opam.framework/Programs
+     ├── ~/.opam/4.10.0/bin
+     └── ~/.opam/4.10.0/sbin
+    /root/.config/paths/paths.d/62-Haskell
+     └── ~/Library/Haskell/bin
+    /root/.config/paths/paths.d/63-Erlang
+     └── ~/Library/Frameworks/Erlang.framework/Programs
+    /root/.config/paths/paths.d/63-Go
+     └── ~/go/bin
+    /root/.config/paths/paths.d/64-Pyenv
+     └── ~/.pyenv/bin
+    /root/.config/paths/paths.d/65-Rust
+     └── ~/.cargo/bin
+    /root/.config/paths/paths.d/66-Antigen
+     └── ~/bin
+    /root/.config/paths/paths.d/67-Lua
+     └── ~/.lua/bin
+    /root/.config/paths/paths.d/68-Zig
+     └── ~/Library/Frameworks/Zig.framework/Programs
+    /root/.config/paths/paths.d/docker-scripts
+     └── ~/Projects/ThePrintedBird/scripts/docker
+    /root/.config/paths/paths.d/gcc
+     ├── /opt/pkg/gcc7/bin
+     └── /opt/pkg/gcc48/bin
+    /root/.config/paths/paths
+     └── /opt/local/sbin
+    /etc/paths
+
+    Env var:
+    /root/Library/Frameworks/Libiconv.framework/Versions/Current/bin:/opt/local/libexec/llvm-11/bin:/opt/pkg/bin:/root/Library/Frameworks/LLVM.framework/Programs:/opt/pkg/sbin:/opt/pkg/gnu/bin:$HOME/gopath:$HOME/gopath/bin:/root/.oh-my-zsh/custom/plugins/fzf/bin:/root/Applications/ngrok:/opt/crystal/bin:/opt/crystal/embedded/bin:/root/Library/Frameworks/Crystal.framework/Versions/Current/bin:/root/Library/Frameworks/Crystal.framework/Versions/Current/embedded/bin:/root/Library/Frameworks/Opam.framework/Programs:/root/.opam/4.10.0/bin:/root/.opam/4.10.0/sbin:/root/Library/Haskell/bin:/root/Library/Frameworks/Erlang.framework/Programs:/root/go/bin:/root/.pyenv/bin:/root/.cargo/bin:/root/bin:/root/.lua/bin:/root/Library/Frameworks/Zig.framework/Programs:/root/Projects/ThePrintedBird/scripts/docker:/opt/pkg/gcc7/bin:/opt/pkg/gcc48/bin:/opt/local/sbin
 
 
-                                                                      Path | Found in                                 | Ignored duplicate                                           
-                                                                      ---- | --------                                 | -----------------                                           
-                                                              /opt/pkg/bin | ~/Library/Paths/paths.d/05-pkgsrc        | 
-                                                                           | /etc/paths.d/10-pkgsrc                   |   ✗                   
-                                                             /opt/pkg/sbin | ~/Library/Paths/paths.d/05-pkgsrc        | 
-                                                                           | /etc/paths.d/10-pkgsrc                   |   ✗                   
-                                                          /opt/pkg/gnu/bin | ~/Library/Paths/paths.d/05-pkgsrc        | 
-                                                            ~/homebrew/bin | ~/Library/Paths/paths.d/08-homebrew      | 
-                                                              $HOME/gopath | ~/Library/Paths/paths.d/10-keybase       | 
-                                                          $HOME/gopath/bin | ~/Library/Paths/paths.d/10-keybase       | 
-                                       ~/.oh-my-zsh/custom/plugins/fzf/bin | ~/Library/Paths/paths.d/30-oh-my-zshell  | 
-                                                      ~/Applications/ngrok | ~/Library/Paths/paths.d/50-ngrok         | 
-                                                          /opt/crystal/bin | ~/Library/Paths/paths.d/55-Crystal-opt   | 
-                                                 /opt/crystal/embedded/bin | ~/Library/Paths/paths.d/55-Crystal-opt   | 
-               ~/Library/Frameworks/Crystal.framework/Versions/Current/bin | ~/Library/Paths/paths.d/60-Crystal       | 
-      ~/Library/Frameworks/Crystal.framework/Versions/Current/embedded/bin | ~/Library/Paths/paths.d/60-Crystal       | 
-                              ~/Library/Frameworks/Opam.framework/Programs | ~/Library/Paths/paths.d/61-Opam          | 
-                                                     ~/Library/Haskell/bin | ~/Library/Paths/paths.d/62-Haskell       | 
-                            ~/Library/Frameworks/Erlang.framework/Programs | ~/Library/Paths/paths.d/63-Erlang        | 
-                                                                  ~/go/bin | ~/Library/Paths/paths.d/63-Go            | 
-                                                              ~/.pyenv/bin | ~/Library/Paths/paths.d/64-Pyenv         | 
-                                                              ~/.cargo/bin | ~/Library/Paths/paths.d/65-Rust          | 
-                                                                     ~/bin | ~/Library/Paths/paths.d/66-Antigen       | 
-                                                            /opt/local/bin | /etc/paths.d/15-macports                 | 
-                               /Library/Developer/CommandLineTools/usr/bin | /etc/paths.d/20-XCode                    | 
-                                                                           | /etc/paths.d/20-XCode                    | 
-                                                    /usr/local/MacGPG2/bin | /etc/paths.d/MacGPG2                     | 
-                                                         /usr/local/go/bin | /etc/paths.d/go                          | 
-              /Library/Frameworks/Mono.framework/Versions/Current/Commands | /etc/paths.d/mono-commands               | 
-                                                            /usr/local/bin | /etc/paths                               | 
-                                                           /usr/local/sbin | /etc/paths                               | 
-                                                                  /usr/bin | /etc/paths                               | 
-                                                                 /usr/sbin | /etc/paths                               | 
-                                                                      /bin | /etc/paths                               | 
-                                                                     /sbin | /etc/paths                               | 
-
-
-    Current:
-    /Users/iainb/.gem/ruby/2.6.3/bin:/Users/iainb/Library/Frameworks/Ruby.framework/Versions/2.6.3/lib/ruby/gems/2.6.0/bin:/Users/iainb/Library/Frameworks/Ruby.framework/Versions/2.6.3/bin:/Users/iainb/.opam/4.06.1/bin:/Users/iainb/perl5/bin:/opt/pkg/bin:/opt/pkg/sbin:/opt/pkg/gnu/bin:/Users/iainb/homebrew/bin:$HOME/gopath:$HOME/gopath/bin:/Users/iainb/.oh-my-zsh/custom/plugins/fzf/bin:/Users/iainb/Applications/ngrok:/Users/iainb/Library/Frameworks/Crystal.framework/Versions/Current/bin:/Users/iainb/Library/Frameworks/Crystal.framework/Versions/Current/embedded/bin:/Users/iainb/Library/Frameworks/Opam.framework/Programs:/Users/iainb/Library/Haskell/bin:/Users/iainb/Library/Frameworks/Erlang.framework/Programs:/Users/iainb/go/bin:/Users/iainb/.pyenv/bin:/Users/iainb/.cargo/bin:/Users/iainb/bin:/opt/local/bin:/usr/local/MacGPG2/bin:/usr/local/go/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
-
-
-    If you expected items you'd inserted in the path manually to
-    show up earlier then either clear the path before running this
-    and reinsert or add paths via:
-      (~/Library/Paths|~/config)/paths.d
-      (~/Library/Paths|~/config)/paths/*)
-
-
-    /opt/pkg/bin:/opt/pkg/sbin:/opt/pkg/gnu/bin:/Users/iainb/homebrew/bin:$HOME/gopath:$HOME/gopath/bin:/Users/iainb/.oh-my-zsh/custom/plugins/fzf/bin:/Users/iainb/Applications/ngrok:/opt/crystal/bin:/opt/crystal/embedded/bin:/Users/iainb/Library/Frameworks/Crystal.framework/Versions/Current/bin:/Users/iainb/Library/Frameworks/Crystal.framework/Versions/Current/embedded/bin:/Users/iainb/Library/Frameworks/Opam.framework/Programs:/Users/iainb/Library/Haskell/bin:/Users/iainb/Library/Frameworks/Erlang.framework/Programs:/Users/iainb/go/bin:/Users/iainb/.pyenv/bin:/Users/iainb/.cargo/bin:/Users/iainb/bin:/opt/local/bin:/Library/Developer/CommandLineTools/usr/bin:/usr/local/MacGPG2/bin:/usr/local/go/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin%  
 
 Everything you need to know! Very useful for working out when other things are manipulating the path too.
 
@@ -332,7 +383,33 @@ Everything you need to know! Very useful for working out when other things are m
 
 I'm happy to hear from you, email me or open an issue. Pull requests are fine too, try to bring me a spec or an example if you want a feature or find a bug.
 
-Sorry the current specs aren't in such good shape, I hope to improve that.
+### To get set up for development
+
+Run:
+
+    docker build --squash -t path_helper .
+
+and I tend to get rid of the intermediate layers:
+
+    docker images --no-trunc -aqf "dangling=true" | xargs docker rmi
+
+### To run the specs
+
+Shell in and have a play:
+
+    docker run --rm -ti -v "$PWD":/root path_helper sh
+
+    ./exe/path_helper --setup --no-lib
+    ./spec/shell_spec.sh
+    ./exe/path_helper -p
+    ./exe/path_helper -c
+    ./exe/path_helper -f
+    ./exe/path_helper -l
+    ./exe/path_helper -m
+    ./exe/path_helper --pc
+    ./exe/path_helper -p --debug
+    exit
+
 
 ## Licence
 
