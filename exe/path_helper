@@ -141,7 +141,7 @@ module PathHelper
       @current_path = options.fetch(:current_path, ENV[@options[:name]])
     end
 
-    attr_reader :section
+    attr_reader :section, :options
 
 
     # The plan:
@@ -256,6 +256,7 @@ module PathHelper
       findings = {}
       dup_text = " #{Colours::Red}✗#{Colours::Normal}"
       output << "Name: #{Colours::Green}#{@graph[:name]}#{Colours::Normal}"
+      output << "Options: #{@helper.options}"
       output << "Search order: #{@graph[:search_order]}"
       @graph[:search_order].each do |segment|
         output << "\t#{Colours::Yellow}#{@graph[:directories][segment]}#{Colours::Normal}"
@@ -364,7 +365,7 @@ else
     debugger = PathHelper::Debug.new helper
     print debugger.render
     puts "\n\nEnv var:\n"
-    print env_var
+    print env_var << "\n\n"
   else
     print helper.run
   end
