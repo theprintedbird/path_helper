@@ -221,9 +221,8 @@ I was going to make this into a Ruby gem but that is such a faff. Here's the gis
 
 For example:
 
-    # I put my path_helper in `/usr/local/libexec` 
-    # because I'm the only person using this machine
-    # and I want my other accounts to be able to access its goodness.
+I put my path_helper in `/usr/local/libexec` because I'm the only person using this machine and I want my other accounts to be able to access its goodness but you can put it anywhere you like.
+
     sudo mkdir -p /usr/local/libexec
     cd /usr/local/libexec
     # ~/Projects/path_helper is where I keep the project
