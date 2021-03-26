@@ -249,14 +249,23 @@ Apple's path_helper is in `/usr/libexec`, this install won't touch it, you can a
 And checking its output:
 
     $ /usr/local/libexec/path_helper -p
-    PATH="/opt/pkg/sbin:/opt/pkg/bin:/opt/X11/bin:/opt/ImageMagick/bin:/usr/local/MacGPG2/bin:/usr/local/git/bin:/opt/puppetlabs/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin"; export PATH;
+    /opt/pkg/sbin:/opt/pkg/bin:/opt/X11/bin:/opt/ImageMagick/bin:/usr/local/MacGPG2/bin:/usr/local/git/bin:/opt/puppetlabs/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin"
+    
+To put it into the PATH via the command line:
+
+    $ PATH=$(/usr/local/libexec/path_helper -p)
+    $ export PATH
+
+but you'll probably use the helpful `--setup` instructions.
 
 ## NOTE!
 
-The script **doesn't set the PATH**, it *returns* a path, **you have to set the path** with it e.g. `PATH=$(/usr/local/libexec/path_helper.rb -p "")`. Call `/usr/local/libexec/path_helper -h` to see all the options.
+Remember, the script **doesn't set the PATH**, it *returns* a path, **you have to set the path** with it e.g. `PATH=$(/usr/local/libexec/path_helper.rb -p "")`. Call `/usr/local/libexec/path_helper -h` to see all the options.
 
 
 ## My actual system
+
+This is how my PATH var is set:
 
     $ tree ~/Library/Paths 
     /Users/iainb/Library/Paths
@@ -324,6 +333,34 @@ The script **doesn't set the PATH**, it *returns* a path, **you have to set the 
     ├── go
     ├── mono-commands
     └── workbooks
+
+    if [ -x "/path/to/path_helper" ]; then
+      PATH=$(ruby "/path/to/path_helper" -p 2>/dev/null)
+    fi
+    export PATH
+
+### In fact
+
+While I've been redeveloping this, I've been using this in my `~/.zshenv`:
+
+    # see https://github.com/yb66/path_helper
+    if [ -x "${HOME}/bin/path_helper" ]; then
+      PATH=$(ruby "${HOME}/bin/path_helper" -p 2>/dev/null)
+      DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby "${HOME}/bin/path_helper" --dyld-fram 2>/dev/null)
+      DYLD_FALLBACK_LIBRARY_PATH=$(ruby "${HOME}/bin/path_helper" --dyld-lib  2>/dev/null)
+      C_INCLUDE_PATH=$(ruby "${HOME}/bin/path_helper" -c 2>/dev/null)
+      MANPATH=$(ruby "${HOME}/bin/path_helper" -m 2>/dev/null)
+      # Pkgconfig is underrated for getting things to compile.
+      PKG_CONFIG_PATH=$(ruby "${HOME}/bin/path_helper" --pc 2>/dev/null)
+    fi
+    export PATH
+    export DYLD_FALLBACK_FRAMEWORK_PATH
+    export DYLD_FALLBACK_LIBRARY_PATH
+    export C_INCLUDE_PATH
+    export MANPATH
+    export PKG_CONFIG_PATH
+
+Those `2>/dev/null` are because the Ruby team decided to spam us with warnings about everything. Thanks, Ruby core team!
 
 
 ## You know what else is helpful?
@@ -395,7 +432,6 @@ The `--debug` flag. For example:
 
     Env var:
     /root/Library/Frameworks/Libiconv.framework/Versions/Current/bin:/opt/local/libexec/llvm-11/bin:/opt/pkg/bin:/root/Library/Frameworks/LLVM.framework/Programs:/opt/pkg/sbin:/opt/pkg/gnu/bin:$HOME/gopath:$HOME/gopath/bin:/root/.oh-my-zsh/custom/plugins/fzf/bin:/root/Applications/ngrok:/opt/crystal/bin:/opt/crystal/embedded/bin:/root/Library/Frameworks/Crystal.framework/Versions/Current/bin:/root/Library/Frameworks/Crystal.framework/Versions/Current/embedded/bin:/root/Library/Frameworks/Opam.framework/Programs:/root/.opam/4.10.0/bin:/root/.opam/4.10.0/sbin:/root/Library/Haskell/bin:/root/Library/Frameworks/Erlang.framework/Programs:/root/go/bin:/root/.pyenv/bin:/root/.cargo/bin:/root/bin:/root/.lua/bin:/root/Library/Frameworks/Zig.framework/Programs:/root/Projects/ThePrintedBird/scripts/docker:/opt/pkg/gcc7/bin:/opt/pkg/gcc48/bin:/opt/local/sbin
-
 
 
 Everything you need to know! Very useful for working out when other things are manipulating the path too.
