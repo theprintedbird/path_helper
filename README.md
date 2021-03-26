@@ -221,16 +221,19 @@ I was going to make this into a Ruby gem but that is such a faff. Here's the gis
 
 For example:
 
-    # I put my path_helper in `/usr/local/libexec` because I'm the only person using this machine
+    # I put my path_helper in `/usr/local/libexec` 
+    # because I'm the only person using this machine
     # and I want my other accounts to be able to access its goodness.
     sudo mkdir -p /usr/local/libexec
     cd /usr/local/libexec
     # ~/Projects/path_helper is where I keep the project
     ln ~/Projects/path_helper/exe/path_helper .
     chmod +x path_helper
-    # Look at the help because you're not like everyone else, you read instructions ;-)
+    # Look at the help because you're not like everyone else,
+    # you read instructions ;-)
     path_helper --help
-    # You need sudo to add the folders in /etc, see the --help if you don't want that
+    # You need sudo to add the folders in /etc,
+    # see the --help if you don't want that
     sudo path_helper --setup
     # See what's already there
     path_helper --debug
