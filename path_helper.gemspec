@@ -1,14 +1,12 @@
-require File.expand_path("../lib/#{File.basename(__FILE__, '.gemspec')}/version", __FILE__)
-
 Gem::Specification.new do |s|
   s.name            = "path_helper"
-  s.version         = PathHelper::VERSION
+  s.version         = "4.0.0"
   s.date            = %q{2019-07-28}
   s.summary         = %q{A replacement for Apple's /usr/libexec/path_helper}
   s.authors         = ["Iain Barnett"]
   s.homepage        = "https://github.com/yb66/path_helper"
   s.email           = ["helpful-iain@theprintedbird.com"]
-  s.files           = `git ls-files`.split($\)
+  s.files           = [".dockerignore",".gitignore",".travis.yml","CHANGES.md","Dockerfile","Gemfile","LICENCE","Makefile","README.md","exe/path_helper","path_helper.gemspec","spec/fixtures/moredirs/c_include_paths","spec/fixtures/moredirs/c_include_paths.d/03-bdwgc","spec/fixtures/moredirs/c_include_paths.d/04-llvm","spec/fixtures/moredirs/c_include_paths.d/05-gcc7","spec/fixtures/moredirs/c_include_paths.d/06-gcc48","spec/fixtures/moredirs/c_include_paths.d/libiconv","spec/fixtures/moredirs/c_include_paths.d/zig","spec/fixtures/moredirs/dyld_framework_paths","spec/fixtures/moredirs/dyld_library_paths","spec/fixtures/moredirs/dyld_library_paths.d/04-llvm","spec/fixtures/moredirs/dyld_library_paths.d/05-gcc7","spec/fixtures/moredirs/dyld_library_paths.d/06-gcc48","spec/fixtures/moredirs/dyld_library_paths.d/61-Opam-and-OCaml","spec/fixtures/moredirs/dyld_library_paths.d/libiconv","spec/fixtures/moredirs/manpaths","spec/fixtures/moredirs/manpaths.d/04-llvm","spec/fixtures/moredirs/manpaths.d/04-pkgin","spec/fixtures/moredirs/manpaths.d/05-macports","spec/fixtures/moredirs/manpaths.d/30-oh-my-zshell","spec/fixtures/moredirs/manpaths.d/61-Opam-and-OCaml","spec/fixtures/moredirs/paths","spec/fixtures/moredirs/paths.d/03-libiconv","spec/fixtures/moredirs/paths.d/04-llvm","spec/fixtures/moredirs/paths.d/05-pkgsrc","spec/fixtures/moredirs/paths.d/10-keybase","spec/fixtures/moredirs/paths.d/30-oh-my-zshell","spec/fixtures/moredirs/paths.d/50-ngrok","spec/fixtures/moredirs/paths.d/55-Crystal-opt","spec/fixtures/moredirs/paths.d/60-Crystal","spec/fixtures/moredirs/paths.d/61-Opam-and-OCaml","spec/fixtures/moredirs/paths.d/62-Haskell","spec/fixtures/moredirs/paths.d/63-Erlang","spec/fixtures/moredirs/paths.d/63-Go","spec/fixtures/moredirs/paths.d/64-Pyenv","spec/fixtures/moredirs/paths.d/65-Rust","spec/fixtures/moredirs/paths.d/66-Antigen","spec/fixtures/moredirs/paths.d/67-Lua","spec/fixtures/moredirs/paths.d/68-Zig","spec/fixtures/moredirs/paths.d/docker-scripts","spec/fixtures/moredirs/paths.d/gcc","spec/fixtures/moredirs/pkg_config_paths.d/from-crystal","spec/fixtures/moredirs/pkg_config_paths.d/libiconv","spec/fixtures/moredirs/pkg_config_paths.d/openssl","spec/fixtures/moredirs/pkg_config_paths.d/readline","spec/fixtures/results/c_include.txt","spec/fixtures/results/debug_path.txt","spec/fixtures/results/debug_pkg_config.txt","spec/fixtures/results/dyld-fram.txt","spec/fixtures/results/dyld-lib.txt","spec/fixtures/results/manpath.txt","spec/fixtures/results/path.txt","spec/fixtures/results/pkg_config.txt","spec/path_helper_spec.rb","spec/shell_spec.sh","spec/spec_helper.rb"]
   s.require_paths   = ["lib"]
   s.executables     = s.files.grep(%r{^exe/}).map{ |f| File.basename(f) }
 end
