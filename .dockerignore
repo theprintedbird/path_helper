@@ -1,0 +1,16 @@
+.DS_Store
+.bundle
+.git/
+.gitignore
+.rspec
+.travis.yml
+.yardopts
+CHANGES.md
+Dockerfile
+Gemfile.lock
+LICENCE
+Makefile
+README.md
+coverage
+exe/
+spec/
