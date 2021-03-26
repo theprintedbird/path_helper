@@ -32,6 +32,7 @@ This library fixes those problems by extending that to:
     C_INCLUDE_PATH  
     DYLD_FALLBACK_FRAMEWORK_PATH  
     DYLD_FALLBACK_LIBRARY_PATH  
+    PKG_CONFIG_PATH
 
 and of course, `PATH` and `MANPATH`.
 
