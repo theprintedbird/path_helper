@@ -107,7 +107,7 @@ Where the Apple `path_helper` falls down is:
 - It's only for `PATH` and `MANPATH` but development and administration often need headers and libraries accessible in the same way too.
 - The string it returns is designed to be `eval`'d. I know that `eval` isn't *always* evil but why not just return the `PATH` string and allow it to be set to a variable? Maybe there's more to be added.
 
-## <a name="">ALTERNATIVELY...</a>
+## <a name="alternatively---">ALTERNATIVELY...</a>
 
 This library fixes those problems and extends the concept to include other paths:
   
