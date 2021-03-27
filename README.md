@@ -208,7 +208,7 @@ That puts `/Users/iainb/Library/Haskell/bin` at the front of my path and will on
         └── 60-Haskell
 
 
-#### <a name="why-use-the-paths-d-sub-directory">WHY USE THE PATHS.D SUB DIRECTORY?</a>
+## <a name="why-use-the-paths-d-sub-directory">WHY USE THE PATHS.D SUB DIRECTORY?</a>
 
 If I show you my actual set up it'll become clearer:
 
