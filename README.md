@@ -248,7 +248,7 @@ If you don't have any of those dirs/files, they are skipped. Files within the `.
 
 ## <a name="why-library-paths-paths-and-not-library-paths-">WHY LIBRARY/PATHS/PATHS AND NOT LIBRARY/PATHS?</a>
 
-Because this is such a useful pattern that it can be extended for headers and includes, so Library/Paths/paths is for the PATH.
+Because this is such a useful pattern that it can be extended for headers and includes, so `~/Library/Paths/paths` is for the PATH, `~/Library/Paths/manpaths` is for the MANPATH etc.
 
 ## <a name="man-and-dyld-and-c-include-and-pkg-config">MAN and DYLD and C_INCLUDE and PKG_CONFIG</a>
 
