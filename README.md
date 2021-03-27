@@ -31,6 +31,8 @@ Interested? Then read on!
 - [YOU KNOW WHAT ELSE IS HELPFUL](#you-know-what-else-is-helpful-)
 - [DEVELOPMENT](#development)
 - [TO GET SET UP FOR DEVELOPMENT](#to-get-set-up-for-development)
+- [TO RUN THE SPECS](#to-run-the-specs)
+- [SHELL IN AND HAVE A PLAY](#shell-in-and-have-a-play)
 - [LICENCE](#licence)
 
 ## <a name="what-is-it-">WHAT IS IT?</a>
@@ -556,11 +558,11 @@ and I tend to get rid of the intermediate layers:
 
     docker images --no-trunc -aqf "dangling=true" | xargs docker rmi
 
-### TO RUN THE SPECS
+### <a name="to-run-the-specs">TO RUN THE SPECS</a>
 
     docker run --rm path_helper
 
-### SHELL IN AND HAVE A PLAY:
+### <a name="shell-in-and-have-a-play">SHELL IN AND HAVE A PLAY</a>
 
     docker run --rm -ti --entrypoint="" path_helper sh
 
@@ -583,7 +585,7 @@ Have a look at the output:
     ./exe/path_helper --pc
     ./exe/path_helper -p --debug
 
-See the colours:
+See the pretty colours:
 
     apk add ncurses
 
