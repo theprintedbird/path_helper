@@ -1,33 +1,109 @@
 # path_helper
 
-## WHAT?
+Hard-coding strings is bad, yet you probably hard-code your `PATH`. This way is far more organised. You could even target it with your app! 
+
+Interested? Then read on!
+
+- [WHAT IS IT?](#what-is-it-)
+- [WHAT DOES THAT DO?](#what-does-that-do-)
+- [HOW DOES THE APPLE ONE WORK?](#how-does-the-apple-one-work-)
+- [WHY REPLACE IT?](#why-replace-it-)
+- [MORE DRAWBACKS](#more-drawbacks)
+- [ALTERNATIVELY...](#alternatively---)
+- [DO I NEED TO BE ON APPLE TO USE IT?](#do-i-need-to-be-on-apple-to-use-it-)
+- [HOW DOES PATH_HELPER KNOW WHAT TO PUT IN THE PATH?](#how-does-path-helper-know-what-to-put-in-the-path-)
+- [PER USER PATHS](#per-user-paths)
+- [WHY USE THE PATHS.D SUB DIRECTORY?](#why-use-the-paths-d-sub-directory)
+- [ORDERING](#ordering)
+- [WHY LIBRARY/PATHS/PATHS AND NOT LIBRARY/PATHS?](#why-library-paths-paths-and-not-library-paths-)
+- [MAN and DYLD and C_INCLUDE and PKG_CONFIG](#man-and-dyld-and-c-include-and-pkg-config)
+- [MANPATH](#manpath)
+- [DYLD_FALLBACK_LIBRARY_PATH and DYLD_FALLBACK_FRAMEWORK_PATH](#dyld-fallback-library-path-and-dyld-fallback-framework-path)
+- [C_INCLUDE_PATH](#c-include-path)
+- [PKG_CONFIG_PATH](#pkg-config-path)
+- [HOW DO I GET THIS WONDERFUL JOYFUL EVENT MAKER INTO MY LIFE? A.K.A. install instructions](#how-do-i-get-this-wonderful-joyful-event-maker-into-my-life-)
+- [FOR EXAMPLE](#for-example-)
+- [MY ACTUAL SYSTEM](#my-actual-system)
+- [IN FACT](#in-fact)
+- [YOU KNOW WHAT ELSE IS HELPFUL](#you-know-what-else-is-helpful-)
+- [DEVELOPMENT](#development)
+- [TO GET SET UP FOR DEVELOPMENT](#to-get-set-up-for-development)
+- [LICENCE](#licence)
+
+## <a name="what-is-it-">WHAT IS IT?</a>
 
 A replacement for Apple's `/usr/libexec/path_helper`.
 
-## WHAT DOES THAT DO?
+## <a name="what-does-that-do-">WHAT DOES THAT DO?</a>
 
-It helps set the PATH environment variable, among other things.
+It helps set the PATH and MANPATH environment variables.
 
-## WHY REPLACE IT?
+## <a name="how-does-the-apple-one-work-">HOW DOES THE APPLE ONE WORK?</a>
 
-Because Apple's one loads the system libraries to the front, which almost certainly isn't what you want. Have a look:
+Segments of the path are defined in text files under `/etc/paths.d` and in `/etc/path`. For example, on my machine:
+
+    $ tree /etc/paths.d
+    /etc/paths.d
+    ├── 10-BitKeeper
+    ├── 10-pkgsrc
+    ├── 15-macports
+    ├── 20-XCode
+    ├── MacGPG2
+    ├── dotnet
+    ├── dotnet-cli-tools
+    ├── go
+    ├── mono-commands
+    └── workbooks
+
+    $ cat /etc/paths /etc/paths.d/*
+    /usr/local/bin
+    /usr/local/sbin
+    /usr/bin
+    /usr/sbin
+    /bin
+    /sbin
+    /Applications/GPAC.app/Contents/MacOS/
+    /Applications/BitKeeper.app/Contents/Resources/bitkeeper
+    /opt/pkg/sbin
+    /opt/pkg/bin
+    /opt/local/bin
+    /Library/Developer/CommandLineTools/usr/bin
+    /usr/local/MacGPG2/bin
+    /usr/local/share/dotnet
+    ~/.dotnet/tools
+    /usr/local/go/bin
+    /Library/Frameworks/Mono.framework/Versions/Current/Commands
+    /Applications/Xamarin Workbooks.app/Contents/SharedSupport/path-bin
+    /usr/local/sbin
+    /usr/bin
+    /usr/sbin
+    /bin
+    /sbin
+    /Applications/GPAC.app/Contents/MacOS/
+
+## <a name="why-replace-it-">WHY REPLACE IT?</a>
+
+Because Apple's one loads the system libraries to the front, take a look:
 
     $ /usr/libexec/path_helper
-    PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
-    <snip!>
+    PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/Applications/GPAC.app/Contents/MacOS/:/usr/local/go/bin:/Library/Developer/CommandLineTools/usr/bin:<snip!>
+  
+  …the rest of the items are added *after*, which means anything you add to `/etc/paths.d/` will end up after the system libraries. Want your up-to-date OpenSSL installed via Macports to be first in the PATH? Apple says "too bad!" Want your much newer version of LLVM installed via pkgin to be hit first? Apple says "too bad!"
 
-## WHAT ELSE DOES IT DO?
+Well, there are alternatives.
 
-I'm glad you asked. Apple has some good ideas (lots of them, actually) that developers overlook for whatever reason. One of them is the [*framework bundle structures*](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/FrameworkAnatomy.html), but more on that in a moment.
+## <a name="more-drawbacks">MORE DRAWBACKS</a>
 
-Apple's `path_helper` helps organise the `PATH` and `MANPATH` by listing things you want added to the path in text files in well known locations (e.g. /etc/paths and /etc/paths.d/*) it's easy to create a PATH that works for you. Where the Apple `path_helper` falls down is:
+Where the Apple `path_helper` falls down is:
 
-- It puts them in /etc meaning you need elevated permissions
-- Being in /etc also makes them system wide
-- It's only for `PATH` and `MANPATH` but development and administration often need new installs' headers and libraries accessible in the same way too
-- The string it returns is designed to be `eval`'d. I know that `eval` isn't *always* evil but why not just return the `PATH` string and allow it to be set to a variable - maybe there's more to be added? Just a thought.
+- It puts things in /etc, meaning you need elevated permissions to add/remove path segments.
+- Being in /etc also makes them system wide.
+- It's only for `PATH` and `MANPATH` but development and administration often need headers and libraries accessible in the same way too.
+- The string it returns is designed to be `eval`'d. I know that `eval` isn't *always* evil but why not just return the `PATH` string and allow it to be set to a variable? Maybe there's more to be added.
 
-This library fixes those problems by extending that to:
+## <a name="">ALTERNATIVELY...</a>
+
+This library fixes those problems and extends the concept to include other paths:
   
     C_INCLUDE_PATH  
     DYLD_FALLBACK_FRAMEWORK_PATH  
@@ -36,11 +112,11 @@ This library fixes those problems by extending that to:
 
 and of course, `PATH` and `MANPATH`.
 
-## DO I NEED TO BE ON APPLE TO USE IT?
+## <a name="do-i-need-to-be-on-apple-to-use-it-">DO I NEED TO BE ON APPLE TO USE IT?</a>
 
 No, it should work on any unix-like system.
 
-## HOW DOES PATH_HELPER KNOW WHAT TO PUT IN THE PATH?
+## <a name="how-does-path-helper-know-what-to-put-in-the-path-">HOW DOES PATH_HELPER KNOW WHAT TO PUT IN THE PATH?</a>
 
 Apple has put paths in `/etc/paths` and further files are there for the user or apps to add under `/etc/paths.d/`. If you want to order them then prefixing a number works well, e.g.
 
@@ -64,7 +140,6 @@ The format of the file is simply a path per line, e.g.
     /bin
     /sbin
 
-
 The order *within* the file matters as well as the order the files are read/concatenated.
 
 ### Note: ###
@@ -72,20 +147,34 @@ The order *within* the file matters as well as the order the files are read/conc
 The `/etc/paths` file in Apple isn't set out fully or in the order I'd want so I changed mine, you may want to do the same.
 
 
-## Per user paths ##
+## <a name="per-user-paths">PER USER PATHS</a>
 
 This is the bit I like best.
 
 There's not really any help made for paths that might be local to the user, like `~/.rubies` or something like that so I've added two places the Ruby script will check for further paths:
 
-- `~/Library/Paths/paths.d` and `~/Library/Paths/paths`, and 
-- `~/.config/paths.d/` and `~/.config/paths`
+- `~/Library/Paths/paths.d` and
+- `~/Library/Paths/paths`
+- `~/.config/paths.d/` and
+- `~/.config/paths`
 
-You can use the `--setup` to have the path_helper set up the directory layout and files, you just have to fill them!
+You can use the `--setup` switch to have the path_helper set up the directory layout and files, you just have to fill them!
 
 The Ruby script will also allow use of the tilde `~` character in a path by replacing it with the `HOME` env variable. For example, if I install Haskell and want to put it in my path I can do the following.
 
+### Pre-req
+
+    path_helper --setup --no-config --no-etc
+
+This would set up the `~/Library/Paths` for you, which fits a Mac very well.
+
+    path_helper --setup --no-lib --no-etc
+
+You might choose this way if you're on a Mac or using Linux. It's up to you.
+
 ### Way 1, Use the paths, Luke
+
+On my Mac, Haskell resides in `~/Library/Haskell`.
 
     $ echo '~/Library/Haskell/bin' > ~/Library/Paths/paths
 
@@ -110,7 +199,7 @@ That puts `/Users/iainb/Library/Haskell/bin` at the front of my path and will on
         └── 60-Haskell
 
 
-#### Why use the paths.d sub directory?
+#### <a name="why-use-the-paths-d-sub-directory">WHY USE THE PATHS.D SUB DIRECTORY?</a>
 
 If I show you my actual set up it'll become clearer:
 
@@ -133,25 +222,28 @@ If I show you my actual set up it'll become clearer:
         ├── 65-Rust
         └── 66-Antigen
 
-Once you start installing various things it make sense to keep their paths in their own file, it's easier to organise (and remove).
+Once you start installing various things it make sense to keep their paths in their own file, it's easier to organise (and remove). It's also easy for apps to target this to easily add things to a path. Some apps already do this by adding to `/etc/paths.d` but that obviously needs elevated privileges and makes things system wide.
 
-## The order
+## <a name="ordering">ORDERING</a>
 
+path_helper will read files in this order:
 
-    Library/Paths/paths.d ordered as the file system does
+    Library/Paths/paths.d
     Library/Paths/paths
-    .config/paths.d (same again)
+    .config/paths.d
     .config/paths
-    /etc/paths.d (same again)
+    /etc/paths.d
     /etc/paths
 
-## Why Library/Paths/paths and not Library/paths ?
+If you don't have any of those dirs/files, they are skipped. Files within the `.d` dirs are read in file system order.
 
-Because this is such a useful pattern that I've extended it for headers and includes, read on!
+## <a name="why-library-paths-paths-and-not-library-paths-">WHY LIBRARY/PATHS/PATHS AND NOT LIBRARY/PATHS?</a>
 
-## Man paths and DYLD and C_INCLUDE and PKG_CONFIG ##
+Because this is such a useful pattern that it can be extended for headers and includes, so Library/Paths/paths is for the PATH.
 
-### Manpaths
+## <a name="man-and-dyld-and-c-include-and-pkg-config">MAN and DYLD and C_INCLUDE and PKG_CONFIG</a>
+
+### <a name="manpath">MANPATH</a>
 
 Apple has already dictated that `/etc/manpaths` and `/etc/manpaths.d/` are the default paths for setting `MANPATH`, so the same pattern has been followed for that as with `PATH`, so just add `~/Library/Paths/manpaths` or `~/.config/manpaths` along with the `manpaths.d` sub directory if you wish.
 
@@ -162,14 +254,16 @@ Apple has already dictated that `/etc/manpaths` and `/etc/manpaths.d/` are the d
 - `/etc/manpaths.d/`
 - `/etc/manpaths`
 
+I can tell you it's a very pleasant experience typing `man blah` for the thing I just installed and getting the correct man page up.
 
-### DYLD ###
+
+### <a name="dyld-fallback-library-path-and-dyld-fallback-framework-path">DYLD_FALLBACK_LIBRARY_PATH and DYLD_FALLBACK_FRAMEWORK_PATH</a>
 
 Same goes for DYLD_FALLBACK_LIBRARY_PATH and DYLD_FALLBACK_FRAMEWORK_PATH (if using the Ruby script):
 
 - `~/Library/Paths/dyld_library_paths.d/`
-- `~/.config/dyld_library_paths`
-- `~/Library/Paths/dyld_library_paths.d/`
+- `~/Library/Paths/dyld_library_paths`
+- `~/.config/dyld_library_paths.d/`
 - `~/.config/dyld_library_paths`
 - `/etc/dyld_library_paths.d/`
 - `/etc/dyld_library_paths`
@@ -177,16 +271,16 @@ Same goes for DYLD_FALLBACK_LIBRARY_PATH and DYLD_FALLBACK_FRAMEWORK_PATH (if us
 and:
 
 - `~/Library/Paths/dyld_framework_paths.d/`
-- `~/.config/dyld_framework_paths` 
-- `~/Library/Paths/dyld_framework_paths.d/`
+- `~/Library/Paths/dyld_framework_paths`
+- `~/.config/dyld_framework_paths.d/` 
 - `~/.config/dyld_framework_paths` 
 - `/etc/dyld_framework_paths.d/`
 - `/etc/dyld_framework_paths`
 
 
-### C_INCLUDE ###
+### <a name="c-include-path">C_INCLUDE_PATH</a>
 
-Same again for `C_INCLUDE`:
+Same again for `C_INCLUDE_PATH`:
 
 - `~/Library/Paths/include_paths.d/`
 - `~/Library/Paths/include_paths`
@@ -195,11 +289,9 @@ Same again for `C_INCLUDE`:
 - `/etc/include_paths.d/`
 - `/etc/include_paths`
 
-(and the `include_paths.d` sub dir too, for the last two if you wish).
+### <a name="pkg-config-path">PKG_CONFIG_PATH</a>
 
-### PKG_CONFIG_PATH
-
-Did you know that there's a `PKG_CONFIG_PATH`? There is, check the man page.
+Did you know that there's a `PKG_CONFIG_PATH`? There is, check the man page, it's very helpful.
 
 - `~/Library/Paths/pkg_config_paths.d/`
 - `~/Library/Paths/pkg_config_paths`
@@ -208,7 +300,10 @@ Did you know that there's a `PKG_CONFIG_PATH`? There is, check the man page.
 - `/etc/pkg_config_paths.d/`
 - `/etc/pkg_config_paths`
 
-## HOW DO I GET THIS WONDERFUL JOYFUL EVENT MAKER INTO MY LIFE? ##
+
+## <a name="how-do-i-get-this-wonderful-joyful-event-maker-into-my-life-">HOW DO I GET THIS WONDERFUL JOYFUL EVENT MAKER INTO MY LIFE?</a>
+
+### A.K.A. install instructions
 
 I was going to make this into a Ruby gem but that is such a faff. Here's the gist of it:
 
@@ -219,7 +314,9 @@ I was going to make this into a Ruby gem but that is such a faff. Here's the gis
 - Copy and paste the bit setup tells you to, and put it in your `~/.zshenv` or `~/.bashenv`
 - Find your life is so much better now it's easy to manage your paths
 
-For example:
+*It doesn't need to be in* `/usr/local/bin`, or any special place, just `chmod +x` it and call it by the full path and it'll plop out a string for you.
+
+## <a name="for-example-">FOR EXAMPLE:</a>
 
 I put my path_helper in `/usr/local/libexec` because I'm the only person using this machine and I want my other accounts to be able to access its goodness but you can put it anywhere you like.
 
@@ -235,7 +332,7 @@ Look at the help because you're not like everyone else, you read instructions ;-
 
     /usr/local/libexec/path_helper --help
 
-You need sudo to add the folders in /etc, see the --help if you don't want that.
+You need `sudo` to add the folders in `/etc`, see the `--help` if you don't want that.
 
     sudo /usr/local/libexec/path_helper --setup
 
@@ -263,7 +360,7 @@ but you'll probably use the helpful `--setup` instructions.
 Remember, the script **doesn't set the PATH**, it *returns* a path, **you have to set the path** with it e.g. `PATH=$(/usr/local/libexec/path_helper.rb -p "")`. Call `/usr/local/libexec/path_helper -h` to see all the options.
 
 
-## My actual system
+## <a name="my-actual-system">MY ACTUAL SYSTEM</a>
 
 This is how my PATH var is set:
 
@@ -339,7 +436,7 @@ This is how my PATH var is set:
     fi
     export PATH
 
-### In fact
+### <a name="in-fact">IN FACT</a>
 
 While I've been redeveloping this, I've been using this in my `~/.zshenv`:
 
@@ -363,7 +460,7 @@ While I've been redeveloping this, I've been using this in my `~/.zshenv`:
 Those `2>/dev/null` are because the Ruby team decided to spam us with warnings about everything. Thanks, Ruby core team!
 
 
-## You know what else is helpful?
+## <a name="you-know-what-else-is-helpful-">YOU KNOW WHAT ELSE IS HELPFUL?</a>
 
 The `--debug` flag. For example:
 
@@ -436,11 +533,11 @@ The `--debug` flag. For example:
 
 Everything you need to know! Very useful for working out when other things are manipulating the path too.
 
-## Development
+## <a name="development">DEVELOPMENT</a>
 
 I'm happy to hear from you, email me or open an issue. Pull requests are fine too, try to bring me a spec or an example if you want a feature or find a bug.
 
-### To get set up for development
+### TO GET SET UP FOR DEVELOPMENT
 
 Run:
 
@@ -450,11 +547,11 @@ and I tend to get rid of the intermediate layers:
 
     docker images --no-trunc -aqf "dangling=true" | xargs docker rmi
 
-### To run the specs
+### TO RUN THE SPECS
 
     docker run --rm path_helper
 
-### Shell in and have a play:
+### SHELL IN AND HAVE A PLAY:
 
     docker run --rm -ti --entrypoint="" path_helper sh
 
@@ -468,6 +565,7 @@ Set up some paths using the test fixtures:
     cp -R spec/fixtures/moredirs/* ~/.config/paths
 
 Have a look at the output:
+
     ./exe/path_helper -p
     ./exe/path_helper -c
     ./exe/path_helper -f
@@ -490,7 +588,7 @@ Modify some of the path files
     exit
 
 
-## Licence
+## <a name="#licence">LICENCE</a>
 
 See the LICENCE file.
 
