@@ -452,12 +452,22 @@ and I tend to get rid of the intermediate layers:
 
 ### To run the specs
 
-Shell in and have a play:
+    docker run --rm path_helper
 
-    docker run --rm -ti -v "$PWD":/root path_helper sh
+### Shell in and have a play:
+
+    docker run --rm -ti --entrypoint="" path_helper sh
+
+Run some tests yourself:
+
+    ./spec/shell_spec.sh
+
+Set up some paths using the test fixtures:
 
     ./exe/path_helper --setup --no-lib
-    ./spec/shell_spec.sh
+    cp -R spec/fixtures/moredirs/* ~/.config/paths
+
+Have a look at the output:
     ./exe/path_helper -p
     ./exe/path_helper -c
     ./exe/path_helper -f
@@ -465,6 +475,18 @@ Shell in and have a play:
     ./exe/path_helper -m
     ./exe/path_helper --pc
     ./exe/path_helper -p --debug
+
+See the colours:
+
+    apk add ncurses
+
+Modify some of the path files
+
+    apk add vim
+    vim ~/.config/paths/paths.d/03-libiconv
+    vim ~/.config/paths/paths.d/01-Nim
+    ./exe/path_helper -p
+    # ...
     exit
 
 
