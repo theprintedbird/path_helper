@@ -166,7 +166,7 @@ There's not really any help made for paths that might be local to the user, like
 
 You can use the `--setup` switch to have the path_helper set up the directory layout and files, you just have to fill them!
 
-The Ruby script will also allow use of the tilde `~` character in a path by replacing it with the `HOME` env variable. For example, if I install Haskell and want to put it in my path I can do the following.
+The Ruby script will also allow use of the tilde `~` character in a path by replacing it with the `HOME` env variable. For example, if I install Haskell and want to put it in my path I can do the following:
 
 ### Pre-req
 
