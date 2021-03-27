@@ -88,7 +88,13 @@ Because Apple's one loads the system libraries to the front, take a look:
     $ /usr/libexec/path_helper
     PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/Applications/GPAC.app/Contents/MacOS/:/usr/local/go/bin:/Library/Developer/CommandLineTools/usr/bin:<snip!>
   
-  …the rest of the items are added *after*, which means anything you add to `/etc/paths.d/` will end up after the system libraries. Want your up-to-date OpenSSL installed via Macports to be first in the PATH? Apple says "too bad!" Want your much newer version of LLVM installed via pkgin to be hit first? Apple says "too bad!"
+…the rest of the items are added *after*, which means anything you add to `/etc/paths.d/` will end up after the system libraries.
+  
+Want your up-to-date OpenSSL installed via Macports to be first in the PATH? 
+Apple says *"too bad!"*
+  
+Want your much newer version of LLVM installed via pkgin to be hit first?
+Apple says *"too bad!"*
 
 Well, there are alternatives.
 
@@ -96,7 +102,7 @@ Well, there are alternatives.
 
 Where the Apple `path_helper` falls down is:
 
-- It puts things in /etc, meaning you need elevated permissions to add/remove path segments.
+- It puts things in `/etc`, meaning you need elevated permissions to add/remove path segments.
 - Being in /etc also makes them system wide.
 - It's only for `PATH` and `MANPATH` but development and administration often need headers and libraries accessible in the same way too.
 - The string it returns is designed to be `eval`'d. I know that `eval` isn't *always* evil but why not just return the `PATH` string and allow it to be set to a variable? Maybe there's more to be added.
