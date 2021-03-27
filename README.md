@@ -13,6 +13,9 @@ Interested? Then read on!
 - [DO I NEED TO BE ON APPLE TO USE IT?](#do-i-need-to-be-on-apple-to-use-it-)
 - [HOW DOES PATH_HELPER KNOW WHAT TO PUT IN THE PATH?](#how-does-path-helper-know-what-to-put-in-the-path-)
 - [PER USER PATHS](#per-user-paths)
+- [PRE-REQ](#pre-req)
+- [WAY 1, USE THE PATHS, LUKE](#way-1--use-the-paths--luke)
+- [WAY 2, PATHS.D/](#way-2--paths-d-)
 - [WHY USE THE PATHS.D SUB DIRECTORY?](#why-use-the-paths-d-sub-directory)
 - [ORDERING](#ordering)
 - [WHY LIBRARY/PATHS/PATHS AND NOT LIBRARY/PATHS?](#why-library-paths-paths-and-not-library-paths-)
@@ -168,7 +171,7 @@ You can use the `--setup` switch to have the path_helper set up the directory la
 
 The Ruby script will also allow use of the tilde `~` character in a path by replacing it with the `HOME` env variable. For example, if I install Haskell and want to put it in my path I can do the following:
 
-### Pre-req
+### <a name="pre-req">PRE-REQ</a>
 
     path_helper --setup --no-config --no-etc
 
@@ -178,7 +181,7 @@ This would set up the `~/Library/Paths` for you, which fits a Mac very well.
 
 You might choose this way if you're on a Mac or using Linux. It's up to you.
 
-### Way 1, Use the paths, Luke
+### <a name="way-1--use-the-paths--luke">WAY 1, USE THE PATHS, LUKE</a>
 
 On my Mac, Haskell resides in `~/Library/Haskell`.
 
@@ -194,7 +197,7 @@ On my Mac, Haskell resides in `~/Library/Haskell`.
 
 That puts `/Users/iainb/Library/Haskell/bin` at the front of my path and will only apply to my account's `PATH`.
 
-### Way 2, paths.d/
+### <a name="way-2--paths-d-">WAY 2, PATHS.D/</a>
 
     $ touch ~/Library/Paths/paths.d/60-Haskell
 
