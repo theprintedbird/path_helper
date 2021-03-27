@@ -120,7 +120,7 @@ and of course, `PATH` and `MANPATH`.
 
 ## <a name="do-i-need-to-be-on-apple-to-use-it-">DO I NEED TO BE ON APPLE TO USE IT?</a>
 
-No, it should work on any unix-like system.
+No, it should work on any unix-like system. It has one dependency, and that is Ruby. The script should work with any system running Ruby 2.3.7 or above, as that is the version that ships with a Mac.
 
 ## <a name="how-does-path-helper-know-what-to-put-in-the-path-">HOW DOES PATH_HELPER KNOW WHAT TO PUT IN THE PATH?</a>
 
