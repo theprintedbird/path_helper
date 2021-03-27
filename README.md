@@ -237,10 +237,10 @@ Once you start installing various things it make sense to keep their paths in th
 
 path_helper will read files in this order:
 
-    Library/Paths/paths.d
-    Library/Paths/paths
-    .config/paths.d
-    .config/paths
+    ~/Library/Paths/paths.d
+    ~/Library/Paths/paths
+    ~/.config/paths.d
+    ~/.config/paths
     /etc/paths.d
     /etc/paths
 
