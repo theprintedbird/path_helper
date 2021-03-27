@@ -1,10 +1,15 @@
 FROM ruby:2.7.0-alpine3.11
 
 WORKDIR /root
-COPY Gemfile /root/Gemfile
-COPY path_helper.gemspec /root/path_helper.gemspec
 
 ENV PATH_HELPER_DOCKER_INSTANCE=true
 
-RUN bundle install --retry 5 --jobs 20
+COPY exe/path_helper exe/path_helper
+COPY spec spec
 
+RUN chmod +x exe/path_helper && \
+		chmod +x spec/shell_spec.sh && \
+		./exe/path_helper --setup --no-lib && \
+		cp -R spec/fixtures/moredirs/* ~/.config/paths
+
+ENTRYPOINT ["spec/shell_spec.sh"]
