@@ -95,10 +95,10 @@ Because Apple's one loads the system libraries to the front, take a look:
   
 …the rest of the items are added *after*, which means anything you add to `/etc/paths.d/` will end up after the system libraries.
   
-Want your up-to-date OpenSSL installed via Macports to be first in the PATH? 
+Want your up-to-date OpenSSL installed via [Macports](https://trac.macports.org/) to be first in the PATH? 
 Apple says *"too bad!"*
   
-Want your much newer version of LLVM installed via pkgin to be hit first?
+Want your much newer version of LLVM installed via [pkgsrc](https://pkgsrc.joyent.com/) to be hit first?
 Apple says *"too bad!"*
 
 Well, there are alternatives.
@@ -108,7 +108,7 @@ Well, there are alternatives.
 Where the Apple `path_helper` falls down is:
 
 - It puts things in `/etc`, meaning you need elevated permissions to add/remove path segments.
-- Being in /etc also makes them system wide.
+- Being in `/etc` also makes them system wide.
 - It's only for `PATH` and `MANPATH` but development and administration often need headers and libraries accessible in the same way too.
 - The string it returns is designed to be `eval`'d. I know that `eval` isn't *always* evil but why not just return the `PATH` string and allow it to be set to a variable? Maybe there's more to be added.
 
@@ -162,7 +162,7 @@ The `/etc/paths` file in Apple isn't set out fully or in the order I'd want so I
 
 This is the bit I like best.
 
-There's not really any help made for paths that might be local to the user, like `~/.rubies` or something like that so I've added two places the Ruby script will check for further paths:
+Apple's path\_helper doesn't help with paths that may only be applicable for a single user. This version will check the following per user directories for path info:
 
 - `~/Library/Paths/paths.d` and
 - `~/Library/Paths/paths`
@@ -171,7 +171,7 @@ There's not really any help made for paths that might be local to the user, like
 
 You can use the `--setup` switch to have the path_helper set up the directory layout and files, you just have to fill them!
 
-The Ruby script will also allow use of the tilde `~` character in a path by replacing it with the `HOME` env variable. For example, if I install Haskell and want to put it in my path I can do the following:
+The script will also allow use of the tilde `~` character in a path by replacing it with the `HOME` env variable. For example, if I install Haskell and want to put it in my path I can do the following:
 
 ### <a name="pre-req">PRE-REQ</a>
 
@@ -270,7 +270,7 @@ I can tell you it's a very pleasant experience typing `man blah` for the thing I
 
 ### <a name="dyld-fallback-library-path-and-dyld-fallback-framework-path">DYLD_FALLBACK_LIBRARY_PATH and DYLD_FALLBACK_FRAMEWORK_PATH</a>
 
-Same goes for DYLD_FALLBACK_LIBRARY_PATH and DYLD_FALLBACK_FRAMEWORK_PATH (if using the Ruby script):
+Same goes for DYLD_FALLBACK_LIBRARY_PATH and DYLD_FALLBACK_FRAMEWORK_PATH:
 
 - `~/Library/Paths/dyld_library_paths.d/`
 - `~/Library/Paths/dyld_library_paths`
