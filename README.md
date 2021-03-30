@@ -212,7 +212,7 @@ That puts `/Users/iainb/Library/Haskell/bin` at the front of my path and will on
 
 ## <a name="why-use-the-paths-d-sub-directory">WHY USE THE PATHS.D SUB DIRECTORY?</a>
 
-If I show you my actual set up it'll become clearer:
+Perhaps if I show you my actual set up it'll become clearer:
 
     $ tree ~/Library/Paths 
     /Users/iainb/Library/Paths
@@ -233,7 +233,11 @@ If I show you my actual set up it'll become clearer:
         ├── 65-Rust
         └── 66-Antigen
 
-Once you start installing various things it make sense to keep their paths in their own file, it's easier to organise (and remove). It's also easy for apps to target this to easily add things to a path. Some apps already do this by adding to `/etc/paths.d` but that obviously needs elevated privileges and makes things system wide.
+Imagine uninstalling Haskell and wanting to remove it from the PATH - are you sure you removed all of it? All the right parts? Did you make a typo?
+
+Imagine you've developed a tool but on install you have to get the user to manually edit their PATH, or perhaps you're going to rely on `PATH="/my/obnoxious/munging:$PATH"`?
+
+Once you start installing various things it make sense to keep their paths in their own file, it's easier to organise (and remove). It's also easy for apps to target this to easily add things to a path. Some apps already do this by adding to `/etc/paths.d` (although that obviously needs elevated privileges and makes things system wide, so again, per user paths are better).
 
 ## <a name="ordering">ORDERING</a>
 
