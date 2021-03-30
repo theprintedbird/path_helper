@@ -114,18 +114,18 @@ Where the Apple `path_helper` falls down is:
 
 ## <a name="alternatively---">ALTERNATIVELY...</a>
 
-This library fixes those problems and extends the concept to include other paths:
+This path\_helper fixes those problems and extends the concept to include other paths:
   
-    C_INCLUDE_PATH  
-    DYLD_FALLBACK_FRAMEWORK_PATH  
-    DYLD_FALLBACK_LIBRARY_PATH  
-    PKG_CONFIG_PATH
+- `C_INCLUDE_PATH`
+- `DYLD_FALLBACK_FRAMEWORK_PATH`
+- `DYLD_FALLBACK_LIBRARY_PATH`
+- `PKG_CONFIG_PATH`
 
 and of course, `PATH` and `MANPATH`.
 
 ## <a name="do-i-need-to-be-on-apple-to-use-it-">DO I NEED TO BE ON APPLE TO USE IT?</a>
 
-No, it should work on any unix-like system. It has one dependency, and that is Ruby. The script should work with any system running Ruby 2.3.7 or above, as that is the version that ships with a Mac.
+No, it should work on any unix-like system. It has one dependency, and that is Ruby. It should work with any system running Ruby 2.3.7 or above, as that is the version that ships with a Mac.
 
 ## <a name="how-does-path-helper-know-what-to-put-in-the-path-">HOW DOES PATH_HELPER KNOW WHAT TO PUT IN THE PATH?</a>
 
@@ -171,7 +171,7 @@ Apple's path\_helper doesn't help with paths that may only be applicable for a s
 
 You can use the `--setup` switch to have the path_helper set up the directory layout and files, you just have to fill them!
 
-The script will also allow use of the tilde `~` character in a path by replacing it with the `HOME` env variable. For example, if I install Haskell and want to put it in my path I can do the following:
+You can also use the tilde `~` character in a path by replacing it with the `HOME` env variable. For example, if I install Haskell and want to put it in my path I can do the following:
 
 ### <a name="pre-req">PRE-REQ</a>
 
@@ -368,7 +368,7 @@ but you'll probably use the helpful `--setup` instructions.
 
 ## NOTE!
 
-Remember, the script **doesn't set the PATH**, it *returns* a path, **you have to set the path** with it e.g. `PATH=$(/usr/local/libexec/path_helper.rb -p "")`. Call `/usr/local/libexec/path_helper -h` to see all the options.
+Remember, it **won't set the PATH**, it *returns* a path, **you have to set the path** with it e.g. `PATH=$(/usr/local/libexec/path_helper.rb -p "")`. Call `/usr/local/libexec/path_helper -h` to see all the options.
 
 
 ## <a name="my-actual-system">MY ACTUAL SYSTEM</a>
