@@ -320,8 +320,6 @@ Did you know that there's a `PKG_CONFIG_PATH`? There is, check the man page, it'
 
 ### A.K.A. install instructions
 
-I was going to make this into a Ruby gem but that is such a faff. Here's the gist of it:
-
 - Download it (use `git clone` or a download link, you can even just copy and past the [script](exe/path_helper))
 - Make sure it has the correct permissions (`chmod +x`)
 - Have a look at the help by running it with `-h`.
