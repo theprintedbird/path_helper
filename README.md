@@ -243,12 +243,12 @@ Once you start installing various things it makes sense to keep their paths in t
 
 path_helper will read files in this order:
 
-1. ~/Library/Paths/paths.d
-2. ~/Library/Paths/paths
-3. ~/.config/paths.d
-4. ~/.config/paths
-5. /etc/paths.d
-6. /etc/paths
+1. `~/Library/Paths/paths.d`
+2. `~/Library/Paths/paths`
+3. `~/.config/paths.d`
+4. `~/.config/paths`
+5. `/etc/paths.d`
+6. `/etc/paths`
 
 If you don't have any of those dirs/files, they are skipped. Files within the `.d` dirs are read in file system order.
 
