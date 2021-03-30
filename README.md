@@ -237,7 +237,7 @@ Imagine uninstalling Haskell and wanting to remove it from the PATH - are you su
 
 Imagine you've developed a tool but on install you have to get the user to manually edit their PATH, or perhaps you're going to rely on `PATH="/my/obnoxious/munging:$PATH"`?
 
-Once you start installing various things it make sense to keep their paths in their own file, it's easier to organise (and remove). It's also easy for apps to target this to easily add things to a path. Some apps already do this by adding to `/etc/paths.d` (although that obviously needs elevated privileges and makes things system wide, so again, per user paths are better).
+Once you start installing various things it makes sense to keep their paths in their own file, it's easier to organise (and remove). It's also easy for apps to target this to easily add things to a path. Some apps already do this by adding to `/etc/paths.d` (although that obviously needs elevated privileges and makes things system wide, so again, per user paths are better).
 
 ## <a name="ordering">ORDERING</a>
 
