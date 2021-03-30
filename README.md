@@ -260,11 +260,11 @@ Because this is such a useful pattern that it can be extended for headers and in
 
 ### <a name="manpath">MANPATH</a>
 
-Apple has already dictated that `/etc/manpaths` and `/etc/manpaths.d/` are the default paths for setting `MANPATH`, so the same pattern has been followed for that as with `PATH`, so just add `~/Library/Paths/manpaths` or `~/.config/manpaths` along with the `manpaths.d` sub directory if you wish.
+Apple has already dictated that `/etc/manpaths` and `/etc/manpaths.d/` are the default paths for setting `MANPATH`, so the same pattern has been followed for that as with `PATH`:
 
 - `~/Library/Paths/manpaths.d/`
-- `~/.config/manpaths`
-- `~/Library/Paths/manpaths.d/`
+- `~/Library/Paths/manpaths`
+- `~/.config/manpaths.d/`
 - `~/.config/manpaths`
 - `/etc/manpaths.d/`
 - `/etc/manpaths`
