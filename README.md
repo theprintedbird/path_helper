@@ -14,8 +14,8 @@ Interested? Then read on!
 - [HOW DOES PATH_HELPER KNOW WHAT TO PUT IN THE PATH?](#how-does-path-helper-know-what-to-put-in-the-path-)
 - [PER USER PATHS](#per-user-paths)
 - [PRE-REQ](#pre-req)
-- [WAY 1, USE THE PATHS, LUKE](#way-1--use-the-paths--luke)
-- [WAY 2, PATHS.D/](#way-2--paths-d-)
+- [WAY 1: USE THE PATHS, LUKE](#way-1--use-the-paths--luke)
+- [WAY 2: PATHS.D/](#way-2--paths-d-)
 - [WHY USE THE PATHS.D SUB DIRECTORY?](#why-use-the-paths-d-sub-directory)
 - [ORDERING](#ordering)
 - [WHY LIBRARY/PATHS/PATHS AND NOT LIBRARY/PATHS?](#why-library-paths-paths-and-not-library-paths-)
@@ -183,7 +183,7 @@ This would set up the `~/Library/Paths` for you, which fits a Mac very well.
 
 You might choose this way if you're on a Mac or using Linux. It's up to you.
 
-### <a name="way-1--use-the-paths--luke">WAY 1, USE THE PATHS, LUKE</a>
+### <a name="way-1--use-the-paths--luke">WAY 1: USE THE PATHS, LUKE</a>
 
 On my Mac, Haskell resides in `~/Library/Haskell`.
 
@@ -199,7 +199,7 @@ On my Mac, Haskell resides in `~/Library/Haskell`.
 
 That puts `/Users/iainb/Library/Haskell/bin` at the front of my path and will only apply to my account's `PATH`.
 
-### <a name="way-2--paths-d-">WAY 2, PATHS.D/</a>
+### <a name="way-2--paths-d-">WAY 2: PATHS.D/</a>
 
     $ touch ~/Library/Paths/paths.d/60-Haskell
 
