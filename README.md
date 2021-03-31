@@ -370,22 +370,24 @@ To put it into the PATH via the command line:
 
 but you'll probably use the helpful instructions `--setup` provides at the end of setting up:
 
-    # Put this in your ~/.bashrc or your ~/.zshenv
-    if [ -x /Users/$USER/Projects/path_helper/exe/path_helper ]; then
-      C_INCLUDE_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -c "")
-      DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fram "")
-      DYLD_FALLBACK_LIBRARY_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-lib "")
-      MANPATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -m "")
-      PKG_CONFIG_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -pc "")
-      PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -p "")
-    fi
+```shell
+# Put this in your ~/.bashrc or your ~/.zshenv
+if [ -x /Users/$USER/Projects/path_helper/exe/path_helper ]; then
+  C_INCLUDE_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -c "")
+  DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fram "")
+  DYLD_FALLBACK_LIBRARY_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-lib "")
+  MANPATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -m "")
+  PKG_CONFIG_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -pc "")
+  PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -p "")
+fi
+```
 
-    export C_INCLUDE_PATH
-    export DYLD_FALLBACK_FRAMEWORK_PATH
-    export DYLD_FALLBACK_LIBRARY_PATH
-    export MANPATH
-    export PKG_CONFIG_PATH
-    export PATH
+export C_INCLUDE_PATH
+export DYLD_FALLBACK_FRAMEWORK_PATH
+export DYLD_FALLBACK_LIBRARY_PATH
+export MANPATH
+export PKG_CONFIG_PATH
+export PATH
 
 ## NOTE!
 
