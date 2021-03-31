@@ -47,51 +47,55 @@ It helps set the PATH and MANPATH environment variables.
 
 Segments of the path are defined in text files under `/etc/paths.d` and in `/etc/path`. For example, on my machine:
 
-    $ tree /etc/paths.d
-    /etc/paths.d
-    ├── 10-BitKeeper
-    ├── 10-pkgsrc
-    ├── 15-macports
-    ├── 20-XCode
-    ├── MacGPG2
-    ├── dotnet
-    ├── dotnet-cli-tools
-    ├── go
-    ├── mono-commands
-    └── workbooks
+```shell
+$ tree /etc/paths.d
+/etc/paths.d
+├── 10-BitKeeper
+├── 10-pkgsrc
+├── 15-macports
+├── 20-XCode
+├── MacGPG2
+├── dotnet
+├── dotnet-cli-tools
+├── go
+├── mono-commands
+└── workbooks
 
-    $ cat /etc/paths /etc/paths.d/*
-    /usr/local/bin
-    /usr/local/sbin
-    /usr/bin
-    /usr/sbin
-    /bin
-    /sbin
-    /Applications/GPAC.app/Contents/MacOS/
-    /Applications/BitKeeper.app/Contents/Resources/bitkeeper
-    /opt/pkg/sbin
-    /opt/pkg/bin
-    /opt/local/bin
-    /Library/Developer/CommandLineTools/usr/bin
-    /usr/local/MacGPG2/bin
-    /usr/local/share/dotnet
-    ~/.dotnet/tools
-    /usr/local/go/bin
-    /Library/Frameworks/Mono.framework/Versions/Current/Commands
-    /Applications/Xamarin Workbooks.app/Contents/SharedSupport/path-bin
-    /usr/local/sbin
-    /usr/bin
-    /usr/sbin
-    /bin
-    /sbin
-    /Applications/GPAC.app/Contents/MacOS/
+$ cat /etc/paths /etc/paths.d/*
+/usr/local/bin
+/usr/local/sbin
+/usr/bin
+/usr/sbin
+/bin
+/sbin
+/Applications/GPAC.app/Contents/MacOS/
+/Applications/BitKeeper.app/Contents/Resources/bitkeeper
+/opt/pkg/sbin
+/opt/pkg/bin
+/opt/local/bin
+/Library/Developer/CommandLineTools/usr/bin
+/usr/local/MacGPG2/bin
+/usr/local/share/dotnet
+~/.dotnet/tools
+/usr/local/go/bin
+/Library/Frameworks/Mono.framework/Versions/Current/Commands
+/Applications/Xamarin Workbooks.app/Contents/SharedSupport/path-bin
+/usr/local/sbin
+/usr/bin
+/usr/sbin
+/bin
+/sbin
+/Applications/GPAC.app/Contents/MacOS/
+```
 
 ## <a name="why-replace-it-">WHY REPLACE IT?</a>
 
 Because Apple's one loads the system libraries to the front, take a look:
 
-    $ /usr/libexec/path_helper
-    PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/Applications/GPAC.app/Contents/MacOS/:/usr/local/go/bin:/Library/Developer/CommandLineTools/usr/bin:<snip!>
+```shell
+$ /usr/libexec/path_helper
+PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/Applications/GPAC.app/Contents/MacOS/:/usr/local/go/bin:/Library/Developer/CommandLineTools/usr/bin:<snip!>
+```
   
 …the rest of the items are added *after*, which means anything you add to `/etc/paths.d/` will end up after the system libraries.
   
@@ -131,25 +135,29 @@ No, it should work on any unix-like system. It has one dependency, and that is R
 
 Apple has put paths in `/etc/paths` and further files are there for the user or apps to add under `/etc/paths.d/`. If you want to order them then prefixing a number works well, e.g.
 
-    $ tree /etc/paths.d
-    /etc/paths.d
-    ├── 10-pkgsrc
-    └── MacGPG2
-    └── ImageMagick
+```shell
+$ tree /etc/paths.d
+/etc/paths.d
+├── 10-pkgsrc
+└── MacGPG2
+└── ImageMagick
+```
 
 The format of the file is simply a path per line, e.g.
 
-    $ cat /etc/paths.d/10-pkgsrc
-    /opt/pkg/bin
-    /opt/pkg/sbin
+```shell
+$ cat /etc/paths.d/10-pkgsrc
+/opt/pkg/bin
+/opt/pkg/sbin
 
-    $ cat /etc/paths            
-    /usr/local/bin
-    /usr/local/sbin
-    /usr/bin
-    /usr/sbin
-    /bin
-    /sbin
+$ cat /etc/paths            
+/usr/local/bin
+/usr/local/sbin
+/usr/bin
+/usr/sbin
+/bin
+/sbin
+```
 
 The order *within* the file matters as well as the order the files are read/concatenated.
 
@@ -175,11 +183,15 @@ You can also use the tilde `~` character in a path by replacing it with the `HOM
 
 ### <a name="pre-req">PRE-REQ</a>
 
-    path_helper --setup --no-config --no-etc
+```shell
+path_helper --setup --no-config --no-etc
+```
 
 This would set up the `~/Library/Paths` for you, which fits a Mac very well.
 
-    path_helper --setup --no-lib --no-etc
+```shell
+path_helper --setup --no-lib --no-etc
+```
 
 You might choose this way if you're on a Mac or using Linux. It's up to you.
 
@@ -187,51 +199,56 @@ You might choose this way if you're on a Mac or using Linux. It's up to you.
 
 On my Mac, Haskell resides in `~/Library/Haskell`.
 
-    $ echo '~/Library/Haskell/bin' > ~/Library/Paths/paths
+```shell
+$ echo '~/Library/Haskell/bin' > ~/Library/Paths/paths
 
-    $ tree ~/Library/Paths 
-    /Users/iainb/Library/Paths
-    ├── paths
-    └── paths.d
+$ tree ~/Library/Paths 
+/Users/iainb/Library/Paths
+├── paths
+└── paths.d
 
-    $ cat ~/Library/Paths/paths                          
-    ~/Library/Haskell/bin
+$ cat ~/Library/Paths/paths                          
+~/Library/Haskell/bin
+```
 
 That puts `/Users/iainb/Library/Haskell/bin` at the front of my path and will only apply to my account's `PATH`.
 
 ### <a name="way-2--paths-d-">WAY 2: PATHS.D/</a>
 
-    $ touch ~/Library/Paths/paths.d/60-Haskell
+```shell
+$ touch ~/Library/Paths/paths.d/60-Haskell
 
-    $ tree ~/Library/Paths 
-    /Users/iainb/Library/Paths
-    ├── paths
-    └── paths.d
-        └── 60-Haskell
-
+$ tree ~/Library/Paths 
+/Users/iainb/Library/Paths
+├── paths
+└── paths.d
+    └── 60-Haskell
+```
 
 ## <a name="why-use-the-paths-d-sub-directory">WHY USE THE PATHS.D SUB DIRECTORY?</a>
 
 Perhaps if I show you my actual set up it'll become clearer:
 
-    $ tree ~/Library/Paths 
-    /Users/iainb/Library/Paths
-    ├── paths
-    └── paths.d
-        ├── 05-pkgsrc
-        ├── 08-homebrew
-        ├── 10-keybase
-        ├── 30-oh-my-zshell
-        ├── 50-ngrok
-        ├── 55-Crystal-opt
-        ├── 60-Crystal
-        ├── 61-Opam
-        ├── 62-Haskell
-        ├── 63-Erlang
-        ├── 63-Go
-        ├── 64-Pyenv
-        ├── 65-Rust
-        └── 66-Antigen
+```shell
+$ tree ~/Library/Paths 
+/Users/iainb/Library/Paths
+├── paths
+└── paths.d
+    ├── 05-pkgsrc
+    ├── 08-homebrew
+    ├── 10-keybase
+    ├── 30-oh-my-zshell
+    ├── 50-ngrok
+    ├── 55-Crystal-opt
+    ├── 60-Crystal
+    ├── 61-Opam
+    ├── 62-Haskell
+    ├── 63-Erlang
+    ├── 63-Go
+    ├── 64-Pyenv
+    ├── 65-Rust
+    └── 66-Antigen
+```
 
 Imagine uninstalling Haskell and wanting to remove it from the PATH - are you sure you removed all of it? All the right parts? Did you make a typo?
 
@@ -333,40 +350,55 @@ Did you know that there's a `PKG_CONFIG_PATH`? There is, check the man page, it'
 
 You could put the path_helper in `/usr/local/libexec` and mirror the Apple set up, so that other accounts to be able to access its goodness, but you can put it anywhere you like.
 
-    sudo mkdir -p /usr/local/libexec
+```shell
+sudo mkdir -p /usr/local/libexec
+```
 
 Currently I run one from `~/bin` so I don't bother with that.
 
-    mkdir ~/bin
+```shell
+mkdir ~/bin
+```
 
 Download the file then make sure it has the correct permissions:
 
-    chmod +x ~/bin/path_helper
+```shell
+chmod +x ~/bin/path_helper
+```
 
 Look at the help because you're not like everyone else, you read instructions ;-)
 
-    ~/bin/path_helper --help
+```shell
+~/bin/path_helper --help
+```
 
 You need `sudo` to add the folders in `/etc`, see the `--help` if you don't want that. I don't want that, and let's say I prefer using `~/.config` to `~/Library` because I'm on a Linux system:
 
-    ~/bin/path_helper --setup --no-etc --no-lib
+```shell
+~/bin/path_helper --setup --no-etc --no-lib
+```
 
 See what's already there and why:
 
-    ~/bin/path_helper --path --debug
-
+```shell
+~/bin/path_helper --path --debug
+```
 
 **Note**: Apple's path_helper is in `/usr/libexec`, this install won't touch it, you can always use it or return to it if you wish.
 
 And checking its output (debug shows you that too):
 
-    $ ~/bin/path_helper --path
+```shell
+$ ~/bin/path_helper --path
     /opt/pkg/sbin:/opt/pkg/bin:/opt/X11/bin:/opt/ImageMagick/bin:/usr/local/MacGPG2/bin:/usr/local/git/bin:/opt/puppetlabs/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin"
-    
+```
+
 To put it into the PATH via the command line:
 
-    $ PATH=$(~/bin/path_helper -p)
-    $ export PATH
+```shell
+$ PATH=$(~/bin/path_helper -p)
+$ export PATH
+```
 
 but you'll probably use the helpful instructions `--setup` provides at the end of setting up:
 
@@ -398,91 +430,95 @@ Remember, it **won't set the PATH**, it *returns* a path, **you have to set the 
 
 This is how my PATH var is set:
 
-    $ tree ~/Library/Paths 
-    /Users/iainb/Library/Paths
-    ├── c_include_paths
-    ├── c_include_paths.d
-    │   ├── 03-bdwgc
-    │   ├── 04-llvm
-    │   ├── 05-gcc7
-    │   ├── 06-gcc48
-    │   ├── libiconv
-    │   └── zig
-    ├── dyld_framework_paths
-    ├── dyld_framework_paths.d
-    ├── dyld_library_paths
-    ├── dyld_library_paths.d
-    │   ├── 04-llvm
-    │   ├── 05-gcc7
-    │   ├── 06-gcc48
-    │   ├── 61-Opam-and-OCaml
-    │   └── libiconv
-    ├── manpaths
-    ├── manpaths.d
-    │   ├── 02-fzf
-    │   ├── 04-llvm
-    │   ├── 04-pkgin
-    │   ├── 05-macports
-    │   └── 61-Opam-and-OCaml
-    ├── paths
-    ├── paths.d
-    │   ├── 02-fzf
-    │   ├── 03-libiconv
-    │   ├── 04-llvm
-    │   ├── 05-pkgsrc
-    │   ├── 10-keybase
-    │   ├── 50-ngrok
-    │   ├── 55-Crystal-opt
-    │   ├── 60-Crystal
-    │   ├── 61-Opam-and-OCaml
-    │   ├── 62-Haskell
-    │   ├── 63-Erlang
-    │   ├── 63-Go
-    │   ├── 64-Pyenv
-    │   ├── 65-Rust
-    │   ├── 66-Antigen
-    │   ├── 67-Lua
-    │   ├── 68-Zig
-    │   ├── 70-perl
-    │   ├── docker-scripts
-    │   └── gcc
-    └── pkg_config_paths.d
-        ├── from-crystal
-        ├── libiconv
-        ├── openssl
-        └── readline
+```shell
+$ tree ~/Library/Paths 
+/Users/iainb/Library/Paths
+├── c_include_paths
+├── c_include_paths.d
+│   ├── 03-bdwgc
+│   ├── 04-llvm
+│   ├── 05-gcc7
+│   ├── 06-gcc48
+│   ├── libiconv
+│   └── zig
+├── dyld_framework_paths
+├── dyld_framework_paths.d
+├── dyld_library_paths
+├── dyld_library_paths.d
+│   ├── 04-llvm
+│   ├── 05-gcc7
+│   ├── 06-gcc48
+│   ├── 61-Opam-and-OCaml
+│   └── libiconv
+├── manpaths
+├── manpaths.d
+│   ├── 02-fzf
+│   ├── 04-llvm
+│   ├── 04-pkgin
+│   ├── 05-macports
+│   └── 61-Opam-and-OCaml
+├── paths
+├── paths.d
+│   ├── 02-fzf
+│   ├── 03-libiconv
+│   ├── 04-llvm
+│   ├── 05-pkgsrc
+│   ├── 10-keybase
+│   ├── 50-ngrok
+│   ├── 55-Crystal-opt
+│   ├── 60-Crystal
+│   ├── 61-Opam-and-OCaml
+│   ├── 62-Haskell
+│   ├── 63-Erlang
+│   ├── 63-Go
+│   ├── 64-Pyenv
+│   ├── 65-Rust
+│   ├── 66-Antigen
+│   ├── 67-Lua
+│   ├── 68-Zig
+│   ├── 70-perl
+│   ├── docker-scripts
+│   └── gcc
+└── pkg_config_paths.d
+    ├── from-crystal
+    ├── libiconv
+    ├── openssl
+    └── readline
 
-    $ tree /etc/paths.d/
-    /etc/paths.d/
-    ├── 10-BitKeeper
-    ├── 10-pkgsrc
-    ├── 15-macports
-    ├── 20-XCode
-    ├── MacGPG2
-    ├── dotnet
-    ├── dotnet-cli-tools
-    ├── go
-    ├── mono-commands
-    └── workbooks
+$ tree /etc/paths.d/
+/etc/paths.d/
+├── 10-BitKeeper
+├── 10-pkgsrc
+├── 15-macports
+├── 20-XCode
+├── MacGPG2
+├── dotnet
+├── dotnet-cli-tools
+├── go
+├── mono-commands
+└── workbooks
+```
 
 While I've been redeveloping this, I've been using this in my `~/.zshenv`:
 
-    # see https://github.com/yb66/path_helper
-    if [ -x "${HOME}/bin/path_helper" ]; then
-      PATH=$(ruby "${HOME}/bin/path_helper" -p 2>/dev/null)
-      DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby "${HOME}/bin/path_helper" --dyld-fram 2>/dev/null)
-      DYLD_FALLBACK_LIBRARY_PATH=$(ruby "${HOME}/bin/path_helper" --dyld-lib  2>/dev/null)
-      C_INCLUDE_PATH=$(ruby "${HOME}/bin/path_helper" -c 2>/dev/null)
-      MANPATH=$(ruby "${HOME}/bin/path_helper" -m 2>/dev/null)
-      # Pkgconfig is underrated for getting things to compile.
-      PKG_CONFIG_PATH=$(ruby "${HOME}/bin/path_helper" --pc 2>/dev/null)
-    fi
-    export PATH
-    export DYLD_FALLBACK_FRAMEWORK_PATH
-    export DYLD_FALLBACK_LIBRARY_PATH
-    export C_INCLUDE_PATH
-    export MANPATH
-    export PKG_CONFIG_PATH
+```shell
+# see https://github.com/yb66/path_helper
+if [ -x "${HOME}/bin/path_helper" ]; then
+  PATH=$(ruby "${HOME}/bin/path_helper" -p 2>/dev/null)
+  DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby "${HOME}/bin/path_helper" --dyld-fram 2>/dev/null)
+  DYLD_FALLBACK_LIBRARY_PATH=$(ruby "${HOME}/bin/path_helper" --dyld-lib  2>/dev/null)
+  C_INCLUDE_PATH=$(ruby "${HOME}/bin/path_helper" -c 2>/dev/null)
+  MANPATH=$(ruby "${HOME}/bin/path_helper" -m 2>/dev/null)
+  # Pkgconfig is underrated for getting things to compile.
+  PKG_CONFIG_PATH=$(ruby "${HOME}/bin/path_helper" --pc 2>/dev/null)
+fi
+export PATH
+export DYLD_FALLBACK_FRAMEWORK_PATH
+export DYLD_FALLBACK_LIBRARY_PATH
+export C_INCLUDE_PATH
+export MANPATH
+export PKG_CONFIG_PATH
+```
 
 Those `2>/dev/null` are because the Ruby team decided to spam us with warnings about everything. Thanks, Ruby core team!
 
@@ -491,72 +527,73 @@ Those `2>/dev/null` are because the Ruby team decided to spam us with warnings a
 
 The `--debug` flag. For example:
 
-    $ exe/path_helper -p --debug           
-    Name: PATH
-    Options: {:name=>"PATH", :current_path=>nil, :debug=>true, :verbose=>true}
-    Search order: [:config, :etc]
-      /root/.config/paths/paths.d
-      /root/.config/paths/paths
-      /etc/paths.d
-      /etc/paths
+```shell
+$ exe/path_helper -p --debug           
+Name: PATH
+Options: {:name=>"PATH", :current_path=>nil, :debug=>true, :verbose=>true}
+Search order: [:config, :etc]
+  /root/.config/paths/paths.d
+  /root/.config/paths/paths
+  /etc/paths.d
+  /etc/paths
 
-    Results: (duplicates marked by ✗)
+Results: (duplicates marked by ✗)
 
-    /root/.config/paths/paths.d/03-libiconv
-     └── ~/Library/Frameworks/Libiconv.framework/Versions/Current/bin
-    /root/.config/paths/paths.d/04-llvm
-     ├── /opt/local/libexec/llvm-11/bin
-     ├── /opt/pkg/bin
-     └── ~/Library/Frameworks/LLVM.framework/Programs
-    /root/.config/paths/paths.d/05-pkgsrc
-     ├── /opt/pkg/bin ✗
-     ├── /opt/pkg/sbin
-     └── /opt/pkg/gnu/bin
-    /root/.config/paths/paths.d/10-keybase
-     ├── $HOME/gopath
-     └── $HOME/gopath/bin
-    /root/.config/paths/paths.d/30-oh-my-zshell
-     └── ~/.oh-my-zsh/custom/plugins/fzf/bin
-    /root/.config/paths/paths.d/50-ngrok
-     └── ~/Applications/ngrok
-    /root/.config/paths/paths.d/55-Crystal-opt
-     ├── /opt/crystal/bin
-     └── /opt/crystal/embedded/bin
-    /root/.config/paths/paths.d/60-Crystal
-     ├── ~/Library/Frameworks/Crystal.framework/Versions/Current/bin
-     └── ~/Library/Frameworks/Crystal.framework/Versions/Current/embedded/bin
-    /root/.config/paths/paths.d/61-Opam-and-OCaml
-     ├── ~/Library/Frameworks/Opam.framework/Programs
-     ├── ~/.opam/4.10.0/bin
-     └── ~/.opam/4.10.0/sbin
-    /root/.config/paths/paths.d/62-Haskell
-     └── ~/Library/Haskell/bin
-    /root/.config/paths/paths.d/63-Erlang
-     └── ~/Library/Frameworks/Erlang.framework/Programs
-    /root/.config/paths/paths.d/63-Go
-     └── ~/go/bin
-    /root/.config/paths/paths.d/64-Pyenv
-     └── ~/.pyenv/bin
-    /root/.config/paths/paths.d/65-Rust
-     └── ~/.cargo/bin
-    /root/.config/paths/paths.d/66-Antigen
-     └── ~/bin
-    /root/.config/paths/paths.d/67-Lua
-     └── ~/.lua/bin
-    /root/.config/paths/paths.d/68-Zig
-     └── ~/Library/Frameworks/Zig.framework/Programs
-    /root/.config/paths/paths.d/docker-scripts
-     └── ~/Projects/ThePrintedBird/scripts/docker
-    /root/.config/paths/paths.d/gcc
-     ├── /opt/pkg/gcc7/bin
-     └── /opt/pkg/gcc48/bin
-    /root/.config/paths/paths
-     └── /opt/local/sbin
-    /etc/paths
+/root/.config/paths/paths.d/03-libiconv
+ └── ~/Library/Frameworks/Libiconv.framework/Versions/Current/bin
+/root/.config/paths/paths.d/04-llvm
+ ├── /opt/local/libexec/llvm-11/bin
+ ├── /opt/pkg/bin
+ └── ~/Library/Frameworks/LLVM.framework/Programs
+/root/.config/paths/paths.d/05-pkgsrc
+ ├── /opt/pkg/bin ✗
+ ├── /opt/pkg/sbin
+ └── /opt/pkg/gnu/bin
+/root/.config/paths/paths.d/10-keybase
+ ├── $HOME/gopath
+ └── $HOME/gopath/bin
+/root/.config/paths/paths.d/30-oh-my-zshell
+ └── ~/.oh-my-zsh/custom/plugins/fzf/bin
+/root/.config/paths/paths.d/50-ngrok
+ └── ~/Applications/ngrok
+/root/.config/paths/paths.d/55-Crystal-opt
+ ├── /opt/crystal/bin
+ └── /opt/crystal/embedded/bin
+/root/.config/paths/paths.d/60-Crystal
+ ├── ~/Library/Frameworks/Crystal.framework/Versions/Current/bin
+ └── ~/Library/Frameworks/Crystal.framework/Versions/Current/embedded/bin
+/root/.config/paths/paths.d/61-Opam-and-OCaml
+ ├── ~/Library/Frameworks/Opam.framework/Programs
+ ├── ~/.opam/4.10.0/bin
+ └── ~/.opam/4.10.0/sbin
+/root/.config/paths/paths.d/62-Haskell
+ └── ~/Library/Haskell/bin
+/root/.config/paths/paths.d/63-Erlang
+ └── ~/Library/Frameworks/Erlang.framework/Programs
+/root/.config/paths/paths.d/63-Go
+ └── ~/go/bin
+/root/.config/paths/paths.d/64-Pyenv
+ └── ~/.pyenv/bin
+/root/.config/paths/paths.d/65-Rust
+ └── ~/.cargo/bin
+/root/.config/paths/paths.d/66-Antigen
+ └── ~/bin
+/root/.config/paths/paths.d/67-Lua
+ └── ~/.lua/bin
+/root/.config/paths/paths.d/68-Zig
+ └── ~/Library/Frameworks/Zig.framework/Programs
+/root/.config/paths/paths.d/docker-scripts
+ └── ~/Projects/ThePrintedBird/scripts/docker
+/root/.config/paths/paths.d/gcc
+ ├── /opt/pkg/gcc7/bin
+ └── /opt/pkg/gcc48/bin
+/root/.config/paths/paths
+ └── /opt/local/sbin
+/etc/paths
 
-    Env var:
-    /root/Library/Frameworks/Libiconv.framework/Versions/Current/bin:/opt/local/libexec/llvm-11/bin:/opt/pkg/bin:/root/Library/Frameworks/LLVM.framework/Programs:/opt/pkg/sbin:/opt/pkg/gnu/bin:$HOME/gopath:$HOME/gopath/bin:/root/.oh-my-zsh/custom/plugins/fzf/bin:/root/Applications/ngrok:/opt/crystal/bin:/opt/crystal/embedded/bin:/root/Library/Frameworks/Crystal.framework/Versions/Current/bin:/root/Library/Frameworks/Crystal.framework/Versions/Current/embedded/bin:/root/Library/Frameworks/Opam.framework/Programs:/root/.opam/4.10.0/bin:/root/.opam/4.10.0/sbin:/root/Library/Haskell/bin:/root/Library/Frameworks/Erlang.framework/Programs:/root/go/bin:/root/.pyenv/bin:/root/.cargo/bin:/root/bin:/root/.lua/bin:/root/Library/Frameworks/Zig.framework/Programs:/root/Projects/ThePrintedBird/scripts/docker:/opt/pkg/gcc7/bin:/opt/pkg/gcc48/bin:/opt/local/sbin
-
+Env var:
+/root/Library/Frameworks/Libiconv.framework/Versions/Current/bin:/opt/local/libexec/llvm-11/bin:/opt/pkg/bin:/root/Library/Frameworks/LLVM.framework/Programs:/opt/pkg/sbin:/opt/pkg/gnu/bin:$HOME/gopath:$HOME/gopath/bin:/root/.oh-my-zsh/custom/plugins/fzf/bin:/root/Applications/ngrok:/opt/crystal/bin:/opt/crystal/embedded/bin:/root/Library/Frameworks/Crystal.framework/Versions/Current/bin:/root/Library/Frameworks/Crystal.framework/Versions/Current/embedded/bin:/root/Library/Frameworks/Opam.framework/Programs:/root/.opam/4.10.0/bin:/root/.opam/4.10.0/sbin:/root/Library/Haskell/bin:/root/Library/Frameworks/Erlang.framework/Programs:/root/go/bin:/root/.pyenv/bin:/root/.cargo/bin:/root/bin:/root/.lua/bin:/root/Library/Frameworks/Zig.framework/Programs:/root/Projects/ThePrintedBird/scripts/docker:/opt/pkg/gcc7/bin:/opt/pkg/gcc48/bin:/opt/local/sbin
+```
 
 Everything you need to know! Very useful for working out when other things are manipulating the path too.
 
@@ -568,52 +605,69 @@ I'm happy to hear from you, email me or open an issue. Pull requests are fine to
 
 Run:
 
-    docker build --squash -t path_helper .
+```shell
+docker build --squash -t path_helper .
+```
 
 and I tend to get rid of the intermediate layers:
 
-    docker images --no-trunc -aqf "dangling=true" | xargs docker rmi
+```shell
+docker images --no-trunc -aqf "dangling=true" | xargs docker rmi
+```
 
 ### <a name="to-run-the-specs">TO RUN THE SPECS</a>
 
-    docker run --rm path_helper
+```shell
+docker run --rm path_helper
+```
 
 ### <a name="shell-in-and-have-a-play">SHELL IN AND HAVE A PLAY</a>
 
-    docker run --rm -ti --entrypoint="" path_helper sh
+```shell
+docker run --rm -ti --entrypoint="" path_helper sh
+```
 
 Run some tests yourself:
 
-    ./spec/shell_spec.sh
+```shell
+./spec/shell_spec.sh
+```
 
 Set up some paths using the test fixtures:
 
-    ./exe/path_helper --setup --no-lib
-    cp -R spec/fixtures/moredirs/* ~/.config/paths
+```shell
+./exe/path_helper --setup --no-lib
+cp -R spec/fixtures/moredirs/* ~/.config/paths
+```
 
-Have a look at the output:
+Have a look at the output by running through the available paths:
 
-    ./exe/path_helper -p
-    ./exe/path_helper -c
-    ./exe/path_helper -f
-    ./exe/path_helper -l
-    ./exe/path_helper -m
-    ./exe/path_helper --pc
-    ./exe/path_helper -p --debug
+```shell
+./exe/path_helper -p
+./exe/path_helper -c
+./exe/path_helper -f
+./exe/path_helper -l
+./exe/path_helper -m
+./exe/path_helper --pc
+./exe/path_helper -p --debug
+```
 
 See the pretty colours:
 
-    apk add ncurses
+```shell
+apk add ncurses
+```
 
 Modify some of the path files
 
-    apk add vim
-    vim ~/.config/paths/paths.d/03-libiconv
-    vim ~/.config/paths/paths.d/01-Nim
-    ./exe/path_helper -p
-    # ...
-    exit
-
+```shell
+apk add vim
+vim ~/.config/paths/paths.d/03-libiconv
+vim ~/.config/paths/paths.d/01-Nim
+./exe/path_helper -p
+# ...
+exit
+```
 
 ## <a name="#licence">LICENCE</a>
 
