@@ -331,39 +331,41 @@ Did you know that there's a `PKG_CONFIG_PATH`? There is, check the man page, it'
 
 ## <a name="for-example-">FOR EXAMPLE:</a>
 
-I put my path_helper in `/usr/local/libexec` because I'm the only person using this machine and I want my other accounts to be able to access its goodness but you can put it anywhere you like.
+You could put the path_helper in `/usr/local/libexec` and mirror the Apple set up, so that other accounts to be able to access its goodness, but you can put it anywhere you like.
 
     sudo mkdir -p /usr/local/libexec
-    cd /usr/local/libexec
 
-`~/Projects/path_helper` is where I keep the project so I link it, but you could just download it or `git clone` it there, or somewhere else and link it… it all works!
+Currently I run one from `~/bin` so I don't bother with that.
 
-    ln ~/Projects/path_helper/exe/path_helper .
-    chmod +x /usr/local/libexec/path_helper
+    mkdir ~/bin
+
+Download the file then make sure it has the correct permissions:
+
+    chmod +x ~/bin/path_helper
 
 Look at the help because you're not like everyone else, you read instructions ;-)
 
-    /usr/local/libexec/path_helper --help
+    ~/bin/path_helper --help
 
-You need `sudo` to add the folders in `/etc`, see the `--help` if you don't want that.
+You need `sudo` to add the folders in `/etc`, see the `--help` if you don't want that. I don't want that, and let's say I prefer using `.config`:
 
-    sudo /usr/local/libexec/path_helper --setup
+    sudo ~/bin/path_helper --setup --no-etc --no-lib
 
 See what's already there
 
-    /usr/local/libexec/path_helper --debug
+    ~/bin/path_helper --path --debug
 
 
-Apple's path_helper is in `/usr/libexec`, this install won't touch it, you can always use it or return to it if you wish.
+**Note**: Apple's path_helper is in `/usr/libexec`, this install won't touch it, you can always use it or return to it if you wish.
 
 And checking its output:
 
-    $ /usr/local/libexec/path_helper -p
+    $ ~/bin/path_helper --path
     /opt/pkg/sbin:/opt/pkg/bin:/opt/X11/bin:/opt/ImageMagick/bin:/usr/local/MacGPG2/bin:/usr/local/git/bin:/opt/puppetlabs/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin"
     
 To put it into the PATH via the command line:
 
-    $ PATH=$(/usr/local/libexec/path_helper -p)
+    $ PATH=$(~/bin/path_helper -p)
     $ export PATH
 
 but you'll probably use the helpful `--setup` instructions.
@@ -443,13 +445,6 @@ This is how my PATH var is set:
     ├── go
     ├── mono-commands
     └── workbooks
-
-    if [ -x "/path/to/path_helper" ]; then
-      PATH=$(ruby "/path/to/path_helper" -p 2>/dev/null)
-    fi
-    export PATH
-
-### <a name="in-fact">IN FACT</a>
 
 While I've been redeveloping this, I've been using this in my `~/.zshenv`:
 
