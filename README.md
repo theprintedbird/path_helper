@@ -347,18 +347,18 @@ Look at the help because you're not like everyone else, you read instructions ;-
 
     ~/bin/path_helper --help
 
-You need `sudo` to add the folders in `/etc`, see the `--help` if you don't want that. I don't want that, and let's say I prefer using `.config`:
+You need `sudo` to add the folders in `/etc`, see the `--help` if you don't want that. I don't want that, and let's say I prefer using `~/.config` to `~/Library` because I'm on a Linux system:
 
-    sudo ~/bin/path_helper --setup --no-etc --no-lib
+    ~/bin/path_helper --setup --no-etc --no-lib
 
-See what's already there
+See what's already there and why:
 
     ~/bin/path_helper --path --debug
 
 
 **Note**: Apple's path_helper is in `/usr/libexec`, this install won't touch it, you can always use it or return to it if you wish.
 
-And checking its output:
+And checking its output (debug shows you that too):
 
     $ ~/bin/path_helper --path
     /opt/pkg/sbin:/opt/pkg/bin:/opt/X11/bin:/opt/ImageMagick/bin:/usr/local/MacGPG2/bin:/usr/local/git/bin:/opt/puppetlabs/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin"
@@ -368,7 +368,24 @@ To put it into the PATH via the command line:
     $ PATH=$(~/bin/path_helper -p)
     $ export PATH
 
-but you'll probably use the helpful `--setup` instructions.
+but you'll probably use the helpful instructions `--setup` provides at the end of setting up:
+
+    # Put this in your ~/.bashrc or your ~/.zshenv
+    if [ -x /Users/$USER/Projects/path_helper/exe/path_helper ]; then
+      C_INCLUDE_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -c "")
+      DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fram "")
+      DYLD_FALLBACK_LIBRARY_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-lib "")
+      MANPATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -m "")
+      PKG_CONFIG_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -pc "")
+      PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -p "")
+    fi
+
+    export C_INCLUDE_PATH
+    export DYLD_FALLBACK_FRAMEWORK_PATH
+    export DYLD_FALLBACK_LIBRARY_PATH
+    export MANPATH
+    export PKG_CONFIG_PATH
+    export PATH
 
 ## NOTE!
 
