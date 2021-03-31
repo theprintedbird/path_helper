@@ -574,6 +574,15 @@ See the pretty colours:
 apk add ncurses
 ```
 
+You may want to have the env vars set. Run:
+
+```shell
+source ~/.ashenv
+echo $PATH
+echo $C_INCLUDE_PATH
+# etc
+```
+
 Modify some of the path files
 
 ```shell
