@@ -26,8 +26,6 @@ Interested? Then read on!
 - [PKG_CONFIG_PATH](#pkg-config-path)
 - [HOW DO I GET THIS WONDERFUL JOYFUL EVENT MAKER INTO MY LIFE? A.K.A. install instructions](#how-do-i-get-this-wonderful-joyful-event-maker-into-my-life-)
 - [FOR EXAMPLE](#for-example-)
-- [MY ACTUAL SYSTEM](#my-actual-system)
-- [IN FACT](#in-fact)
 - [YOU KNOW WHAT ELSE IS HELPFUL](#you-know-what-else-is-helpful-)
 - [DEVELOPMENT](#development)
 - [TO GET SET UP FOR DEVELOPMENT](#to-get-set-up-for-development)
@@ -405,12 +403,12 @@ but you'll probably use the helpful instructions `--setup` provides at the end o
 ```shell
 # Put this in your ~/.bashrc or your ~/.zshenv
 if [ -x /Users/$USER/Projects/path_helper/exe/path_helper ]; then
-  C_INCLUDE_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -c "")
-  DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fram "")
-  DYLD_FALLBACK_LIBRARY_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-lib "")
-  MANPATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -m "")
-  PKG_CONFIG_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -pc "")
-  PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -p "")
+  C_INCLUDE_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -c)
+  DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fram)
+  DYLD_FALLBACK_LIBRARY_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-lib)
+  MANPATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -m)
+  PKG_CONFIG_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -pc)
+  PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -p)
 fi
 
 export C_INCLUDE_PATH
@@ -421,107 +419,25 @@ export PKG_CONFIG_PATH
 export PATH
 ```
 
-## NOTE!
+### NOTE!
 
-Remember, it **won't set the PATH**, it *returns* a path, **you have to set the path** with it e.g. `PATH=$(/usr/local/libexec/path_helper.rb -p "")`. Call `/usr/local/libexec/path_helper -h` to see all the options.
+Remember, it **won't set the PATH**, it *returns* a path, **you have to set the path** with it e.g. `PATH=$(/usr/local/libexec/path_helper.rb -p)`. Call `/usr/local/libexec/path_helper -h` to see all the options.
 
+### Another NOTE!
 
-## <a name="my-actual-system">MY ACTUAL SYSTEM</a>
+The because the Ruby team decided to spam us with warnings about everything so quite often recently I get a lot of unhelpful stuff filling up my terminal on open. Thanks, Ruby core team!
 
-This is how my PATH var is set:
-
-```shell
-$ tree ~/Library/Paths 
-/Users/iainb/Library/Paths
-├── c_include_paths
-├── c_include_paths.d
-│   ├── 03-bdwgc
-│   ├── 04-llvm
-│   ├── 05-gcc7
-│   ├── 06-gcc48
-│   ├── libiconv
-│   └── zig
-├── dyld_framework_paths
-├── dyld_framework_paths.d
-├── dyld_library_paths
-├── dyld_library_paths.d
-│   ├── 04-llvm
-│   ├── 05-gcc7
-│   ├── 06-gcc48
-│   ├── 61-Opam-and-OCaml
-│   └── libiconv
-├── manpaths
-├── manpaths.d
-│   ├── 02-fzf
-│   ├── 04-llvm
-│   ├── 04-pkgin
-│   ├── 05-macports
-│   └── 61-Opam-and-OCaml
-├── paths
-├── paths.d
-│   ├── 02-fzf
-│   ├── 03-libiconv
-│   ├── 04-llvm
-│   ├── 05-pkgsrc
-│   ├── 10-keybase
-│   ├── 50-ngrok
-│   ├── 55-Crystal-opt
-│   ├── 60-Crystal
-│   ├── 61-Opam-and-OCaml
-│   ├── 62-Haskell
-│   ├── 63-Erlang
-│   ├── 63-Go
-│   ├── 64-Pyenv
-│   ├── 65-Rust
-│   ├── 66-Antigen
-│   ├── 67-Lua
-│   ├── 68-Zig
-│   ├── 70-perl
-│   ├── docker-scripts
-│   └── gcc
-└── pkg_config_paths.d
-    ├── from-crystal
-    ├── libiconv
-    ├── openssl
-    └── readline
-
-$ tree /etc/paths.d/
-/etc/paths.d/
-├── 10-BitKeeper
-├── 10-pkgsrc
-├── 15-macports
-├── 20-XCode
-├── MacGPG2
-├── dotnet
-├── dotnet-cli-tools
-├── go
-├── mono-commands
-└── workbooks
-```
-
-While I've been redeveloping this, I've been using this in my `~/.zshenv`:
+To quieten it down change:
 
 ```shell
-# see https://github.com/yb66/path_helper
-if [ -x "${HOME}/bin/path_helper" ]; then
-  PATH=$(ruby "${HOME}/bin/path_helper" -p 2>/dev/null)
-  DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby "${HOME}/bin/path_helper" --dyld-fram 2>/dev/null)
-  DYLD_FALLBACK_LIBRARY_PATH=$(ruby "${HOME}/bin/path_helper" --dyld-lib  2>/dev/null)
-  C_INCLUDE_PATH=$(ruby "${HOME}/bin/path_helper" -c 2>/dev/null)
-  MANPATH=$(ruby "${HOME}/bin/path_helper" -m 2>/dev/null)
-  # Pkgconfig is underrated for getting things to compile.
-  PKG_CONFIG_PATH=$(ruby "${HOME}/bin/path_helper" --pc 2>/dev/null)
-fi
-export PATH
-export DYLD_FALLBACK_FRAMEWORK_PATH
-export DYLD_FALLBACK_LIBRARY_PATH
-export C_INCLUDE_PATH
-export MANPATH
-export PKG_CONFIG_PATH
+PATH=$(ruby /path/to/path_helper -p)
 ```
 
-Those `2>/dev/null` are because the Ruby team decided to spam us with warnings about everything. Thanks, Ruby core team!
+to:
 
+```shell
+PATH=$(ruby /path/to/path_helper -p 2>/dev/null)
+```
 
 ## <a name="you-know-what-else-is-helpful-">YOU KNOW WHAT ELSE IS HELPFUL?</a>
 
