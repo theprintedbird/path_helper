@@ -380,7 +380,6 @@ if [ -x /Users/$USER/Projects/path_helper/exe/path_helper ]; then
   PKG_CONFIG_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -pc "")
   PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -p "")
 fi
-```
 
 export C_INCLUDE_PATH
 export DYLD_FALLBACK_FRAMEWORK_PATH
@@ -388,6 +387,7 @@ export DYLD_FALLBACK_LIBRARY_PATH
 export MANPATH
 export PKG_CONFIG_PATH
 export PATH
+```
 
 ## NOTE!
 
