@@ -1,0 +1,8 @@
+if [ -x /root/exe/path_helper ]; then
+  export C_INCLUDE_PATH=$(ruby /root/exe/path_helper -c)
+  export DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby /root/exe/path_helper --dyld-fram)
+  export DYLD_FALLBACK_LIBRARY_PATH=$(ruby /root/exe/path_helper --dyld-lib)
+  export MANPATH=$(ruby /root/exe/path_helper -m)
+  export PKG_CONFIG_PATH=$(ruby /root/exe/path_helper -pc)
+  export PATH=$(ruby /root/exe/path_helper -p)
+fi
