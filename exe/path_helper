@@ -335,13 +335,17 @@ module PathHelper
           return false
         end
 
-        script_path = File.expand_path("#{__dir__}/#{__FILE__}")
+        script_path = File.expand_path(__FILE__)
         unless options[:quiet]
           puts <<~SHENV
 
 
           # Put this in your ~/.bashrc or your ~/.zshenv
-          if [ -x #{script_path} ]; then\n  #{ENV_VARS.map {|var,switch| %Q!#{var}=$(ruby #{script_path} #{switch} "")! }.join("\n  ") }
+          if [ -x #{script_path} ]; then
+            #{ENV_VARS.map {|var,switch|
+								%Q!#{var}=$(ruby #{script_path} #{switch} "")!
+							}.join("\n  ") 
+            }
           fi
 
           #{ENV_VARS.keys.map{|var| "export #{var}"}.join("\n")}
