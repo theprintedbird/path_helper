@@ -343,12 +343,10 @@ module PathHelper
           # Put this in your ~/.bashrc or your ~/.zshenv
           if [ -x #{script_path} ]; then
             #{ENV_VARS.map {|var,switch|
-								%Q!#{var}=$(ruby #{script_path} #{switch})!
+								%Q!export #{var}=$(ruby #{script_path} #{switch})!
 							}.join("\n  ") 
             }
           fi
-
-          #{ENV_VARS.keys.map{|var| "export #{var}"}.join("\n")}
           SHENV
         end
         true
