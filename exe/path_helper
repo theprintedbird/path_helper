@@ -75,7 +75,7 @@ OptionParser.new do |opts|
   end
   if ARGV.empty?
     warn opts
-    exit
+    exit 1
   end
 end.parse!
 
@@ -92,6 +92,9 @@ module PathHelper
   HOME = Dir.home.freeze
 
   SEGMENTS = [:lib,:config, :etc]
+
+
+	class Error < StandardError; end
 
 
   module Helpers
@@ -137,6 +140,7 @@ module PathHelper
 
     # @param [Hash] options The parsed CLI options.
     def initialize options
+			fail Error, "You must declare the kind of path you wish to build e.g. --manpath or -m if you want MANPATH built" unless options.has_key? :name
       @options = options
       @current_path = options.fetch(:current_path, ENV[@options[:name]])
     end
@@ -361,15 +365,21 @@ if options[:setup]
   status_code = PathHelper::Setup.setup!(options) ? 0 : 1
   exit status_code
 else
-  helper = PathHelper::CLI.new options
-  if options[:debug]
-    env_var = helper.run
-    debugger = PathHelper::Debug.new helper
-    print debugger.render
-    puts "\n\nEnv var:\n"
-    print env_var << "\n\n"
-  else
-    print helper.run
-  end
+	begin
+		helper = PathHelper::CLI.new options
+		if options[:debug]
+			env_var = helper.run
+			debugger = PathHelper::Debug.new helper
+			print debugger.render
+			puts "\n\nEnv var:\n"
+			print env_var << "\n\n"
+		else
+			print helper.run
+		end
+	rescue => e
+		warn e.message
+		warn "See --help for available options." 
+		exit 1
+	end
 end
 exit 0

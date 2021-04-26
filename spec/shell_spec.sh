@@ -145,6 +145,21 @@ if ! test_a_path "debug_pkg_config.txt" "--pc" "--debug"; then
 	failures="${failures:+"$failures:"}pkg_config_spec"
 fi
 
+# This should not be okay, therefore it should be a fail if
+# running it seems okay.
+if /usr/local/bin/ruby "$PWD/exe/path_helper" 2>/dev/null; then
+	PASS=1
+	failures="${failures:+"$failures:"}must provide an argument"
+fi
+
+# This should not be okay, therefore it should be a fail if
+# running it seems okay.
+if /usr/local/bin/ruby "$PWD/exe/path_helper" -q 2>/dev/null; then
+	PASS=1
+	failures="${failures:+"$failures:"}the kind of path must be declared"
+fi
+
+
 if [ $PASS -eq 0 ]; then
 	echo Passed!
 else
