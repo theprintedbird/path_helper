@@ -192,12 +192,14 @@ module PathHelper
     def find_files_in_graph
       @search_order.each do |segment|
         dirpath = @section[:directories][segment]
-        next unless Dir.exist? dirpath
-        Dir.entries(dirpath).sort.map do |file|
-          next if file =~ /^\./
-          @section[:found][File.join(dirpath,file).freeze] = nil
-        end
+        if Dir.exist? dirpath
+					Dir.entries(dirpath).sort.map do |file|
+						next if file =~ /^\./
+						@section[:found][File.join(dirpath,file).freeze] = nil
+					end
+				end
         path = @section[:files][segment]
+        next unless File.exist? path
         @section[:found][path.freeze] = nil
       end
     end
@@ -250,7 +252,7 @@ module PathHelper
 
     def initialize helper
     	@helper = helper
-      @graph = @helper.section
+      @section = @helper.section
     end
 
 
@@ -259,15 +261,15 @@ module PathHelper
       output = []
       findings = {}
       dup_text = " #{Colours::Red}✗#{Colours::Normal}"
-      output << "Name: #{Colours::Green}#{@graph[:name]}#{Colours::Normal}"
+      output << "Name: #{Colours::Green}#{@section[:name]}#{Colours::Normal}"
       output << "Options: #{@helper.options}"
-      output << "Search order: #{@graph[:search_order]}"
-      @graph[:search_order].each do |segment|
-        output << "\t#{Colours::Yellow}#{@graph[:directories][segment]}#{Colours::Normal}"
-        output << "\t#{Colours::Cyan}#{@graph[:files][segment]}#{Colours::Normal}"
+      output << "Search order: #{@section[:search_order]}"
+      @section[:search_order].each do |segment|
+        output << "\t#{Colours::Yellow}#{@section[:directories][segment]}#{Colours::Normal}"
+        output << "\t#{Colours::Cyan}#{@section[:files][segment]}#{Colours::Normal}"
       end
       output << "\nResults: (duplicates marked by#{dup_text})\n"
-      @graph[:found].each do |file,lines|
+      @section[:found].each do |file,lines|
       	if File.file?(file)
 					output << "#{Colours::Cyan}#{file}#{Colours::Normal}"
 				else
