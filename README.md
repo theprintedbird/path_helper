@@ -4,44 +4,66 @@ Hard-coding strings is bad, yet you probably hard-code your `PATH`. This way is 
 
 Interested? Then read on!
 
-- [WHAT IS IT?](#what-is-it-)
-- [WHAT DOES THAT DO?](#what-does-that-do-)
-- [HOW DOES THE APPLE ONE WORK?](#how-does-the-apple-one-work-)
-- [WHY REPLACE IT?](#why-replace-it-)
-- [MORE DRAWBACKS](#more-drawbacks)
-- [ALTERNATIVELY...](#alternatively---)
-- [DO I NEED TO BE ON APPLE TO USE IT?](#do-i-need-to-be-on-apple-to-use-it-)
-- [HOW DOES PATH_HELPER KNOW WHAT TO PUT IN THE PATH?](#how-does-path-helper-know-what-to-put-in-the-path-)
-- [PER USER PATHS](#per-user-paths)
-- [PRE-REQ](#pre-req)
-- [WAY 1: USE THE PATHS, LUKE](#way-1--use-the-paths--luke)
-- [WAY 2: PATHS.D/](#way-2--paths-d-)
-- [WHY USE THE PATHS.D SUB DIRECTORY?](#why-use-the-paths-d-sub-directory)
-- [ORDERING](#ordering)
-- [WHY LIBRARY/PATHS/PATHS AND NOT LIBRARY/PATHS?](#why-library-paths-paths-and-not-library-paths-)
+- [What is it?](#what-is-it-)
+- [What does that do?](#what-does-that-do-)
+- [How do i get this wonderful joyful event maker into my life? A.K.A. install instructions](#how-do-i-get-this-wonderful-joyful-event-maker-into-my-life-)
+- [How does the Apple one work?](#how-does-the-apple-one-work-)
+- [Why replace it?](#why-replace-it-)
+- [More drawbacks to Apple's way](#more-drawbacks-to-apple-s-way)
+- [Do i need to be on Apple to use it? (Short answer, no)](#do-i-need-to-be-on-apple-to-use-it-)
+- [How does path_helper know what to put in the path?](#how-does-path-helper-know-what-to-put-in-the-path-)
+- [Per user paths](#per-user-paths)
+- [Pre-req](#pre-req)
+- [Way 1: Use the paths, Luke](#way-1--use-the-paths--luke)
+- [Way 2: paths.d/](#way-2--paths-d-)
+- [Why use the paths.d sub directory?](#why-use-the-paths-d-sub-directory)
+- [Ordering](#ordering)
+- [Why Library/Paths/paths and not Library/paths?](#why-library-paths-paths-and-not-library-paths-)
 - [MAN and DYLD and C_INCLUDE and PKG_CONFIG](#man-and-dyld-and-c-include-and-pkg-config)
 - [MANPATH](#manpath)
 - [DYLD_FALLBACK_LIBRARY_PATH and DYLD_FALLBACK_FRAMEWORK_PATH](#dyld-fallback-library-path-and-dyld-fallback-framework-path)
 - [C_INCLUDE_PATH](#c-include-path)
 - [PKG_CONFIG_PATH](#pkg-config-path)
-- [HOW DO I GET THIS WONDERFUL JOYFUL EVENT MAKER INTO MY LIFE? A.K.A. install instructions](#how-do-i-get-this-wonderful-joyful-event-maker-into-my-life-)
-- [FOR EXAMPLE](#for-example-)
-- [YOU KNOW WHAT ELSE IS HELPFUL](#you-know-what-else-is-helpful-)
-- [DEVELOPMENT](#development)
-- [TO GET SET UP FOR DEVELOPMENT](#to-get-set-up-for-development)
-- [TO RUN THE SPECS](#to-run-the-specs)
-- [SHELL IN AND HAVE A PLAY](#shell-in-and-have-a-play)
-- [LICENCE](#licence)
+- [An example install](#an-example-install)
+- [The ability to debug your paths](#the-ability-to-debug-your-paths)
+- [Development](#development)
+- [To get set up for development](#to-get-set-up-for-development)
+- [To run the specs](#to-run-the-specs)
+- [Shell in and have a play](#shell-in-and-have-a-play)
+- [Licence](#licence)
 
-## <a name="what-is-it-">WHAT IS IT?</a>
+## <a name="what-is-it-">What is it?</a>
 
 A replacement for Apple's `/usr/libexec/path_helper`.
 
-## <a name="what-does-that-do-">WHAT DOES THAT DO?</a>
+## <a name="what-does-that-do-">What does that do?</a>
 
-It helps set the PATH and MANPATH environment variables.
+Apple's path_helper helps set the `PATH` and `MANPATH` environment variables, which is good but there are some significant problems with the way they've done it. This one fixes the bad stuff and builds on the good stuff. The 3 most important features are:
 
-## <a name="how-does-the-apple-one-work-">HOW DOES THE APPLE ONE WORK?</a>
+1. It has per user paths as well as system wide ones.
+2. It extends the concept to include other paths than just `PATH` and `MANPATH`.
+3. It's got some helpful output for debugging your paths.
+
+and one more for luck
+
+4. It's got no side effects, you simply ask it for a path and it gives back a path, no eval or setting the `PATH` inside the script.
+
+### How do i get this wonderful joyful event maker into my life? A.K.A. install instructions
+
+It's just a script with no dependencies other than Ruby.
+
+- Download it (e.g. `git clone` or a download link, you can even just copy and past the [script](https://raw.githubusercontent.com/yb66/path_helper/master/exe/path_helper))
+- Make sure it has the correct permissions (`chmod +x`)
+- Have a look at the help by running it with `-h`.
+- Run the `--setup` (take note of the `--lib` and `--config` and their `--no-` counterparts)
+- Copy and paste the bit setup tells you to, and put it in your `~/.zshenv` or `~/.bashenv`
+- Find your life is so much better now it's easy to manage your paths
+
+*It doesn't need to be in* `/usr/local/bin`, or any special place, just `chmod +x` it and call it by the full path and it'll plop out a string for you.
+
+See [An example install](#an-example-install) for more.
+
+## <a name="how-does-the-apple-one-work-">How does the Apple one work?</a>
 
 Segments of the path are defined in text files under `/etc/paths.d` and in `/etc/path`. For example, on my machine:
 
@@ -86,7 +108,7 @@ $ cat /etc/paths /etc/paths.d/*
 /Applications/GPAC.app/Contents/MacOS/
 ```
 
-## <a name="why-replace-it-">WHY REPLACE IT?</a>
+## <a name="why-replace-it-">Why replace it?</a>
 
 Because Apple's one loads the system libraries to the front, take a look:
 
@@ -105,7 +127,7 @@ Apple says *"too bad!"*
 
 Well, there are alternatives.
 
-## <a name="more-drawbacks">MORE DRAWBACKS</a>
+## <a name="more-drawbacks-to-apple-s-way">More drawbacks to Apple's way</a>
 
 Where the Apple `path_helper` falls down is:
 
@@ -114,22 +136,11 @@ Where the Apple `path_helper` falls down is:
 - It's only for `PATH` and `MANPATH` but development and administration often need headers and libraries accessible in the same way too.
 - The string it returns is designed to be `eval`'d. I know that `eval` isn't *always* evil but why not just return the `PATH` string and allow it to be set to a variable? Maybe there's more to be added.
 
-## <a name="alternatively---">ALTERNATIVELY...</a>
-
-This path\_helper fixes those problems and extends the concept to include other paths:
-  
-- `C_INCLUDE_PATH`
-- `DYLD_FALLBACK_FRAMEWORK_PATH`
-- `DYLD_FALLBACK_LIBRARY_PATH`
-- `PKG_CONFIG_PATH`
-
-and of course, `PATH` and `MANPATH`.
-
-## <a name="do-i-need-to-be-on-apple-to-use-it-">DO I NEED TO BE ON APPLE TO USE IT?</a>
+## <a name="do-i-need-to-be-on-apple-to-use-it-">Do i need to be on Apple to use it?</a>
 
 No, it should work on any unix-like system. It has one dependency, and that is Ruby. It should work with any system running Ruby 2.3.7 or above, as that is the version that ships with a Mac.
 
-## <a name="how-does-path-helper-know-what-to-put-in-the-path-">HOW DOES PATH_HELPER KNOW WHAT TO PUT IN THE PATH?</a>
+## <a name="how-does-path-helper-know-what-to-put-in-the-path-">How does path_helper know what to put in the path?</a>
 
 Apple has put paths in `/etc/paths` and further files are there for the user or apps to add under `/etc/paths.d/`. If you want to order them then prefixing a number works well, e.g.
 
@@ -164,7 +175,7 @@ The order *within* the file matters as well as the order the files are read/conc
 The `/etc/paths` file in Apple isn't set out fully or in the order I'd want so I changed mine, you may want to do the same.
 
 
-## <a name="per-user-paths">PER USER PATHS</a>
+## <a name="per-user-paths">Per user paths</a>
 
 This is the bit I like best.
 
@@ -179,7 +190,7 @@ You can use the `--setup` switch to have the path_helper set up the directory la
 
 You can also use the tilde `~` character in a path by replacing it with the `HOME` env variable. For example, if I install Haskell and want to put it in my path I can do the following:
 
-### <a name="pre-req">PRE-REQ</a>
+### <a name="pre-req">Pre-req</a>
 
 ```shell
 path_helper --setup --no-config --no-etc
@@ -193,7 +204,7 @@ path_helper --setup --no-lib --no-etc
 
 You might choose this way if you're on a Mac or using Linux. It's up to you.
 
-### <a name="way-1--use-the-paths--luke">WAY 1: USE THE PATHS, LUKE</a>
+### <a name="way-1--use-the-paths--luke">Way 1: Use the paths, Luke</a>
 
 On my Mac, Haskell resides in `~/Library/Haskell`.
 
@@ -211,7 +222,7 @@ $ cat ~/Library/Paths/paths
 
 That puts `/Users/iainb/Library/Haskell/bin` at the front of my path and will only apply to my account's `PATH`.
 
-### <a name="way-2--paths-d-">WAY 2: PATHS.D/</a>
+### <a name="way-2--paths-d-">Way 2: paths.d/</a>
 
 ```shell
 $ touch ~/Library/Paths/paths.d/60-Haskell
@@ -223,7 +234,7 @@ $ tree ~/Library/Paths
     └── 60-Haskell
 ```
 
-## <a name="why-use-the-paths-d-sub-directory">WHY USE THE PATHS.D SUB DIRECTORY?</a>
+## <a name="why-use-the-paths-d-sub-directory">Why use the paths.d sub directory?</a>
 
 Perhaps if I show you my actual set up it'll become clearer:
 
@@ -254,7 +265,7 @@ Imagine you've developed a tool but on install you have to get the user to manua
 
 Once you start installing various things it makes sense to keep their paths in their own file, it's easier to organise (and remove). It's also easy for apps to target this to easily add things to a path. Some apps already do this by adding to `/etc/paths.d` (although that obviously needs elevated privileges and makes things system wide, so again, per user paths are better).
 
-## <a name="ordering">ORDERING</a>
+## <a name="ordering">Ordering</a>
 
 path_helper will read files in this order:
 
@@ -267,7 +278,7 @@ path_helper will read files in this order:
 
 If you don't have any of those dirs/files, they are skipped. Files within the `.d` dirs are read in file system order.
 
-## <a name="why-library-paths-paths-and-not-library-paths-">WHY LIBRARY/PATHS/PATHS AND NOT LIBRARY/PATHS?</a>
+## <a name="why-library-paths-paths-and-not-library-paths-">Why Library/Paths/paths and not Library/paths?</a>
 
 Because this is such a useful pattern that it can be extended for headers and includes, so `~/Library/Paths/paths` is for the PATH, `~/Library/Paths/manpaths` is for the MANPATH etc.
 
@@ -331,20 +342,10 @@ Did you know that there's a `PKG_CONFIG_PATH`? There is, check the man page, it'
 - `/etc/pkg_config_paths`
 
 
-## <a name="how-do-i-get-this-wonderful-joyful-event-maker-into-my-life-">HOW DO I GET THIS WONDERFUL JOYFUL EVENT MAKER INTO MY LIFE?</a>
+## <a name="how-do-i-get-this-wonderful-joyful-event-maker-into-my-life-">How do i get this wonderful joyful event maker into my life?</a>
 
-### A.K.A. install instructions
 
-- Download it (use `git clone` or a download link, you can even just copy and past the [script](exe/path_helper))
-- Make sure it has the correct permissions (`chmod +x`)
-- Have a look at the help by running it with `-h`.
-- Run the `--setup` (take note of the `--lib` and `--config` and their `--no-` counterparts)
-- Copy and paste the bit setup tells you to, and put it in your `~/.zshenv` or `~/.bashenv`
-- Find your life is so much better now it's easy to manage your paths
-
-*It doesn't need to be in* `/usr/local/bin`, or any special place, just `chmod +x` it and call it by the full path and it'll plop out a string for you.
-
-## <a name="for-example-">FOR EXAMPLE:</a>
+## <a name="an-example-install">An example install:</a>
 
 You could put the path_helper in `/usr/local/libexec` and mirror the Apple set up, so that other accounts to be able to access its goodness, but you can put it anywhere you like.
 
@@ -439,9 +440,9 @@ to:
 PATH=$(ruby /path/to/path_helper -p 2>/dev/null)
 ```
 
-## <a name="you-know-what-else-is-helpful-">YOU KNOW WHAT ELSE IS HELPFUL?</a>
+## <a name="the-ability-to-debug-your-paths">The ability to debug your paths</a>
 
-The `--debug` flag. For example:
+The `--debug` flag is *really* helpful. For example:
 
 ```shell
 $ exe/path_helper -p --debug           
@@ -591,7 +592,7 @@ vim ~/.config/paths/paths.d/01-Nim
 exit
 ```
 
-## <a name="#licence">LICENCE</a>
+## <a name="#licence">Licence</a>
 
 See the LICENCE file.
 
