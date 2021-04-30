@@ -59,7 +59,14 @@ Results: (duplicates marked by ✗)
 /root/.config/paths/paths
  └── /opt/local/sbin
 /etc/paths
+ ├── /usr/local/bundle/bin
+ ├── /usr/local/sbin
+ ├── /usr/local/bin
+ ├── /usr/sbin
+ ├── /usr/bin
+ ├── /sbin
+ └── /bin
 
 Env var:
-/root/Library/Frameworks/Libiconv.framework/Versions/Current/bin:/opt/local/libexec/llvm-11/bin:/opt/pkg/bin:/root/Library/Frameworks/LLVM.framework/Programs:/opt/pkg/sbin:/opt/pkg/gnu/bin:$HOME/gopath:$HOME/gopath/bin:/root/.oh-my-zsh/custom/plugins/fzf/bin:/root/Applications/ngrok:/opt/crystal/bin:/opt/crystal/embedded/bin:/root/Library/Frameworks/Crystal.framework/Versions/Current/bin:/root/Library/Frameworks/Crystal.framework/Versions/Current/embedded/bin:/root/Library/Frameworks/Opam.framework/Programs:/root/.opam/4.10.0/bin:/root/.opam/4.10.0/sbin:/root/Library/Haskell/bin:/root/Library/Frameworks/Erlang.framework/Programs:/root/go/bin:/root/.pyenv/bin:/root/.cargo/bin:/root/bin:/root/.lua/bin:/root/Library/Frameworks/Zig.framework/Programs:/root/Projects/ThePrintedBird/scripts/docker:/opt/pkg/gcc7/bin:/opt/pkg/gcc48/bin:/opt/local/sbin
+/root/Library/Frameworks/Libiconv.framework/Versions/Current/bin:/opt/local/libexec/llvm-11/bin:/opt/pkg/bin:/root/Library/Frameworks/LLVM.framework/Programs:/opt/pkg/sbin:/opt/pkg/gnu/bin:$HOME/gopath:$HOME/gopath/bin:/root/.oh-my-zsh/custom/plugins/fzf/bin:/root/Applications/ngrok:/opt/crystal/bin:/opt/crystal/embedded/bin:/root/Library/Frameworks/Crystal.framework/Versions/Current/bin:/root/Library/Frameworks/Crystal.framework/Versions/Current/embedded/bin:/root/Library/Frameworks/Opam.framework/Programs:/root/.opam/4.10.0/bin:/root/.opam/4.10.0/sbin:/root/Library/Haskell/bin:/root/Library/Frameworks/Erlang.framework/Programs:/root/go/bin:/root/.pyenv/bin:/root/.cargo/bin:/root/bin:/root/.lua/bin:/root/Library/Frameworks/Zig.framework/Programs:/root/Projects/ThePrintedBird/scripts/docker:/opt/pkg/gcc7/bin:/opt/pkg/gcc48/bin:/opt/local/sbin:/usr/local/bundle/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
