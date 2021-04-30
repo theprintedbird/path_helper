@@ -513,34 +513,30 @@ Env var:
 
 Everything you need to know! Very useful for working out when other things are manipulating the path too.
 
-## <a name="development">DEVELOPMENT</a>
+## <a name="development">Development</a>
 
 I'm happy to hear from you, email me or open an issue. Pull requests are fine too, try to bring me a spec or an example if you want a feature or find a bug.
 
-### TO GET SET UP FOR DEVELOPMENT
+### To get set up for development
 
 Run:
 
 ```shell
-docker build --squash -t path_helper .
+packer build docker/docker.pkr.hcl
 ```
 
-and I tend to get rid of the intermediate layers:
+
+### <a name="to-run-the-specs">To run the specs</a>
 
 ```shell
-docker images --no-trunc -aqf "dangling=true" | xargs docker rmi
+docker run --rm yb66/path_helper:4.0.0-ph-r237
+docker run --rm yb66/path_helper:4.0.0-ph-r270
 ```
 
-### <a name="to-run-the-specs">TO RUN THE SPECS</a>
+### <a name="shell-in-and-have-a-play">Shell in and have a play</a>
 
 ```shell
-docker run --rm path_helper
-```
-
-### <a name="shell-in-and-have-a-play">SHELL IN AND HAVE A PLAY</a>
-
-```shell
-docker run --rm -ti --entrypoint="" path_helper sh
+docker run --rm -ti --entrypoint="" yb66/path_helper sh
 ```
 
 Run some tests yourself:
@@ -568,10 +564,11 @@ Have a look at the output by running through the available paths:
 ./exe/path_helper -p --debug
 ```
 
-See the pretty colours:
+Add colour support to the terminal so you can see the prettiness:
 
 ```shell
 apk add ncurses
+./exe/path_helper -p --debug
 ```
 
 You may want to have the env vars set. Run:
