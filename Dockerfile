@@ -5,7 +5,7 @@ WORKDIR /root
 ENV PATH_HELPER_DOCKER_INSTANCE=true
 
 COPY spec spec
-COPY docker-assets/.ashenv .
+COPY docker/assets/.ashenv .
 
 COPY exe/path_helper exe/path_helper
 RUN chmod +x exe/path_helper && \
