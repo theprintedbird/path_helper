@@ -14,6 +14,8 @@ if [ -z "$PATH_HELPER_DOCKER_INSTANCE" ]; then
 	exit 0;
 fi
 
+results=$(mktemp)
+
 cleanup(){
 	if [ -d "$HOME/Library/Paths" ]; then
 		rm -rf "$HOME/Library/Paths"
@@ -23,7 +25,6 @@ cleanup(){
 	fi
 	if [ -d /etc/paths.d ]; then
 		rm -rf /etc/paths.d
-		rm /etc/paths
 	fi
 	if [ -d /etc/manpaths.d ]; then
 		rm -rf /etc/manpaths.d
@@ -48,12 +49,25 @@ cleanup(){
 }
 
 test_a_path(){
-	local output_file="$1"
+	local test_name="$1"
+	local output_file="$2"
 	shift
-	local tmpfile=$(mktemp)
-	/usr/local/bin/ruby "$PWD/exe/path_helper" "${@}" > "$tmpfile"
-	result="$PWD/spec/fixtures/results/${output_file}"
-	cmp -s "$result" "$tmpfile"
+	shift
+	local actual=$(mktemp)
+
+	/usr/local/bin/ruby "$PWD/exe/path_helper" "${@}" > "$actual"
+
+	local expected="$PWD/spec/fixtures/results/${output_file}"
+
+	if ! cmp -s "$expected" "$actual"; then
+		printf "$test_name:" >> "$results"
+		cmp "$expected" "$actual" >> "$results"
+		printf '\n\n---expected---\n\n' | cat - "$expected" >> "$results"
+		printf '\n\n---actual---\n\n' | cat - "$actual" >> "$results"
+		printf '\n\n------\n\n' >> "$results"
+		return 1
+	fi
+	return 0
 }
 
 test_setup(){
@@ -79,8 +93,7 @@ test_setup(){
 	[ -f /etc/pkg_config_paths ] &&
 	[ -d /root/.config/paths/paths.d ] &&
 	[ -d /etc/paths.d ] &&
-	[ -f /root/.config/paths/paths ] &&
-	[ -f /etc/paths ]
+	[ -f /root/.config/paths/paths ]
 }
 
 TMPDIR=$(mktemp -d)
@@ -95,7 +108,7 @@ if test_setup; then
 	failures="${failures:+"$failures:"}setup_spec 1"
 fi
 
-./exe/path_helper --setup --no-lib 2>&1 > /dev/null
+./exe/path_helper --setup --no-lib --quiet
 cp -R spec/fixtures/moredirs/* ~/.config/paths
 
 # This should pass now because the setup has been run
@@ -105,42 +118,42 @@ if ! test_setup; then
 fi
 
 
-if ! test_a_path "path.txt" "-p"; then
+if ! test_a_path "path_spec" "path.txt" "-p"; then
 	PASS=1
 	failures="${failures:+"$failures:"}path_spec"
 fi
 
-if ! test_a_path "debug_path.txt" "-p" "--debug"; then
+if ! test_a_path "debug_path_spec" "debug_path.txt" "-p" "--debug"; then
 	PASS=1
 	failures="${failures:+"$failures:"}debug_path_spec"
 fi
 
-if ! test_a_path "manpath.txt" "-m"; then
+if ! test_a_path "manpath_spec" "manpath.txt" "-m"; then
 	PASS=1
 	failures="${failures:+"$failures:"}manpath_spec"
 fi
 
-if ! test_a_path "c_include.txt" "-c"; then
+if ! test_a_path "c_include_spec" "c_include.txt" "-c"; then
 	PASS=1
 	failures="${failures:+"$failures:"}c_include_spec"
 fi
 
-if ! test_a_path "dyld-fram.txt" "-f"; then
+if ! test_a_path "dyld-fram_spec" "dyld-fram.txt" "-f"; then
 	PASS=1
 	failures="${failures:+"$failures:"}dyld-fram_spec"
 fi
 
-if ! test_a_path "dyld-lib.txt" "-l"; then
+if ! test_a_path "dyld-lib_spec" "dyld-lib.txt" "-l"; then
 	PASS=1
 	failures="${failures:+"$failures:"}dyld-lib_spec"
 fi
 
-if ! test_a_path "pkg_config.txt" "--pc"; then
+if ! test_a_path "pkg_config_spec" "pkg_config.txt" "--pc"; then
 	PASS=1
 	failures="${failures:+"$failures:"}pkg_config_spec"
 fi
 
-if ! test_a_path "debug_pkg_config.txt" "--pc" "--debug"; then
+if ! test_a_path "pkg_config_spec" "debug_pkg_config.txt" "--pc" "--debug"; then
 	PASS=1
 	failures="${failures:+"$failures:"}pkg_config_spec"
 fi
@@ -165,6 +178,8 @@ if [ $PASS -eq 0 ]; then
 else
 	echo "Failure :'("
 	echo $failures | awk -F: '{for(i=1; i<=NF; i++) print "failed: "$i}'
+	echo "More info..."
+	cat $results
 fi
 
 cleanup
