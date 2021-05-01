@@ -52,7 +52,7 @@ and one more for luck
 
 It's just a script with no dependencies other than Ruby.
 
-- Download it (e.g. `git clone` or a download link, you can even just copy and past the [script](https://raw.githubusercontent.com/yb66/path_helper/master/exe/path_helper))
+- Download it (e.g. `git clone` or a download link, you can even just copy and paste the [script](https://raw.githubusercontent.com/yb66/path_helper/master/exe/path_helper))
 - Make sure it has the correct permissions (`chmod +x`)
 - Have a look at the help by running it with `-h`.
 - Run the `--setup` (take note of the `--lib` and `--config` and their `--no-` counterparts)
