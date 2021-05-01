@@ -20,7 +20,7 @@ locals {
 
 variable "repo" {
 	type		= string
-	default = "yb66/path_helper"
+	default = "path_helper"
 }
 
 source "docker" "ph-general" {
