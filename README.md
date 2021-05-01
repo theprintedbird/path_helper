@@ -48,7 +48,9 @@ and one more for luck
 
 4. It's got no side effects, you simply ask it for a path and it gives back a path, no eval or setting the `PATH` inside the script.
 
-### How do i get this wonderful joyful event maker into my life? A.K.A. install instructions
+## <a name="how-do-i-get-this-wonderful-joyful-event-maker-into-my-life-">How do i get this wonderful joyful event maker into my life?</a>
+
+### A.K.A. install instructions
 
 It's just a script with no dependencies other than Ruby.
 
@@ -340,9 +342,6 @@ Did you know that there's a `PKG_CONFIG_PATH`? There is, check the man page, it'
 - `~/.config/pkg_config_paths`
 - `/etc/pkg_config_paths.d/`
 - `/etc/pkg_config_paths`
-
-
-## <a name="how-do-i-get-this-wonderful-joyful-event-maker-into-my-life-">How do i get this wonderful joyful event maker into my life?</a>
 
 
 ## <a name="an-example-install">An example install:</a>
