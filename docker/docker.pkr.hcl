@@ -1,6 +1,5 @@
 variable "ph_version" {
 	type		= string
-	default	=	"4.0.0"
 }
 
 locals {
