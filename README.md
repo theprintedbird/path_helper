@@ -522,27 +522,31 @@ I'm happy to hear from you, email me or open an issue. Pull requests are fine to
 Run:
 
 ```shell
-packer build docker/docker.pkr.hcl
+PATH_HELPER_VERSION=$(./exe/path_helper --version 2>&1)
+```
+
+```shell
+packer build -var="ph_version=$PATH_HELPER_VERSION" docker/docker.pkr.hcl
 ```
 
 
 ### <a name="to-run-the-specs">To run the specs</a>
 
 ```shell
-docker run --rm yb66/path_helper:4.0.0-ph-r237
-docker run --rm yb66/path_helper:4.0.0-ph-r270
+docker run --rm path_helper:$PATH_HELPER_VERSION-ph-r237
+docker run --rm path_helper:$PATH_HELPER_VERSION-ph-r270
 ```
 
 ### <a name="shell-in-and-have-a-play">Shell in and have a play</a>
 
 ```shell
-docker run --rm -ti --entrypoint="" yb66/path_helper sh
+docker run --rm -ti --entrypoint="" path_helper sh
 ```
 
 Run some tests yourself:
 
 ```shell
-./spec/shell_spec.sh
+docker run --rm -ti --entrypoint="" path_helper ./spec/shell_spec.sh
 ```
 
 Set up some paths using the test fixtures:
