@@ -1,0 +1,58 @@
+name: Path Helper Tests
+
+on:
+  push:
+    branches: 
+      - main
+      - v4
+  pull_request:
+    branches:
+      - main
+      - v4
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version: ['2.3.7', '2.7.0','3.3.x']
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Ruby ${{ matrix.ruby-version }}
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y alpine-pbuilder
+
+    - name: Set up test environment
+      run: |
+        mkdir -p ~/.config/paths
+        cp -R spec/fixtures/moredirs/* ~/.config/paths
+        sudo mv spec /tmp/spec
+        sudo mv .ashenv /tmp/.ashenv
+        sudo mv exe /tmp/exe
+        sudo mv etc-paths /tmp/etc-paths
+        sudo chmod +x /tmp/exe/path_helper
+        sudo chmod +x /tmp/spec/shell_spec.sh
+
+    - name: Run install script
+      run: |
+        sudo sh -x /tmp/install.sh
+
+    - name: Run tests
+      run: |
+        set -o pipefail
+        /tmp/spec/shell_spec.sh | tee test_output.log
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: test-results
+        path: test_output.log
