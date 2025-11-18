@@ -56,16 +56,12 @@ jobs:
 
     - name: Run setup
       run: |
-        cd /root
-        sudo ./exe/path_helper --setup --no-lib --quiet
+        sudo bash -c 'cd /root && ./exe/path_helper --setup --no-lib --quiet'
         sudo cp -R spec/fixtures/moredirs/* /root/.config/paths
 
     - name: Run tests
       timeout-minutes: 10
       run: |
-        set -o pipefail
-        sudo bash -c "cd /root && PATH=\"$PATH\" PATH_HELPER_DOCKER_INSTANCE=1 ./spec/shell_spec.sh" 2>&1 | tee test_output.log
-
         cd /root
         sudo PATH="$PATH" PATH_HELPER_DOCKER_INSTANCE=1 ./spec/shell_spec.sh 2>&1 | tee $GITHUB_WORKSPACE/test_output.log
 
