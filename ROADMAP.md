@@ -10,12 +10,12 @@ This document outlines the current issues with the GitHub Actions workflow and t
 
 #### Issues Identified
 
-1. **Outdated GitHub Actions**
+1. **fixed: Outdated GitHub Actions**
    - Using `actions/checkout@v2` (current: v4)
    - Using `actions/upload-artifact@v2` (current: v4)
    - Security and performance improvements available in newer versions
 
-2. **Missing Environment Variable**
+2. **fixed: Missing Environment Variable**
    - Test script requires `PATH_HELPER_DOCKER_INSTANCE` environment variable
    - Workflow doesn't set this variable, causing tests to exit early
    - Located in `spec/shell_spec.sh:7-15`
@@ -25,12 +25,12 @@ This document outlines the current issues with the GitHub Actions workflow and t
    - Actual install script is at `docker/install.sh`
    - This would cause the installation step to fail
 
-4. **Outdated Ruby Versions**
+4. **fixed: Outdated Ruby Versions**
    - Testing with Ruby 2.3.7 (EOL March 2019)
    - Missing recent Ruby versions (3.0, 3.1, 3.2)
    - Should focus on maintained versions
 
-5. **Shell Script Issues**
+5. **fixed: Shell Script Issues**
    - `spec/shell_spec.sh:187` uses `return` instead of `exit`
    - `return` doesn't work properly outside of functions in shell scripts
    - Will cause incorrect exit codes in CI environment
@@ -40,7 +40,7 @@ This document outlines the current issues with the GitHub Actions workflow and t
    - Slower CI runs due to repeated package installations
 
 7. **Limited Workflow Controls**
-   - No concurrency control (multiple runs can execute simultaneously)
+   - fixed: No concurrency control (multiple runs can execute simultaneously)
    - No manual trigger option (`workflow_dispatch`)
    - No workflow permissions defined
 
