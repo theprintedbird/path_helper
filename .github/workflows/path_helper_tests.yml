@@ -2,23 +2,36 @@ name: Path Helper Tests
 
 on:
   push:
-    branches: 
-      - main
-      - v4
+    branches:
+      - master
+      - dev
   pull_request:
     branches:
-      - main
-      - v4
+      - master
+      - dev
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PATH_HELPER_DOCKER_INSTANCE: 'true'
     strategy:
+      fail-fast: false
       matrix:
-        ruby-version: ['2.3.7', '2.7.0','3.3.x']
+        # Test key Ruby versions: legacy (2.3.7), last 2.x (2.7), modern stable (3.2), latest (3.3)
+        ruby-version: ['2.3.7', '2.7', '3.2', '3.3']
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Set up Ruby ${{ matrix.ruby-version }}
       uses: ruby/setup-ruby@v1
@@ -28,7 +41,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y alpine-pbuilder
+        sudo apt-get install -y bc
 
     - name: Set up test environment
       run: |
@@ -43,18 +56,54 @@ jobs:
         sudo chmod +x /tmp/spec/shell_spec.sh
         sudo chmod +x /tmp/install.sh
 
-    - name: Run install script
+    - name: Run setup
       run: |
         sudo sh -x /tmp/install.sh
 
     - name: Run tests
+      timeout-minutes: 10
       run: |
         set -o pipefail
-        /tmp/spec/shell_spec.sh | tee test_output.log
+        sudo bash -c "cd /root && PATH=\"$PATH\" PATH_HELPER_DOCKER_INSTANCE=1 ./spec/shell_spec.sh" 2>&1 | tee test_output.log
+
+    - name: Display test failures
+      if: failure()
+      run: |
+        echo "========================================"
+        echo "TEST FAILURES - Ruby ${{ matrix.ruby-version }}"
+        echo "========================================"
+        if [ -f test_output.log ]; then
+          echo ""
+          echo "Failed tests:"
+          grep -A 50 "Failure" test_output.log || cat test_output.log
+          echo ""
+          echo "========================================"
+        fi
+
+    - name: Generate test summary
+      if: always()
+      run: |
+        echo "## Test Results for Ruby ${{ matrix.ruby-version }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ -f test_output.log ]; then
+          if grep -q "Passed!" test_output.log; then
+            echo ":white_check_mark: **All tests passed**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo ":x: **Tests failed**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Output" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat test_output.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo ":warning: **No test output found**" >> $GITHUB_STEP_SUMMARY
+        fi
 
     - name: Upload test results
-      uses: actions/upload-artifact@v2
-      if: failure()
+      uses: actions/upload-artifact@v4
+      if: always()
       with:
-        name: test-results
+        name: test-results-ruby-${{ matrix.ruby-version }}
         path: test_output.log
+        retention-days: 7
