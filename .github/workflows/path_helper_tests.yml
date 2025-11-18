@@ -47,14 +47,12 @@ jobs:
       run: |
         mkdir -p ~/.config/paths
         cp -R spec/fixtures/moredirs/* ~/.config/paths
-        sudo mv spec /tmp/spec
-        sudo mv docker/assets/.ashenv /tmp/.ashenv
-        sudo mv exe /tmp/exe
-        sudo mv docker/assets/etc-paths /tmp/etc-paths
-        sudo mv docker/install.sh /tmp/install.sh
-        sudo chmod +x /tmp/exe/path_helper
-        sudo chmod +x /tmp/spec/shell_spec.sh
-        sudo chmod +x /tmp/install.sh
+        # Move test files to /tmp in a single operation
+        sudo mv spec docker/assets/.ashenv exe docker/assets/etc-paths /tmp/
+        # Copy install script to /tmp
+        sudo cp docker/install.sh /tmp/install.sh
+        # Set executable permissions in one command
+        sudo chmod +x /tmp/install.sh /tmp/exe/path_helper /tmp/spec/shell_spec.sh
 
     - name: Run setup
       run: |
