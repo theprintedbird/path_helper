@@ -45,24 +45,29 @@ jobs:
 
     - name: Set up test environment
       run: |
-        mkdir -p ~/.config/paths
-        cp -R spec/fixtures/moredirs/* ~/.config/paths
-        # Move test files to /tmp in a single operation
-        sudo mv spec docker/assets/.ashenv exe docker/assets/etc-paths /tmp/
-        # Copy install script to /tmp
-        sudo cp docker/install.sh /tmp/install.sh
-        # Set executable permissions in one command
-        sudo chmod +x /tmp/install.sh /tmp/exe/path_helper /tmp/spec/shell_spec.sh
+        sudo mkdir -p /root/.config/paths
+        sudo cp -R spec/fixtures/moredirs/* /root/.config/paths
+        sudo cp -R spec /root/spec
+        sudo cp docker/assets/.ashenv /root/.ashenv
+        sudo cp -R exe /root/exe
+        sudo cp docker/assets/etc-paths /etc/paths
+        sudo chmod +x /root/exe/path_helper
+        sudo chmod +x /root/spec/shell_spec.sh
 
     - name: Run setup
       run: |
-        sudo sh -x /tmp/install.sh
+        cd /root
+        sudo ./exe/path_helper --setup --no-lib --quiet
+        sudo cp -R spec/fixtures/moredirs/* /root/.config/paths
 
     - name: Run tests
       timeout-minutes: 10
       run: |
         set -o pipefail
         sudo bash -c "cd /root && PATH=\"$PATH\" PATH_HELPER_DOCKER_INSTANCE=1 ./spec/shell_spec.sh" 2>&1 | tee test_output.log
+
+        cd /root
+        sudo PATH="$PATH" PATH_HELPER_DOCKER_INSTANCE=1 ./spec/shell_spec.sh 2>&1 | tee $GITHUB_WORKSPACE/test_output.log
 
     - name: Display test failures
       if: failure()
