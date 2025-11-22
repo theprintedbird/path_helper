@@ -67,7 +67,7 @@ test_a_path(){
 	shift
 	local actual=$(mktemp)
 
-	ruby "$PWD/exe/path_helper" "${@}" > "$actual"
+	"$PWD/exe/path_helper" "${@}" > "$actual"
 
 	local expected="$PWD/spec/fixtures/results/${output_file}"
 
@@ -166,6 +166,7 @@ fi
 
 "$PWD/exe/path_helper" --setup --no-lib --quiet
 cp -R spec/fixtures/moredirs/* ~/.config/paths
+
 # Populate /etc/paths if it's empty and the source file exists
 if [ ! -s /etc/paths ] && [ -f docker/assets/etc-paths ]; then
 	cp docker/assets/etc-paths /etc/paths
