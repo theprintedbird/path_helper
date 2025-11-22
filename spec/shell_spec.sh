@@ -220,7 +220,6 @@ fi
 
 # This should not be okay, therefore it should be a fail if
 # running it seems okay.
-<<<<<<< conflict 2 of 3
 if ruby "$PWD/exe/path_helper" 2>/dev/null; then
 	PASS=1
 	failures="${failures:+"$failures:"}must provide an argument"

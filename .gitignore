@@ -49,4 +49,3 @@ Gemfile.lock
 # Crystal
 /lib/
 /.shards/
-.project-env

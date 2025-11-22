@@ -23,7 +23,6 @@ runs:
         if [ ! -s /etc/paths ] && [ -f docker/assets/etc-paths ]; then
           sudo cp docker/assets/etc-paths /etc/paths
         fi
-
     - name: Run tests
       id: run-tests
       shell: bash
