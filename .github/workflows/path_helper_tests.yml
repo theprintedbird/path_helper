@@ -39,22 +39,24 @@ jobs:
         ruby-version: ${{ matrix.ruby-version }}
 
     - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y bc
+      timeout-minutes: 10
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: alpine-pbuilder
+        version: 1.0
 
     - name: Set up test environment
       run: |
-        sudo mkdir -p /root/.config/paths
-        sudo cp -R spec/fixtures/moredirs/* /root/.config/paths
-        sudo cp -R spec /root/spec
-        sudo cp docker/assets/.ashenv /root/.ashenv
-        sudo cp -R exe /root/exe
-        sudo cp docker/assets/etc-paths /etc/paths
-        sudo chmod +x /root/exe/path_helper
-        sudo chmod +x /root/spec/shell_spec.sh
+         sudo mkdir -p /root/.config/paths
+         sudo cp -R spec/fixtures/moredirs/* /root/.config/paths
+         sudo cp -R spec /root/spec
+         sudo cp docker/assets/.ashenv /root/.ashenv
+         sudo cp -R exe /root/exe
+         sudo cp docker/assets/etc-paths /etc/paths
+         sudo chmod +x /root/exe/path_helper
+         sudo chmod +x /root/spec/shell_spec.sh
 
-    - name: Run setup
+    - name: Run install script
       run: |
         sudo bash -c 'cd /root && ./exe/path_helper --setup --no-lib --quiet'
         sudo cp -R spec/fixtures/moredirs/* /root/.config/paths
