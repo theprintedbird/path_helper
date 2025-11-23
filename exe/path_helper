@@ -171,6 +171,7 @@ module PathHelper
         end
         @section[:found]["current path"] = components
       end
+
       @section[:all_lines].keys
                           .join(":")
                           .gsub( /\~/, HOME)

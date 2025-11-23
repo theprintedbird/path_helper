@@ -595,6 +595,93 @@ vim ~/.config/paths/paths.d/01-Nim
 exit
 ```
 
+## <a name="ci-cd">CI/CD</a>
+
+The project uses GitHub Actions for continuous integration. The workflow runs on pushes and pull requests to the `master` and `dev` branches.
+
+### Workflow Features
+
+- **Ruby Version Matrix**: Tests run against multiple Ruby versions (2.3.7, 2.7, 3.2, 3.3)
+- **Manual Triggers**: Workflow can be manually triggered via `workflow_dispatch`
+- **Concurrency Control**: Duplicate runs are cancelled when new commits are pushed
+- **APT Caching**: Dependencies are cached to speed up builds
+- **Test Summaries**: Results are displayed in the GitHub Actions UI
+- **Artifact Retention**: Test results are kept for 7 days
+
+### Workflow Structure
+
+The main workflow file is located at `.github/workflows/path_helper_tests.yml`. It:
+
+1. Checks out the code
+2. Sets up the specified Ruby version
+3. Installs dependencies (alpine-pbuilder)
+4. Configures the test environment
+5. Runs the shell-based test suite
+6. Generates test summaries and uploads artifacts
+
+### Contributing to CI/CD
+
+When making changes to the GitHub Actions workflow:
+
+1. **Test locally first**: Use [act](https://github.com/nektos/act) to test workflow changes locally before pushing
+2. **Use a feature branch**: Make workflow changes on a separate branch and verify they pass
+3. **Update documentation**: If adding new features, update this README section
+4. **Maintain backwards compatibility**: Ensure changes don't break existing test patterns
+5. **Follow security best practices**: Use minimal permissions, pin action versions, and avoid secrets in logs
+
+Key files:
+- `.github/workflows/path_helper_tests.yml` - Main test workflow
+- `spec/shell_spec.sh` - Shell-based test suite
+- `spec/fixtures/` - Test fixtures and expected results
+
+### Running Tests Locally vs CI
+
+**Local Testing (Docker)**
+
+The recommended way to run tests locally is using Docker, which provides an isolated environment:
+
+```shell
+# Build the Docker image
+PATH_HELPER_VERSION=$(./exe/path_helper --version 2>&1)
+packer build -var="ph_version=$PATH_HELPER_VERSION" docker/docker.pkr.hcl
+
+# Run tests for specific Ruby versions
+docker run --rm path_helper:$PATH_HELPER_VERSION-ph-r237
+docker run --rm path_helper:$PATH_HELPER_VERSION-ph-r270
+
+# Interactive shell for debugging
+docker run --rm -ti --entrypoint="" path_helper sh
+```
+
+**Local Testing (act)**
+
+To simulate the GitHub Actions environment locally:
+
+```shell
+# Install act (https://github.com/nektos/act)
+# Then run the workflow
+act push
+
+# Run with specific Ruby version
+act push --matrix ruby-version:3.2
+```
+
+**CI Testing**
+
+Tests automatically run on GitHub Actions when:
+- Pushing to `master` or `dev` branches
+- Opening/updating pull requests to those branches
+- Manually triggering via the Actions tab (workflow_dispatch)
+
+**Key Differences**
+
+| Aspect | Local (Docker) | CI (GitHub Actions) |
+|--------|----------------|---------------------|
+| Environment | Alpine Linux | Ubuntu |
+| Ruby setup | Pre-built in image | ruby/setup-ruby action |
+| Test output | Console only | Artifacts + Summary |
+| Speed | Fast (cached image) | Depends on cache hits |
+
 ## <a name="#licence">Licence</a>
 
 See the LICENCE file.

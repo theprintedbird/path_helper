@@ -1,0 +1,17 @@
+name: path_helper
+version: 4.0.0
+
+authors:
+  - Your Name <your@email.com>
+
+description: |
+  A better path_helper - manages environment variable paths (PATH, MANPATH, etc.)
+  with support for per-user paths, multiple environment variables, and debug output.
+
+crystal: ">= 1.0.0"
+
+license: MIT
+
+targets:
+  path_helper:
+    main: src/path_helper.cr
