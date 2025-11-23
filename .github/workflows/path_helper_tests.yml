@@ -58,8 +58,7 @@ jobs:
 
     - name: Run install script
       run: |
-        sudo bash -c 'cd /root && ./exe/path_helper --setup --no-lib --quiet'
-        sudo cp -R spec/fixtures/moredirs/* /root/.config/paths
+        sudo sh -x /tmp/install.sh
 
     - name: Run tests
       timeout-minutes: 10

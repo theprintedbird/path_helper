@@ -22,7 +22,7 @@ cleanup(){
 	}
 	safe_remove() {
 		local target="$1"
-		if [ -d "$target" ]; then
+		if [[ -d "$target" ]]; then
 			rm -rf "$target" || handle_error "Failed to remove $target"
 		else
 			rm -f "$target" || handle_error "Failed to remove $target"
@@ -115,10 +115,8 @@ get_time_ns() {
 
 # Function to run a baseline operation
 baseline_operation() {
-	i=0
-	while [ $i -lt 1000000 ]; do
+	for i in {1..1000000}; do
 		: # No-op
-		i=$((i + 1))
 	done
 }
 
@@ -221,14 +219,14 @@ fi
 
 # This should not be okay, therefore it should be a fail if
 # running it seems okay.
-if ruby "$PWD/exe/path_helper" 2>/dev/null; then
+if /usr/local/bin/ruby "$PWD/exe/path_helper" 2>/dev/null; then
 	PASS=1
 	failures="${failures:+"$failures:"}must provide an argument"
 fi
 
 # This should not be okay, therefore it should be a fail if
 # running it seems okay.
-if ruby "$PWD/exe/path_helper" -q 2>/dev/null; then
+if /usr/local/bin/ruby "$PWD/exe/path_helper" -q 2>/dev/null; then
 	PASS=1
 	failures="${failures:+"$failures:"}the kind of path must be declared"
 fi
