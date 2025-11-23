@@ -1,0 +1,34 @@
+name: 'Setup Test Environment'
+description: 'Sets up the test environment for path_helper tests (language-agnostic)'
+
+inputs:
+  exe-path:
+    description: 'Path to the path_helper executable'
+    required: true
+    default: 'exe/path_helper'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install system dependencies
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bc
+
+    - name: Set up test directory structure
+      shell: bash
+      run: |
+        sudo mkdir -p /root/.config/paths
+        sudo cp -R spec/fixtures/moredirs/* /root/.config/paths
+        sudo cp -R spec /root/spec
+        sudo cp docker/assets/.ashenv /root/.ashenv
+        sudo mkdir -p /root/exe
+        sudo cp docker/assets/etc-paths /etc/paths
+        sudo chmod +x /root/spec/shell_spec.sh
+
+    - name: Copy executable
+      shell: bash
+      run: |
+        sudo cp ${{ inputs.exe-path }} /root/exe/path_helper
+        sudo chmod +x /root/exe/path_helper

@@ -1,0 +1,71 @@
+name: 'Run Shell Tests'
+description: 'Runs the shell-based test suite for path_helper'
+
+inputs:
+  language-version:
+    description: 'Language version being tested (for reporting)'
+    required: true
+
+outputs:
+  test-result:
+    description: 'Test result (passed/failed)'
+    value: ${{ steps.run-tests.outcome }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run setup
+      shell: bash
+      run: |
+        sudo bash -c 'cd /root && ./exe/path_helper --setup --no-lib --quiet'
+        sudo cp -R spec/fixtures/moredirs/* /root/.config/paths
+        # Populate /etc/paths if it's empty and the source file exists
+        if [ ! -s /etc/paths ] && [ -f docker/assets/etc-paths ]; then
+          sudo cp docker/assets/etc-paths /etc/paths
+        fi
+
+    - name: Run tests
+      id: run-tests
+      shell: bash
+      env:
+        PATH_HELPER_DOCKER_INSTANCE: '1'
+      run: |
+        set -o pipefail
+        sudo bash -c "cd /root && PATH=\"$PATH\" PATH_HELPER_DOCKER_INSTANCE=1 ./spec/shell_spec.sh" 2>&1 | tee test_output.log
+
+    - name: Display test failures
+      if: failure()
+      shell: bash
+      run: |
+        echo "========================================"
+        echo "TEST FAILURES - ${{ inputs.language-version }}"
+        echo "========================================"
+        if [ -f test_output.log ]; then
+          echo ""
+          echo "Failed tests:"
+          grep -A 50 "Failure" test_output.log || cat test_output.log
+          echo ""
+          echo "========================================"
+        fi
+
+    - name: Generate test summary
+      if: always()
+      shell: bash
+      run: |
+        echo "## Test Results for ${{ inputs.language-version }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ -f test_output.log ]; then
+          if grep -q "Passed!" test_output.log; then
+            echo ":white_check_mark: **All tests passed**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo ":x: **Tests failed**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Output" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat test_output.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo ":warning: **No test output found**" >> $GITHUB_STEP_SUMMARY
+        fi
+

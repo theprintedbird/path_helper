@@ -1,81 +1,91 @@
 variable "ph_version" {
-	type		= string
+	type = string
 }
 
+variable "repo" {
+	type    = string
+	default = "path_helper"
+}
+
+# Define all Ruby versions to test here.
+# To add a new Ruby version, just add another entry to this array!
+# Current selection tests: legacy (2.3.7), last 2.x (2.7), modern stable (3.2), latest (3.3)
 locals {
 	rubies = [
 		{
-			name 	= "ph-r237"
+			name  = "ph-r237"
 			image = "ruby:2.3.7-alpine3.8"
-			tag 	= "${var.ph_version}-ruby2.3.7"
+			tag   = "${var.ph_version}-ruby2.3.7"
 		},
 		{
-			name 	= "ph-r270"
-			image = "ruby:2.7.0-alpine3.8"
-			tag 	= "${var.ph_version}-ruby2.7.0"
+			name  = "ph-r270"
+			image = "ruby:2.7-alpine3.16"
+			tag   = "${var.ph_version}-ruby2.7"
+		},
+		{
+			name  = "ph-r320"
+			image = "ruby:3.2-alpine3.22"
+			tag   = "${var.ph_version}-ruby3.2"
+		},
+		{
+			name  = "ph-r330"
+			image = "ruby:3.3-alpine3.22"
+			tag   = "${var.ph_version}-ruby3.3"
 		}
 	]
 }
 
-variable "repo" {
-	type		= string
-	default = "path_helper"
-}
-
+# Single source definition used by all Ruby versions
 source "docker" "ph-general" {
-  commit  = true
+	commit  = true
 	changes = [
 		"ENV PATH_HELPER_DOCKER_INSTANCE=true",
 		"WORKDIR /root",
 		"ENTRYPOINT [\"spec/shell_spec.sh\"]"
 	]
 }
-
-source "docker" "ph-r270" {
-  commit  = true
-	changes = [
-		"ENV PATH_HELPER_DOCKER_INSTANCE=true",
-		"WORKDIR /root",
-		"ENTRYPOINT [\"spec/shell_spec.sh\"]"
-	]
-}
-
 
 build {
-	#	sources = ["source.docker.ph-r270","source.docker.ph-r237"]
-	source "source.docker.ph-general" {
-		name		=	"ph-r270"
-		image   = "ruby:2.7.0-alpine3.11"
-	}
-	source "source.docker.ph-general" {
-		name		=	"ph-r237"
-		image   = "ruby:2.3.7-alpine3.8"
+	# Dynamically create a source for each Ruby version defined in locals.rubies
+	dynamic "source" {
+		for_each = local.rubies
+		iterator = ruby
+
+		content {
+			source = "source.docker.ph-general"
+			name   = ruby.value.name
+			image  = ruby.value.image
+		}
 	}
 
-	provisioner "file"{
-		source			= "spec"
+	provisioner "file" {
+		source      = "spec"
 		destination = "/tmp/spec"
 	}
+
 	provisioner "file" {
-		source			=	"docker/assets/.ashenv"
-		destination	=	"/tmp/.ashenv"
+		source      = "docker/assets/.ashenv"
+		destination = "/tmp/.ashenv"
 	}
+
 	provisioner "file" {
-		source			= "exe"
+		source      = "exe"
 		destination = "/tmp/exe"
 	}
-	provisioner "file"{
-		source			= "docker/assets/etc-paths"
+
+	provisioner "file" {
+		source      = "docker/assets/etc-paths"
 		destination = "/tmp/etc-paths"
 	}
-  provisioner "shell" {
-    script = "docker/install.sh"
-  }
+
+	provisioner "shell" {
+		script = "docker/install.sh"
+	}
 
 	post-processors {
 		post-processor "docker-tag" {
-			repository	=	"${var.repo}"	
-			tag					= ["${var.ph_version}-${source.name}"]
+			repository = "${var.repo}"
+			tag        = ["${var.ph_version}-${source.name}"]
 		}
 	}
 }

@@ -1,0 +1,70 @@
+name: Crystal Implementation Tests
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+      - 'claude/path-helper-crystal-*'
+  pull_request:
+    branches:
+      - master
+      - dev
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test-crystal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PATH_HELPER_DOCKER_INSTANCE: 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        # Test multiple Crystal versions
+        crystal-version: ['1.10.1', '1.11.2', '1.14.0', 'latest']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Crystal ${{ matrix.crystal-version }}
+      uses: crystal-lang/install-crystal@v1
+      with:
+        crystal: ${{ matrix.crystal-version }}
+
+    - name: Install shards dependencies
+      run: shards install
+
+    - name: Build Crystal executable
+      run: |
+        shards build --release --no-debug
+        ls -la bin/
+
+    - name: Set up test environment
+      uses: ./.github/actions/setup-test-env
+      with:
+        exe-path: 'bin/path_helper'
+
+    - name: Run shell tests
+      uses: ./.github/actions/run-shell-tests
+      with:
+        language-version: 'Crystal ${{ matrix.crystal-version }}'
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-crystal-${{ matrix.crystal-version }}
+        path: test_output.log
+        retention-days: 7
+
+    - name: Run Crystal specs (if available)
+      if: hashFiles('spec/*_spec.cr') != ''
+      run: crystal spec
