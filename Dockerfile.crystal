@@ -1,0 +1,24 @@
+ARG CRYSTAL_VERSION=latest
+FROM crystallang/crystal:${CRYSTAL_VERSION}-alpine
+
+# Install Ruby (needed by test scripts that call "ruby exe/path_helper")
+RUN apk add --no-cache ruby
+
+# Copy project files to /tmp (matching workflow)
+COPY spec /tmp/spec
+COPY src /tmp/src
+COPY shard.yml /tmp/shard.yml
+COPY exe /tmp/exe-ruby
+COPY docker/assets/.ashenv /tmp/.ashenv
+COPY docker/assets/etc-paths /tmp/etc-paths
+COPY docker/install-crystal.sh /tmp/install.sh
+
+WORKDIR /root
+
+# Run setup script (builds Crystal binary and sets up test environment)
+RUN chmod +x /tmp/install.sh && \
+    sh -x /tmp/install.sh && \
+    rm /tmp/install.sh
+
+ENV PATH_HELPER_DOCKER_INSTANCE=true
+ENTRYPOINT ["spec/shell_spec.sh"]

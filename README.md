@@ -519,34 +519,94 @@ I'm happy to hear from you, email me or open an issue. Pull requests are fine to
 
 ### To get set up for development
 
-Run:
+The project supports both Ruby and Crystal implementations. A Makefile manages Docker/Podman builds and testing across multiple versions of both languages.
+
+**Build images for all Ruby versions:**
 
 ```shell
-PATH_HELPER_VERSION=$(./exe/path_helper --version 2>&1)
+make build-all
 ```
+
+**Build images for all Crystal versions:**
 
 ```shell
-packer build -var="ph_version=$PATH_HELPER_VERSION" docker/docker.pkr.hcl
+make build-crystal-all
 ```
 
+**Build and test everything (Ruby + Crystal):**
+
+```shell
+make all
+```
+
+This uses git information for version tagging during development. For a release build with an explicit version:
+
+```shell
+VERSION=5.0.0 make all
+```
+
+**See all available commands:**
+
+```shell
+make help
+```
 
 ### <a name="to-run-the-specs">To run the specs</a>
 
+**Run tests for all Ruby versions:**
+
 ```shell
-docker run --rm path_helper:$PATH_HELPER_VERSION-ph-r237
-docker run --rm path_helper:$PATH_HELPER_VERSION-ph-r270
+make test-all
+```
+
+**Run tests for all Crystal versions:**
+
+```shell
+make test-crystal-all
+```
+
+**Run tests for a specific version:**
+
+```shell
+make test RUBY_VER=2.7
+make test-crystal CRYSTAL_VER=1.14.0
+```
+
+**List available images:**
+
+```shell
+make list
 ```
 
 ### <a name="shell-in-and-have-a-play">Shell in and have a play</a>
 
+**Open an interactive shell in a container:**
+
 ```shell
-docker run --rm -ti --entrypoint="" path_helper sh
+make shell RUBY_VER=3.3
+make shell-crystal CRYSTAL_VER=latest
+```
+
+**Or use docker/podman directly:**
+
+```shell
+# Ruby version
+podman run --rm -ti --entrypoint sh path_helper:latest-ruby3.3
+
+# Crystal version
+podman run --rm -ti --entrypoint sh path_helper:latest-crystallatest
 ```
 
 Run some tests yourself:
 
 ```shell
-docker run --rm -ti --entrypoint="" path_helper ./spec/shell_spec.sh
+podman run --rm -ti --entrypoint sh path_helper:latest-ruby3.3
+./spec/shell_spec.sh
+
+# Or test the Crystal binary directly
+podman run --rm -ti --entrypoint sh path_helper:latest-crystallatest
+./bin/path_helper --help
+./bin/path_helper -p --debug
 ```
 
 Set up some paths using the test fixtures:
