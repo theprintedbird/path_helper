@@ -539,6 +539,19 @@ make build-crystal-all
 make all
 ```
 
+**Extract Crystal binary from container:**
+
+```shell
+make extract-crystal CRYSTAL_VER=latest
+```
+
+This extracts the compiled Crystal binary to `bin/path_helper`. **Note:** The binary is compiled for Linux (Alpine) inside the container, so it won't run directly on macOS/other systems. It's useful for:
+- Deploying to Linux servers
+- Including in Linux-based containers
+- CI/CD artifacts
+
+For local development on macOS, use the Ruby version or compile Crystal natively with `shards build`.
+
 This uses git information for version tagging during development. For a release build with an explicit version:
 
 ```shell

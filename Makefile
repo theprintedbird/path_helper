@@ -38,11 +38,12 @@ help:
 	@echo "    make shell RUBY_VER=2.7     Open interactive shell in container"
 	@echo ""
 	@echo "  Crystal:"
-	@echo "    make build-crystal-all              Build images for all Crystal versions"
-	@echo "    make build-crystal CRYSTAL_VER=1.14.0  Build image for specific Crystal version"
-	@echo "    make test-crystal-all               Run tests for all Crystal versions"
-	@echo "    make test-crystal CRYSTAL_VER=1.14.0   Run tests for specific Crystal version"
-	@echo "    make shell-crystal CRYSTAL_VER=latest  Open interactive shell in container"
+	@echo "    make build-crystal-all                  Build images for all Crystal versions"
+	@echo "    make build-crystal CRYSTAL_VER=1.14.0   Build image for specific Crystal version"
+	@echo "    make test-crystal-all                   Run tests for all Crystal versions"
+	@echo "    make test-crystal CRYSTAL_VER=1.14.0    Run tests for specific Crystal version"
+	@echo "    make shell-crystal CRYSTAL_VER=latest   Open interactive shell in container"
+	@echo "    make extract-crystal CRYSTAL_VER=latest Extract binary from container to bin/"
 	@echo ""
 	@echo "  General:"
 	@echo "    make all                    Build and test both Ruby and Crystal"
@@ -236,6 +237,21 @@ ifndef CRYSTAL_VER
 endif
 	@echo "Opening shell in Crystal $(CRYSTAL_VER) container..."
 	@$(CONTAINER_RUNTIME) run --rm -ti --entrypoint sh $(REPO):latest-crystal$(CRYSTAL_VER)
+
+.PHONY: extract-crystal
+extract-crystal:
+ifndef CRYSTAL_VER
+	@echo "Error: CRYSTAL_VER not specified"
+	@echo "Usage: make extract-crystal CRYSTAL_VER=latest"
+	@exit 1
+endif
+	@echo "Extracting Crystal $(CRYSTAL_VER) binary from container..."
+	@mkdir -p bin
+	@$(CONTAINER_RUNTIME) run --rm --entrypoint sh -v $(PWD):/output:Z $(REPO):latest-crystal$(CRYSTAL_VER) -c "cp /root/bin/path_helper /output/bin/path_helper"
+	@echo "✓ Crystal binary extracted to: bin/path_helper"
+	@ls -lh bin/path_helper
+	@echo ""
+	@echo "Test it with: ./bin/path_helper --version"
 
 # =============================================================================
 # Combined Targets
