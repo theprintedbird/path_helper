@@ -687,7 +687,7 @@ The main workflow file is located at `.github/workflows/path_helper_tests.yml`. 
 
 1. Checks out the code
 2. Sets up the specified Ruby version
-3. Installs dependencies (alpine-pbuilder)
+3. Installs dependencies (bc)
 4. Configures the test environment
 5. Runs the shell-based test suite
 6. Generates test summaries and uploads artifacts

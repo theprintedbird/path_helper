@@ -39,11 +39,9 @@ jobs:
         ruby-version: ${{ matrix.ruby-version }}
 
     - name: Install dependencies
-      timeout-minutes: 10
-      uses: awalsh128/cache-apt-pkgs-action@latest
-      with:
-        packages: alpine-pbuilder
-        version: 1.0
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bc
 
     - name: Set up test environment
       run: |
@@ -56,9 +54,10 @@ jobs:
          sudo chmod +x /root/exe/path_helper
          sudo chmod +x /root/spec/shell_spec.sh
 
-    - name: Run install script
+    - name: Run setup
       run: |
-        sudo sh -x /tmp/install.sh
+        sudo bash -c 'cd /root && ./exe/path_helper --setup --no-lib --quiet'
+        sudo cp -R spec/fixtures/moredirs/* /root/.config/paths
 
     - name: Run tests
       timeout-minutes: 10
