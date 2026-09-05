@@ -6,13 +6,12 @@ $(error Neither podman nor docker found. Please install one of them.)
 endif
 
 # Ruby versions to test (matching GitHub Actions matrix)
-RUBY_VERSIONS := 2.3.7 2.7 3.2 3.3
+RUBY_VERSIONS := 2.7 3.3 4.0.6
 
 # Alpine versions that match the Ruby versions
-ALPINE_2_3_7 := 3.8
 ALPINE_2_7 := 3.16
-ALPINE_3_2 := 3.22
-ALPINE_3_3 := 3.22
+ALPINE_3_3 := 3.24
+ALPINE_4_0_6 := 3.24
 
 # Crystal versions to test (matching GitHub Actions matrix)
 CRYSTAL_VERSIONS := 1.10.1 1.11.2 1.14.0 latest

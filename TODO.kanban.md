@@ -39,8 +39,6 @@ The goal is to support multiple language implementations (Ruby, Crystal, Go) whi
 To Do - Medium Term
 
 Language-Agnostic Infrastructure
-- Extract common test setup logic from workflow <!-- backlog: 1763431283 -->
-- Create reusable test execution wrapper <!-- backlog: 1763431283 -->
 - Create `test-ruby.yml` workflow (language-specific) <!-- backlog: 1763431283 -->
 - Create `ci.yml` main workflow (orchestrator) <!-- backlog: 1763431283 -->
 - Add workflow for testing Docker builds <!-- backlog: 1763431283 -->
@@ -81,10 +79,8 @@ Language-Agnostic Infrastructure
 
 - Update Ruby version matrix (remove 2.3.7, add 3.0, 3.1, 3.2) <!-- backlog: 1763431283, done: 1763432749, ready: 1763432044 -->
 - Update `actions/checkout` from v2 to v4 <!-- backlog: 1763431283, done: 1763445658, in_progress: 1763432783, ready: 1763432091 -->
-- Update Ruby version matrix (remove 2.3.7, add 3.0, 3.1, 3.2) <!-- backlog: 1763431283, done: 1763445658, in_progress: 1763432792, ready: 1763432536 -->
 - Update `actions/checkout` from v2 to v4 <!-- backlog: 1763431283, done: 1763445658, in_progress: 1763432804, ready: 1763432616 -->
 - Update `actions/upload-artifact` from v2 to v4 <!-- backlog: 1763431283, done: 1763445658, in_progress: 1763432865, ready: 1763432104 -->
-- Update `actions/upload-artifact` from v2 to v4 <!-- backlog: 1763431283, done: 1763445658, in_progress: 1763432995, ready: 1763432617 -->
 - Set `PATH_HELPER_DOCKER_INSTANCE=true` environment variable in workflow <!-- backlog: 1763431283, done: 1763445658, in_progress: 1763433000, ready: 1763432605 -->
 - Fix `spec/shell_spec.sh:187` - change `return $PASS` to `exit $PASS` <!-- backlog: 1763431283, done: 1763445658, in_progress: 1763433000, ready: 1763432613 -->
 - Add `workflow_dispatch` trigger for manual runs <!-- backlog: 1763431283, done: 1763445658, in_progress: 1763433000, ready: 1763432619 -->
@@ -106,3 +102,5 @@ Language-Agnostic Infrastructure
 - Fix install script path from `/tmp/install.sh` to `docker/install.sh` Note! This may be because it's built by Packer. Check first! <!-- backlog: 1763431283, done: 1763447482, in_progress: 1763432947, ready: 1763432611 -->
 - Create `.github/actions/setup-test-env/` composite action <!-- backlog: 1763431283, done: 1788509104 -->
 - Create `.github/actions/run-shell-tests/` composite action <!-- backlog: 1763431283, done: 1788509108 -->
+- Extract common test setup logic from workflow <!-- backlog: 1763431283, done: 1788583697 -->
+- Create reusable test execution wrapper <!-- backlog: 1763431283, done: 1788583703 -->

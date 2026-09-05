@@ -29,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         # Test multiple Crystal versions
-        crystal-version: ['1.10.1', '1.11.2', '1.14.0', 'latest']
+        crystal-version: ['1.10.1', '1.16.0', 'latest']
 
     steps:
     - uses: actions/checkout@v4

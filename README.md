@@ -140,7 +140,7 @@ Where the Apple `path_helper` falls down is:
 
 ## <a name="do-i-need-to-be-on-apple-to-use-it-">Do i need to be on Apple to use it?</a>
 
-No, it should work on any unix-like system. It has one dependency, and that is Ruby. It should work with any system running Ruby 2.3.7 or above, as that is the version that ships with a Mac.
+No, it should work on any unix-like system. It has one dependency, and that is Ruby. It should work with any system running Ruby 2.7 or above. Anything beneath that, you take your chances (though it was tested against 2.3.7 for a long while).
 
 ## <a name="how-does-path-helper-know-what-to-put-in-the-path-">How does path_helper know what to put in the path?</a>
 
@@ -674,7 +674,7 @@ The project uses GitHub Actions for continuous integration. The workflow runs on
 
 ### Workflow Features
 
-- **Ruby Version Matrix**: Tests run against multiple Ruby versions (2.3.7, 2.7, 3.2, 3.3)
+- **Ruby Version Matrix**: Tests run against multiple Ruby versions (2.7, 3.3, 4.0.6)
 - **Manual Triggers**: Workflow can be manually triggered via `workflow_dispatch`
 - **Concurrency Control**: Duplicate runs are cancelled when new commits are pushed
 - **APT Caching**: Dependencies are cached to speed up builds

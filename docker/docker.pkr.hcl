@@ -9,14 +9,9 @@ variable "repo" {
 
 # Define all Ruby versions to test here.
 # To add a new Ruby version, just add another entry to this array!
-# Current selection tests: legacy (2.3.7), last 2.x (2.7), modern stable (3.2), latest (3.3)
+# Current selection tests: last 2.x (2.7), modern stable (3.3), latest (4.0.6)
 locals {
 	rubies = [
-		{
-			name  = "ph-r237"
-			image = "ruby:2.3.7-alpine3.8"
-			tag   = "${var.ph_version}-ruby2.3.7"
-		},
 		{
 			name  = "ph-r270"
 			image = "ruby:2.7-alpine3.16"
@@ -24,13 +19,18 @@ locals {
 		},
 		{
 			name  = "ph-r320"
-			image = "ruby:3.2-alpine3.22"
+			image = "ruby:3.2-alpine3.24"
 			tag   = "${var.ph_version}-ruby3.2"
 		},
 		{
 			name  = "ph-r330"
-			image = "ruby:3.3-alpine3.22"
+			image = "ruby:3.3-alpine3.24"
 			tag   = "${var.ph_version}-ruby3.3"
+		}
+		{
+			name  = "ph-r406"
+			image = "ruby:3.3-alpine3.24"
+			tag   = "${var.ph_version}-ruby4.0.6"
 		}
 	]
 }
