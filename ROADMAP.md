@@ -136,7 +136,7 @@ Create a modular workflow structure that supports multiple language implementati
 Reusable actions for common setup steps:
 
 **`.github/actions/setup-test-env/action.yml`**
-- Install system dependencies (alpine-pbuilder)
+- Install system dependencies (bc)
 - Set up test directory structure
 - Copy test fixtures
 - Language-agnostic setup

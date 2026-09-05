@@ -22,7 +22,7 @@ The goal is to support multiple language implementations (Ruby, Crystal, Go) whi
 - Provide unified reporting and status checks
 
 ### Dependencies
-- `alpine-pbuilder` package required for tests
+- `bc` package required for tests (used by `spec/shell_spec.sh` timing)
 - Shell test framework in `spec/shell_spec.sh`
 - Test fixtures in `spec/fixtures/`
 - Docker setup in `docker/` directory
