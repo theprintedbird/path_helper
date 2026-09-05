@@ -62,6 +62,7 @@ jobs:
     - name: Run tests
       timeout-minutes: 10
       run: |
+        set -o pipefail
         cd /root
         sudo PATH="$PATH" PATH_HELPER_DOCKER_INSTANCE=1 ./spec/shell_spec.sh 2>&1 | tee $GITHUB_WORKSPACE/test_output.log
 
