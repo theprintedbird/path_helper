@@ -1,5 +1,5 @@
 Name: PATH
-Options: {:name=>"PATH", :current_path=>nil, :debug=>true, :verbose=>true}
+Options: {name: "PATH", current_path: nil, debug: true, verbose: true}
 Search order: [:config, :etc]
 	/root/.config/paths/paths.d
 	/root/.config/paths/paths

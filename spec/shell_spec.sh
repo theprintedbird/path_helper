@@ -22,7 +22,7 @@ cleanup(){
 	}
 	safe_remove() {
 		local target="$1"
-		if [[ -d "$target" ]]; then
+		if [ -d "$target" ]; then
 			rm -rf "$target" || handle_error "Failed to remove $target"
 		else
 			rm -f "$target" || handle_error "Failed to remove $target"

@@ -257,13 +257,20 @@ module PathHelper
     end
 
 
+    # Hash#inspect changed format in Ruby 3.4, so format the options
+    # ourselves to keep the output identical across Ruby versions.
+    def format_options
+      "{#{@helper.options.map { |k,v| "#{k}: #{v.inspect}" }.join(", ")}}"
+    end
+
+
     # tree style render
     def render
       output = []
       findings = {}
       dup_text = " #{Colours::Red}✗#{Colours::Normal}"
       output << "Name: #{Colours::Green}#{@section[:name]}#{Colours::Normal}"
-      output << "Options: #{@helper.options}"
+      output << "Options: #{format_options}"
       output << "Search order: #{@section[:search_order]}"
       @section[:search_order].each do |segment|
         output << "\t#{Colours::Yellow}#{@section[:directories][segment]}#{Colours::Normal}"

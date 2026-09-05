@@ -75,7 +75,7 @@ Benefits:
 **Current Issue**: The `debug_path.txt` fixture contains Ruby-specific output:
 
 ```
-Options: {:name=>"PATH", :current_path=>nil, :debug=>true, :verbose=>true}
+Options: {name: "PATH", current_path: nil, debug: true, verbose: true}
 ```
 
 This will fail for any non-Ruby implementation.

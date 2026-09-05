@@ -17,6 +17,7 @@ module PathHelper
     end
 
     # Format options hash to match Ruby output format
+    # Matches Ruby 3.4+ Hash#inspect output.
     private def format_options : String
       pairs = @helper.options.map do |k, v|
         value = case v
@@ -29,7 +30,7 @@ module PathHelper
                 else
                   v.to_s
                 end
-        ":#{k}=>#{value}"
+        "#{k}: #{value}"
       end
       "{#{pairs.join(", ")}}"
     end
