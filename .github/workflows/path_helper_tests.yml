@@ -27,8 +27,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Test key Ruby versions: legacy (2.3.7), last 2.x (2.7), modern stable (3.2), latest (3.3)
-        ruby-version: ['2.3.7', '2.7', '3.2', '3.3']
+        # Test key Ruby versions: last 2.x (2.7), modern stable (3.3), latest (4+)
+        ruby-version: ['2.7', '3.3', '4.0.6']
 
     steps:
     - uses: actions/checkout@v4
@@ -38,67 +38,15 @@ jobs:
       with:
         ruby-version: ${{ matrix.ruby-version }}
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y bc
-
     - name: Set up test environment
-      run: |
-         sudo mkdir -p /root/.config/paths
-         sudo cp -R spec/fixtures/moredirs/* /root/.config/paths
-         sudo cp -R spec /root/spec
-         sudo cp docker/assets/.ashenv /root/.ashenv
-         sudo cp -R exe /root/exe
-         sudo cp docker/assets/etc-paths /etc/paths
-         sudo chmod +x /root/exe/path_helper
-         sudo chmod +x /root/spec/shell_spec.sh
+      uses: ./.github/actions/setup-test-env
+      with:
+        exe-path: 'exe/path_helper'
 
-    - name: Run setup
-      run: |
-        sudo bash -c 'cd /root && ./exe/path_helper --setup --no-lib --quiet'
-        sudo cp -R spec/fixtures/moredirs/* /root/.config/paths
-
-    - name: Run tests
-      timeout-minutes: 10
-      run: |
-        set -o pipefail
-        cd /root
-        sudo PATH="$PATH" PATH_HELPER_DOCKER_INSTANCE=1 ./spec/shell_spec.sh 2>&1 | tee $GITHUB_WORKSPACE/test_output.log
-
-    - name: Display test failures
-      if: failure()
-      run: |
-        echo "========================================"
-        echo "TEST FAILURES - Ruby ${{ matrix.ruby-version }}"
-        echo "========================================"
-        if [ -f test_output.log ]; then
-          echo ""
-          echo "Failed tests:"
-          grep -A 50 "Failure" test_output.log || cat test_output.log
-          echo ""
-          echo "========================================"
-        fi
-
-    - name: Generate test summary
-      if: always()
-      run: |
-        echo "## Test Results for Ruby ${{ matrix.ruby-version }}" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        if [ -f test_output.log ]; then
-          if grep -q "Passed!" test_output.log; then
-            echo ":white_check_mark: **All tests passed**" >> $GITHUB_STEP_SUMMARY
-          else
-            echo ":x: **Tests failed**" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Output" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            cat test_output.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-          fi
-        else
-          echo ":warning: **No test output found**" >> $GITHUB_STEP_SUMMARY
-        fi
+    - name: Run shell tests
+      uses: ./.github/actions/run-shell-tests
+      with:
+        language-version: 'Ruby ${{ matrix.ruby-version }}'
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
