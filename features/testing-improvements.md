@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-The current test suite uses a solid foundation for language-agnostic testing (pure POSIX shell scripts with file-based fixture comparison). However, there are significant gaps that would make it difficult to ensure behavioral consistency across Crystal, Go, and other implementations. Below are detailed recommendations organized by priority and impact.
+The current test suite uses a solid foundation for language-agnostic testing (pure POSIX shell scripts with file-based fixture comparison). However, there are significant gaps that would make it difficult to ensure behavioural consistency across Crystal, Go, and other implementations. Below are detailed recommendations organized by priority and impact.
 
 ---
 
