@@ -108,29 +108,17 @@ test_setup(){
 	[ -f $HOME/.config/paths/paths ]
 }
 
-# Function to get time in nanoseconds
+# Function to get time in nanoseconds.
+# Ruby is a hard dependency of this suite (it runs exe/path_helper), so it is
+# present everywhere these tests run, unlike `date +%N` which is GNU-only --
+# BSD/macOS and musl/busybox emit a literal "N". CLOCK_MONOTONIC is system-wide,
+# so readings from two separate processes are safe to subtract, and it cannot be
+# skewed by a clock adjustment mid-measurement.
 get_time_ns() {
-    date +%s%N
+	ruby -e 'print Process.clock_gettime(Process::CLOCK_MONOTONIC, :nanosecond)'
 }
 
-# Function to run a baseline operation
-baseline_operation() {
-	for i in {1..1000000}; do
-		: # No-op
-	done
-}
-
-measure_baseline() {
-	local start=$(get_time_ns)
-	baseline_operation
-	local end=$(get_time_ns)
-	echo $((end - start))
-}
-
-# Global variable to store baseline duration
-BASELINE_DURATION=$(measure_baseline)
-
-# Function to measure relative time
+# Run a path test, reporting how long it took
 test_a_path_with_time() {
 	local test_name="$1"
 
@@ -141,10 +129,10 @@ test_a_path_with_time() {
 	local test_end=$(get_time_ns)
 	local test_duration=$((test_end - test_start))
 
-	# Calculate relative time using global BASELINE_DURATION
-	local relative_time=$(echo "scale=2; $test_duration / $BASELINE_DURATION" | bc)
-
-	echo "Performance: $test_name took ${relative_time}x baseline time"
+	# Reported in milliseconds. This includes the startup time of the ruby
+	# process that takes the closing reading -- a constant offset of a few tens
+	# of milliseconds, uniform across runs and platforms.
+	echo "Performance: $test_name took $((test_duration / 1000000))ms"
 
 	return $test_result
 }
