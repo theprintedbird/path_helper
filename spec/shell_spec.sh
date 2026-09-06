@@ -4,6 +4,8 @@ PASS=0
 
 trap cleanup 1 2 3 6
 
+EXECUTABLE="${PATH_HELPER_EXECUTABLE:-${PWD}/exe/path_helper}"
+
 if [ -z "$PATH_HELPER_DOCKER_INSTANCE" ]; then
 	echo "These tests are destructive"
 	echo "which is why there is a Docker setup for them."
@@ -67,7 +69,7 @@ test_a_path(){
 	shift
 	local actual=$(mktemp)
 
-	"$PWD/exe/path_helper" "${@}" > "$actual"
+	"$EXECUTABLE" "${@}" > "$actual"
 
 	local expected="$PWD/spec/fixtures/results/${output_file}"
 
@@ -150,7 +152,7 @@ if test_setup; then
 	failures="${failures:+"$failures:"}setup_spec 1"
 fi
 
-"$PWD/exe/path_helper" --setup --no-lib --quiet
+"$EXECUTABLE" --setup --no-lib --quiet
 cp -R spec/fixtures/moredirs/* ~/.config/paths
 
 # Populate /etc/paths if it's empty and the source file exists
@@ -207,14 +209,14 @@ fi
 
 # This should not be okay, therefore it should be a fail if
 # running it seems okay.
-if /usr/local/bin/ruby "$PWD/exe/path_helper" 2>/dev/null; then
+if "$EXECUTABLE" 2>/dev/null; then
 	PASS=1
 	failures="${failures:+"$failures:"}must provide an argument"
 fi
 
 # This should not be okay, therefore it should be a fail if
 # running it seems okay.
-if /usr/local/bin/ruby "$PWD/exe/path_helper" -q 2>/dev/null; then
+if "$EXECUTABLE" -q 2>/dev/null; then
 	PASS=1
 	failures="${failures:+"$failures:"}the kind of path must be declared"
 fi
