@@ -9,15 +9,15 @@
 - Standardize debug output format to be language-agnostic (remove Ruby hash syntax)
 - Adopt TAP (Test Anything Protocol) output format for test results
 
-## Phase 2: Core Test Coverage
+## DONE Phase 2: Core Test Coverage
 
-- DONE Add exit code tests for all scenarios (success, failure, help, version)
-- DONE Add `--version` output test
-- DONE Add `-h/--help` output test
-- DONE Add stderr capture and comparison for error tests
-- DONE Add test for invalid flag handling
-- DONE Add test for missing required arguments
-- DONE Add tests for all flag combinations (`--no-etc`, `--no-config`, `--no-lib`)
+- Add exit code tests for all scenarios (success, failure, help, version)
+- Add `--version` output test
+- Add `-h/--help` output test
+- Add stderr capture and comparison for error tests
+- Add test for invalid flag handling
+- Add test for missing required arguments
+- Add tests for all flag combinations (`--no-etc`, `--no-config`, `--no-lib`)
 - Add append mode tests (`-p $PATH`)
 - Add debug output tests for all 6 path types (currently only 2)
 
@@ -62,8 +62,8 @@
 
 ## Phase 6: CI/CD and Documentation
 
-- Update GitHub Actions workflow to v4 for all actions
-- Add `PATH_HELPER_DOCKER_INSTANCE` environment variable to CI workflow
+- DONE Update GitHub Actions workflow to v4 for all actions
+- DONE Add `PATH_HELPER_DOCKER_INSTANCE` environment variable to CI workflow
 - Fix fixture setup steps in CI workflow
 - Add performance regression tests with timing bounds
 - Create `SPEC.md` behavior specification document
@@ -77,5 +77,5 @@
 - Create test matrix for running against multiple executables
 - Add CI job to compare outputs across implementations
 - Create output diff reporting for cross-implementation testing
-- Document required behavioral guarantees for implementations
+- Document required behavioural guarantees for implementations
 - Add implementation compliance checklist
