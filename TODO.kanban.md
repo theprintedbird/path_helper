@@ -39,11 +39,8 @@ The goal is to support multiple language implementations (Ruby, Crystal, Go) whi
 To Do - Medium Term
 
 Language-Agnostic Infrastructure
-- Create `test-ruby.yml` workflow (language-specific) <!-- backlog: 1763431283 -->
+- Create/rename current path helper workflow to `test-ruby.yml` (language-specific) <!-- backlog: 1763431283 -->
 - Create `ci.yml` main workflow (orchestrator) <!-- backlog: 1763431283 -->
-- Add workflow for testing Docker builds <!-- backlog: 1763431283 -->
-- Add workflow for release automation <!-- backlog: 1763431283 -->
-- Design workflow structure for Crystal implementation <!-- backlog: 1763431283 -->
 - Design workflow structure for Go implementation <!-- backlog: 1763431283 -->
 - Create template for adding new language implementations <!-- backlog: 1763431283 -->
 - Document multi-language testing strategy <!-- backlog: 1763431283 -->
@@ -51,7 +48,6 @@ Language-Agnostic Infrastructure
 - Add tests for different OS environments (Ubuntu, Alpine, macOS) <!-- backlog: 1763431283 -->
 - Add edge case tests for path handling <!-- backlog: 1763431283 -->
 - Add validation tests for setup command <!-- backlog: 1763431283 -->
-- Implement `test-crystal.yml` workflow (when Crystal implementation exists) <!-- backlog: 1763431283 -->
 - Implement `test-go.yml` workflow (when Go implementation exists) <!-- backlog: 1763431283 -->
 - Add cross-language compatibility tests <!-- backlog: 1763431283 -->
 - Add performance comparison between implementations <!-- backlog: 1763431283 -->
@@ -104,3 +100,7 @@ Language-Agnostic Infrastructure
 - Create `.github/actions/run-shell-tests/` composite action <!-- backlog: 1763431283, done: 1788509108 -->
 - Extract common test setup logic from workflow <!-- backlog: 1763431283, done: 1788583697 -->
 - Create reusable test execution wrapper <!-- backlog: 1763431283, done: 1788583703 -->
+- Implement `test-crystal.yml` workflow (when Crystal implementation exists) <!-- backlog: 1763431283, done: 1788742321 -->
+- Design workflow structure for Crystal implementation <!-- backlog: 1763431283, done: 1788742328 -->
+- Add workflow for release automation <!-- backlog: 1763431283, done: 1788742334 -->
+- Add workflow for testing Docker builds <!-- backlog: 1763431283, done: 1788742337 -->
