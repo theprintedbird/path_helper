@@ -362,7 +362,7 @@ test_performance "path_generation_time" 100 "-p"
 
 ### 13. CI/CD Improvements
 
-**Current Issues in `path_helper_tests.yml`**:
+**Current Issues in `test-ruby.yml`**:
 - Uses outdated action versions (`actions/checkout@v2`, `actions/upload-artifact@v2`)
 - Missing `PATH_HELPER_DOCKER_INSTANCE` environment variable (tests would skip!)
 - Copies fixtures but doesn't set up all required paths

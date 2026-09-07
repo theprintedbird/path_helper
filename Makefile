@@ -77,7 +77,7 @@ build-all:
 			--build-arg RUBY_VERSION=$$ruby-alpine$$alpine_version \
 			--tag $(REPO):$(VERSION)-ruby$$ruby \
 			--tag $(REPO):latest-ruby$$ruby \
-			-f Dockerfile . || exit 1; \
+			-f Dockerfile.ruby . || exit 1; \
 	done
 	@echo ""
 	@echo "✓ All images built successfully"
@@ -106,7 +106,7 @@ endif
 		--build-arg RUBY_VERSION=$(RUBY_VER)-alpine$$alpine_version \
 		--tag $(REPO):$(VERSION)-ruby$(RUBY_VER) \
 		--tag $(REPO):latest-ruby$(RUBY_VER) \
-		-f Dockerfile .
+		-f Dockerfile.ruby .
 
 .PHONY: test-all
 test-all: build-all

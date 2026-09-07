@@ -1,4 +1,4 @@
-name: Path Helper Tests
+name: Ruby Implementation Tests
 
 on:
   push:
@@ -19,7 +19,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  test-ruby:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:

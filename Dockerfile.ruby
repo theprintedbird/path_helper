@@ -6,7 +6,7 @@ COPY spec /tmp/spec
 COPY exe /tmp/exe
 COPY docker/assets/.ashenv /tmp/.ashenv
 COPY docker/assets/etc-paths /tmp/etc-paths
-COPY docker/install.sh /tmp/install.sh
+COPY docker/install-ruby.sh /tmp/install.sh
 
 WORKDIR /root
 

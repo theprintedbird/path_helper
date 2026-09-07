@@ -6,7 +6,7 @@ This document outlines the current issues with the GitHub Actions workflow and t
 
 ## Current State Analysis
 
-### Workflow File: `.github/workflows/path_helper_tests.yml`
+### Workflow File: `.github/workflows/test-ruby.yml`
 
 #### Issues Identified
 
@@ -22,7 +22,7 @@ This document outlines the current issues with the GitHub Actions workflow and t
 
 3. **Incorrect File Path Reference**
    - Workflow references `/tmp/install.sh` (line 46)
-   - Actual install script is at `docker/install.sh`
+   - Actual install script is at `docker/install-ruby.sh`
    - This would cause the installation step to fail
 
 4. **fixed: Outdated Ruby Versions**
@@ -69,7 +69,7 @@ env:
 ```yaml
 - name: Run install script
   run: |
-    sudo sh -x docker/install.sh
+    sudo sh -x docker/install-ruby.sh
 ```
 
 #### 1.4 Fix Shell Script Exit Code

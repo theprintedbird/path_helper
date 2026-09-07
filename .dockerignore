@@ -2,7 +2,7 @@
 .git/
 .gitignore
 CHANGES.md
-Dockerfile
+Dockerfile*
 LICENCE
 README.md
 .travis.yml

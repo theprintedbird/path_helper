@@ -770,7 +770,7 @@ The project uses GitHub Actions for continuous integration. The workflow runs on
 
 ### Workflow Structure
 
-The main workflow file is located at `.github/workflows/path_helper_tests.yml`. It:
+The main workflow file is located at `.github/workflows/test-ruby.yml`. It:
 
 1. Checks out the code
 2. Sets up the specified Ruby version
@@ -790,7 +790,7 @@ When making changes to the GitHub Actions workflow:
 5. **Follow security best practices**: Use minimal permissions, pin action versions, and avoid secrets in logs
 
 Key files:
-- `.github/workflows/path_helper_tests.yml` - Main test workflow
+- `.github/workflows/test-ruby.yml` - Main test workflow
 - `spec/shell_spec.sh` - Shell-based test suite
 - `spec/fixtures/` - Test fixtures and expected results
 
@@ -815,7 +815,7 @@ make shell RUBY_VER=3.3
 ```
 
 Earlier versions built these images with Packer (`docker/docker.pkr.hcl`). That
-has been replaced by the Makefile and `Dockerfile`; `make packer-build` remains
+has been replaced by the Makefile and `Dockerfile.ruby`; `make packer-build` remains
 only as an alias for `make build-all`.
 
 **Local Testing (act)**

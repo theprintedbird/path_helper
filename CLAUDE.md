@@ -67,7 +67,7 @@ passed. A missing `PATH_HELPER_DOCKER_INSTANCE` produces `1..0 # SKIP` and exit 
 
 ## Container/CI layout
 
-`Dockerfile` (Ruby) and `Dockerfile.crystal` copy the project to `/tmp`, run `docker/install*.sh` to lay
+`Dockerfile.ruby` and `Dockerfile.crystal` copy the project to `/tmp`, run `docker/install*.sh` to lay
 things out under `/root`, set `PATH_HELPER_DOCKER_INSTANCE` and `ENTRYPOINT ["spec/shell_spec.sh"]`.
 
 Each Dockerfile sets `PATH_HELPER_EXECUTABLE` to name the implementation under test —
@@ -80,7 +80,7 @@ passed into `run-shell-tests`, which sets `PATH_HELPER_EXECUTABLE` for both the 
 suite — `sudo` drops the environment, so the value is named inside each `sudo bash -c` string rather
 than exported around it.
 
-CI: `.github/workflows/path_helper_tests.yml` (Ruby matrix) and `test-crystal.yml`, both driving the two
+CI: `.github/workflows/test-ruby.yml` (Ruby matrix) and `test-crystal.yml`, both driving the two
 composite actions in `.github/actions/`. They run on `master` and `dev`.
 
 ## Core logic (mirrored in both implementations)
