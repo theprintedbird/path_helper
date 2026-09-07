@@ -60,6 +60,10 @@ help:
 	@echo "  VERSION=5.0.0 make all                  # Release build both Ruby and Crystal"
 	@echo "  make test RUBY_VER=3.3                  # Test specific Ruby version"
 	@echo "  make test-crystal CRYSTAL_VER=latest    # Test latest Crystal"
+	@echo ""
+	@echo "Notes:"
+	@echo "  The test, shell and extract targets build the image they need first,"
+	@echo "  so there is no need to run a build target by hand beforehand."
 
 .PHONY: build-all
 build-all:
@@ -134,6 +138,7 @@ ifndef RUBY_VER
 	@echo "Usage: make test RUBY_VER=2.7"
 	@exit 1
 endif
+	@$(MAKE) build RUBY_VER=$(RUBY_VER)
 	@echo "Running tests for Ruby $(RUBY_VER)..."
 	@$(CONTAINER_RUNTIME) run --rm $(REPO):$(VERSION)-ruby$(RUBY_VER)
 
@@ -144,6 +149,7 @@ ifndef RUBY_VER
 	@echo "Usage: make shell RUBY_VER=2.7"
 	@exit 1
 endif
+	@$(MAKE) build RUBY_VER=$(RUBY_VER)
 	@echo "Opening shell in Ruby $(RUBY_VER) container..."
 	@$(CONTAINER_RUNTIME) run --rm -ti --entrypoint sh $(REPO):latest-ruby$(RUBY_VER)
 
@@ -224,6 +230,7 @@ ifndef CRYSTAL_VER
 	@echo "Usage: make test-crystal CRYSTAL_VER=1.14.0"
 	@exit 1
 endif
+	@$(MAKE) build-crystal CRYSTAL_VER=$(CRYSTAL_VER)
 	@echo "Running tests for Crystal $(CRYSTAL_VER)..."
 	@$(CONTAINER_RUNTIME) run --rm $(REPO):$(VERSION)-crystal$(CRYSTAL_VER)
 
@@ -234,6 +241,7 @@ ifndef CRYSTAL_VER
 	@echo "Usage: make shell-crystal CRYSTAL_VER=1.14.0"
 	@exit 1
 endif
+	@$(MAKE) build-crystal CRYSTAL_VER=$(CRYSTAL_VER)
 	@echo "Opening shell in Crystal $(CRYSTAL_VER) container..."
 	@$(CONTAINER_RUNTIME) run --rm -ti --entrypoint sh $(REPO):latest-crystal$(CRYSTAL_VER)
 
@@ -244,6 +252,7 @@ ifndef CRYSTAL_VER
 	@echo "Usage: make extract-crystal CRYSTAL_VER=latest"
 	@exit 1
 endif
+	@$(MAKE) build-crystal CRYSTAL_VER=$(CRYSTAL_VER)
 	@echo "Extracting Crystal $(CRYSTAL_VER) binary from container..."
 	@mkdir -p bin
 	@$(CONTAINER_RUNTIME) run --rm --entrypoint sh -v $(PWD):/output:Z $(REPO):latest-crystal$(CRYSTAL_VER) -c "cp /root/bin/path_helper /output/bin/path_helper"
@@ -268,6 +277,6 @@ all: build-all build-crystal-all test-all test-crystal-all
 # Legacy targets for backwards compatibility with Packer workflow
 .PHONY: packer-build
 packer-build:
-	@echo "Warning: Packer has been replaced with Docker"
+	@echo "Warning: Packer has been replaced with Docker/Podman"
 	@echo "Running: make build-all"
 	@$(MAKE) build-all

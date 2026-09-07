@@ -585,6 +585,11 @@ make test RUBY_VER=2.7
 make test-crystal CRYSTAL_VER=1.14.0
 ```
 
+These build the image they need first, so there is no need to run a build
+target beforehand. That matters more than it sounds: the image tag includes
+`git describe`, so a new commit changes the tag and any image you built
+earlier no longer matches.
+
 **List available images:**
 
 ```shell
@@ -600,15 +605,23 @@ make shell RUBY_VER=3.3
 make shell-crystal CRYSTAL_VER=latest
 ```
 
-**Or use docker/podman directly:**
+**Or use docker/podman directly** (unlike `make`, this will not build for you,
+so build once first):
 
 ```shell
+make build RUBY_VER=3.3
+# or: make build-crystal CRYSTAL_VER=latest
+
 # Ruby version
 podman run --rm -ti --entrypoint sh path_helper:latest-ruby3.3
 
 # Crystal version
 podman run --rm -ti --entrypoint sh path_helper:latest-crystallatest
 ```
+
+If the image is missing, podman treats the name as a remote one and reports a
+registry error such as `requested access to the resource is denied` rather than
+saying the image is not built locally.
 
 Run some tests yourself:
 
@@ -709,22 +722,27 @@ Key files:
 
 ### Running Tests Locally vs CI
 
-**Local Testing (Docker)**
+**Local Testing (e.g. Docker/Podman)**
 
-The recommended way to run tests locally is using Docker, which provides an isolated environment:
+The recommended way to run tests locally is in a container, which provides an
+isolated environment. The Makefile drives this - see
+[To run the specs](#to-run-the-specs) for the full set of targets:
 
 ```shell
-# Build the Docker image
-PATH_HELPER_VERSION=$(./exe/path_helper --version 2>&1)
-packer build -var="ph_version=$PATH_HELPER_VERSION" docker/docker.pkr.hcl
+# Run the suite for one Ruby version (builds the image if needed)
+make test RUBY_VER=3.3
 
-# Run tests for specific Ruby versions
-docker run --rm path_helper:$PATH_HELPER_VERSION-ph-r237
-docker run --rm path_helper:$PATH_HELPER_VERSION-ph-r270
+# Every supported Ruby version, then every Crystal version
+make test-all
+make test-crystal-all
 
 # Interactive shell for debugging
-docker run --rm -ti --entrypoint="" path_helper sh
+make shell RUBY_VER=3.3
 ```
+
+Earlier versions built these images with Packer (`docker/docker.pkr.hcl`). That
+has been replaced by the Makefile and `Dockerfile`; `make packer-build` remains
+only as an alias for `make build-all`.
 
 **Local Testing (act)**
 
