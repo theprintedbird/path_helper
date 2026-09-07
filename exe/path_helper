@@ -9,75 +9,83 @@ end
 require 'optparse'
 
 options = {}
-OptionParser.new do |opts|
-  opts.banner = "Usage: path_helper.rb [options]"
-  opts.on("-p", "--path [PATH]", "To get a completely fresh PATH pass an empty string or nothing at all (the default).","  To append something to the generated path pass the current path, or a path you wish appended."
-  ) do |path|
-    options[:name] = "PATH"
-    options[:current_path] = path
-  end
-  opts.on("-m", "--man [MANPATH]", 'Run for man pages but perhaps read `man manpages` first', '  See `path\' instructions for argument options.'
-  ) do |path|
-    options[:name] = "MANPATH"
-    options[:current_path] = path
-  end
-  opts.on("-f", "--dyld-fram [DYLD]", 'DYLD_FALLBACK_FRAMEWORK_PATH env var', '  See `path\' instructions for argument options.'
-  ) do |path|
-    options[:name] = "DYLD_FALLBACK_FRAMEWORK_PATH"
-    options[:current_path] = path
-  end
-  opts.on("-l", "--dyld-lib [DYLD]", "DYLD_FALLBACK_LIBRARY_PATH env var", '  See `path\' instructions for argument options.'
-  ) do |path|
-    options[:name] = "DYLD_FALLBACK_LIBRARY_PATH"
-    options[:current_path] = path
-  end
-  opts.on("-c", "--c-include [C_INCLUDE]", 'C_INCLUDE_PATH env var', '  See `path\' instructions for argument options.'
-  ) do |path|
-    options[:name] = "C_INCLUDE_PATH"
-    options[:current_path] = path
-  end
-  opts.on("--pc [PKG_CONFIG_PATH]", 'PKG_CONFIG_PATH env var', '  See `path\' instructions for argument options.'
-  ) do |path|
-    options[:name] = "PKG_CONFIG_PATH"
-    options[:current_path] = path
-  end
-  opts.on("-q", "--quiet", "Quiet, no output") do |v|
-    options[:quiet] = true
-  end
-  opts.on("-d", "--debug", "Debug mode, even more output") do |v|
-    options[:debug] = v
-  end
-  opts.on("--setup","Set up directory structure, add specific switches", "  (see `--etc` `--lib` `--config`)", "  if specific setups required.", "  Else --setup own its own will do all of them."
-  ) do
-    options[:setup] = true
-  end
-  opts.on("--dry-run", "Use in conjuction with --setup to see what would happen if you ran it."
-  ) do
-    options[:dry_run] = true
-  end
-  opts.on("--[no-]etc", "This has two applications:", "  1. In combination with any of:", "    `--path`, `--man`, `--dyld-fram`, `--dyld-lib`, `--c-include`, `--pc`",  "    will add/remove it from consideration for building the path.", "  2. When combined with --setup will set up /etc/paths..., erm, etcetera.", "  The default is for it to be included."
-  ) do |v|
-    options[:etc] = v.nil? ? true : v
-  end
-  opts.on("--[no-]lib", "Adds ~/Library/Paths to the search/build path", "  Included by default on a Mac.", "  See `--etc` for more.") do |v|
-    options[:lib] = v.nil? ? true : v
-  end
-  opts.on("--[no-]config", "Adds ~/.config/paths", "  Included by default on Linux.", "  See `--etc` for more.") do |v|
-    options[:config] = v.nil? ? true : v
-  end
-  opts.on( '--version', 'Print version') do
-    warn PathHelper::VERSION
-    exit 0
-  end
-  opts.on_tail("-h", "--help", "Show this message") do
-    warn opts
-    exit
-  end
-  if ARGV.empty?
-    warn opts
-    exit 1
-  end
-end.parse!
+begin
+  OptionParser.new do |opts|
+    opts.banner = "Usage: path_helper.rb [options]"
+    opts.on("-p", "--path [PATH]", "To get a completely fresh PATH pass an empty string or nothing at all (the default).","  To append something to the generated path pass the current path, or a path you wish appended."
+    ) do |path|
+      options[:name] = "PATH"
+      options[:current_path] = path
+    end
+    opts.on("-m", "--man [MANPATH]", 'Run for man pages but perhaps read `man manpages` first', '  See `path\' instructions for argument options.'
+    ) do |path|
+      options[:name] = "MANPATH"
+      options[:current_path] = path
+    end
+    opts.on("-f", "--dyld-fram [DYLD]", 'DYLD_FALLBACK_FRAMEWORK_PATH env var', '  See `path\' instructions for argument options.'
+    ) do |path|
+      options[:name] = "DYLD_FALLBACK_FRAMEWORK_PATH"
+      options[:current_path] = path
+    end
+    opts.on("-l", "--dyld-lib [DYLD]", "DYLD_FALLBACK_LIBRARY_PATH env var", '  See `path\' instructions for argument options.'
+    ) do |path|
+      options[:name] = "DYLD_FALLBACK_LIBRARY_PATH"
+      options[:current_path] = path
+    end
+    opts.on("-c", "--c-include [C_INCLUDE]", 'C_INCLUDE_PATH env var', '  See `path\' instructions for argument options.'
+    ) do |path|
+      options[:name] = "C_INCLUDE_PATH"
+      options[:current_path] = path
+    end
+    opts.on("--pc [PKG_CONFIG_PATH]", 'PKG_CONFIG_PATH env var', '  See `path\' instructions for argument options.'
+    ) do |path|
+      options[:name] = "PKG_CONFIG_PATH"
+      options[:current_path] = path
+    end
+    opts.on("-q", "--quiet", "Quiet, no output") do |v|
+      options[:quiet] = true
+    end
+    opts.on("-d", "--debug", "Debug mode, even more output") do |v|
+      options[:debug] = v
+    end
+    opts.on("--setup","Set up directory structure, add specific switches", "  (see `--etc` `--lib` `--config`)", "  if specific setups required.", "  Else --setup own its own will do all of them."
+    ) do
+      options[:setup] = true
+    end
+    opts.on("--dry-run", "Use in conjuction with --setup to see what would happen if you ran it."
+    ) do
+      options[:dry_run] = true
+    end
+    opts.on("--[no-]etc", "This has two applications:", "  1. In combination with any of:", "    `--path`, `--man`, `--dyld-fram`, `--dyld-lib`, `--c-include`, `--pc`",  "    will add/remove it from consideration for building the path.", "  2. When combined with --setup will set up /etc/paths..., erm, etcetera.", "  The default is for it to be included."
+    ) do |v|
+      options[:etc] = v.nil? ? true : v
+    end
+    opts.on("--[no-]lib", "Adds ~/Library/Paths to the search/build path", "  Included by default on a Mac.", "  See `--etc` for more.") do |v|
+      options[:lib] = v.nil? ? true : v
+    end
+    opts.on("--[no-]config", "Adds ~/.config/paths", "  Included by default on Linux.", "  See `--etc` for more.") do |v|
+      options[:config] = v.nil? ? true : v
+    end
+    opts.on( '--version', 'Print version') do
+      warn PathHelper::VERSION
+      exit 0
+    end
+    opts.on_tail("-h", "--help", "Show this message") do
+      warn opts
+      exit
+    end
+    if ARGV.empty?
+      warn opts
+      exit 1
+    end
+  end.parse!
+rescue OptionParser::InvalidOption => ex
+  # Worded by hand rather than taken from ex.message so that it matches the
+  # Crystal implementation byte for byte -- spec/fixtures/results compares it.
+  warn "Invalid option: #{ex.args.join(", ")}"
+  warn "See --help for available options."
+  exit 1
+end
 
 if ENV["DEBUG"]
   options[:debug] = true

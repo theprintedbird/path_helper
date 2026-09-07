@@ -493,6 +493,21 @@ test_a_path "debug_pkg_config_spec" "debug_pkg_config.txt" "--pc" "--debug"
 expect_failure_with_usage "must provide an argument"
 expect_failure "the kind of path must be declared" "error_no_kind.txt" "-q"
 
+# An unrecognised switch is refused rather than ignored, and the complaint names
+# the switch so it is obvious which one was wrong. The second case follows a
+# valid switch to show that a good switch earlier in the line does not excuse a
+# bad one later, and that nothing built so far leaks onto stdout.
+expect_failure "an unknown long option" "error_invalid_option.txt" "--bogus"
+expect_failure "an unknown short option" "error_invalid_short_option.txt" "-q" "-z"
+
+# The path switches take an *optional* argument, and the two option parsers
+# would otherwise disagree about a `-`-prefixed token in that position: Ruby's
+# refuses it, Crystal's takes it as the value unless it happens to be a
+# registered flag. A switch is never a path, so both refuse it -- see
+# PathHelper.path_argument in src/path_helper.cr.
+expect_failure "an unknown short option after --path" "error_invalid_short_option.txt" "-p" "-z"
+expect_failure "an unknown short option after --pc" "error_invalid_short_option.txt" "--pc" "-z"
+
 test_version "--version" "--version"
 
 test_help "-h" "-h"

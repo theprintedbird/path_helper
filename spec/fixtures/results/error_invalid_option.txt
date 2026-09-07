@@ -1,0 +1,2 @@
+Invalid option: --bogus
+See --help for available options.

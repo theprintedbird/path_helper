@@ -101,6 +101,12 @@ composite actions in `.github/actions/`. They run on `master` and `dev`.
 - **Current path**: with no argument, `-p` etc. default to the existing value of that env var and append
   it after the generated segments; that is what `path-with-path.txt` covers.
 - `~` in a path line is expanded to `HOME` only at the final join step.
+- **Invalid switches**: both parsers are wrapped so an unknown switch prints `Invalid option: <switch>`
+  and `See --help for available options.` on stderr and exits 1. The wording is fixture-compared, so
+  Ruby spells the first line out by hand rather than using `ex.message` (`invalid option:`, lowercase).
+  The two stdlib parsers also disagree about the *optional* argument the path switches take: Ruby's
+  refuses any `-`-prefixed token, Crystal's swallows one unless it is a registered flag, so
+  `PathHelper.path_argument` rejects it to keep `-p -z` an error in both.
 
 ## Docs and planning
 

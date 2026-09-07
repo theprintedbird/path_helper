@@ -8,6 +8,23 @@ require "./path_helper/debug"
 require "./path_helper/setup"
 
 module PathHelper
+  # Crystal's OptionParser gives an optional argument the next token on the
+  # command line unless that token is a registered flag, so `-p -z` would take
+  # "-z" as the path to append. Ruby's OptionParser refuses any token beginning
+  # with a dash, and the two implementations have to agree, so an argument that
+  # looks like a switch is rejected the same way an unknown switch is. A lone
+  # "-" is left alone: Ruby treats it as an ordinary argument rather than a
+  # switch.
+  #
+  # Returns nil for an absent or empty argument, which is what the callers
+  # store when no current path was given.
+  private def self.path_argument(value : String) : String?
+    if value.starts_with?("-") && value != "-"
+      raise OptionParser::InvalidOption.new(value)
+    end
+    value.empty? ? nil : value
+  end
+
   def self.run
     options = Hash(Symbol, String | Bool | Nil).new
 
@@ -19,7 +36,7 @@ module PathHelper
         "  To append something to the generated path pass the current path, or a path you wish appended."
       ) do |path|
         options[:name] = "PATH"
-        options[:current_path] = path.empty? ? nil : path
+        options[:current_path] = path_argument(path)
       end
 
       opts.on("-m [MANPATH]", "--man [MANPATH]",
@@ -27,7 +44,7 @@ module PathHelper
         "  See `path' instructions for argument options."
       ) do |path|
         options[:name] = "MANPATH"
-        options[:current_path] = path.empty? ? nil : path
+        options[:current_path] = path_argument(path)
       end
 
       opts.on("-f [DYLD]", "--dyld-fram [DYLD]",
@@ -35,7 +52,7 @@ module PathHelper
         "  See `path' instructions for argument options."
       ) do |path|
         options[:name] = "DYLD_FALLBACK_FRAMEWORK_PATH"
-        options[:current_path] = path.empty? ? nil : path
+        options[:current_path] = path_argument(path)
       end
 
       opts.on("-l [DYLD]", "--dyld-lib [DYLD]",
@@ -43,7 +60,7 @@ module PathHelper
         "  See `path' instructions for argument options."
       ) do |path|
         options[:name] = "DYLD_FALLBACK_LIBRARY_PATH"
-        options[:current_path] = path.empty? ? nil : path
+        options[:current_path] = path_argument(path)
       end
 
       opts.on("-c [C_INCLUDE]", "--c-include [C_INCLUDE]",
@@ -51,7 +68,7 @@ module PathHelper
         "  See `path' instructions for argument options."
       ) do |path|
         options[:name] = "C_INCLUDE_PATH"
-        options[:current_path] = path.empty? ? nil : path
+        options[:current_path] = path_argument(path)
       end
 
       opts.on("--pc [PKG_CONFIG_PATH]",
@@ -59,7 +76,7 @@ module PathHelper
         "  See `path' instructions for argument options."
       ) do |path|
         options[:name] = "PKG_CONFIG_PATH"
-        options[:current_path] = path.empty? ? nil : path
+        options[:current_path] = path_argument(path)
       end
 
       opts.on("-q", "--quiet", "Quiet, no output") do
@@ -126,7 +143,16 @@ module PathHelper
       exit 1
     end
 
-    parser.parse
+    begin
+      parser.parse
+    rescue ex : OptionParser::InvalidOption
+      # ex.message already reads "Invalid option: --foo"; the Ruby
+      # implementation spells the same line out by hand so that the two agree
+      # byte for byte -- spec/fixtures/results compares it.
+      STDERR.puts ex.message
+      STDERR.puts "See --help for available options."
+      exit 1
+    end
 
     # Check for DEBUG environment variable
     if ENV["DEBUG"]?

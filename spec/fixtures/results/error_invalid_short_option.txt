@@ -1,0 +1,2 @@
+Invalid option: -z
+See --help for available options.

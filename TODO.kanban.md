@@ -71,8 +71,10 @@ Language-Agnostic Infrastructure
 ###### In Progress
 
 
+
 ###### Done
 
+- Add test for invalid flag handling <!-- done: 1788763175, in_progress: 1788762156 -->
 - Add `--version` output test <!-- done: 1788744786, ready: 1788744552 -->
 - Add `-h/--help` output test <!-- done: 1788744786, ready: 1788744564 -->
 - Update Ruby version matrix (remove 2.3.7, add 3.0, 3.1, 3.2) <!-- backlog: 1763431283, done: 1763432749, ready: 1763432044 -->
