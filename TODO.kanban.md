@@ -66,7 +66,6 @@ Language-Agnostic Infrastructure
 
 ###### Ready
 
-- Add debug output tests for all 6 path types (currently only 2) <!-- backlog: 1788767641, ready: 1788768220 -->
 
 
 
@@ -77,8 +76,10 @@ Language-Agnostic Infrastructure
 
 
 
+
 ###### Done
 
+- Add debug output tests for all 6 path types (currently only 2) <!-- backlog: 1788767641, done: 1788771000, in_progress: 1788769867, ready: 1788768220 -->
 - Add append mode tests (`-p $PATH`) <!-- backlog: 1788767620, done: 1788769004, in_progress: 1788768758, ready: 1788768217 -->
 - Add tests for all flag combinations (`--no-etc`, `--no-config`, `--no-lib`) <!-- backlog: 1788767542, done: 1788768412, in_progress: 1788768212 -->
 - Add test for missing required arguments <!-- backlog: 1788767523, done: 1788767827, in_progress: 1788767703 -->

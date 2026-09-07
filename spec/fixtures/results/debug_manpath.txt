@@ -1,0 +1,28 @@
+Name: MANPATH
+Options: {name: "MANPATH", current_path: nil, debug: true, verbose: true}
+Search order: [:config, :etc]
+	{{HOME}}/.config/paths/manpaths.d
+	{{HOME}}/.config/paths/manpaths
+	/etc/manpaths.d
+	/etc/manpaths
+
+Results: (duplicates marked by ✗)
+
+{{HOME}}/.config/paths/manpaths.d/04-llvm
+ └── ~/Library/Frameworks/LLVM.framework/man
+{{HOME}}/.config/paths/manpaths.d/04-pkgin
+ ├── /opt/pkg/share/man
+ └── /opt/pkg/share/doc
+{{HOME}}/.config/paths/manpaths.d/05-macports
+ ├── /opt/local/share/man
+ └── /opt/local/share/doc
+{{HOME}}/.config/paths/manpaths.d/30-oh-my-zshell
+ └── ~/.oh-my-zsh/custom/plugins/fzf/man
+{{HOME}}/.config/paths/manpaths.d/61-Opam-and-OCaml
+ └── ~/.opam/4.10.0/man
+{{HOME}}/.config/paths/manpaths
+/etc/manpaths
+
+Env var:
+{{HOME}}/Library/Frameworks/LLVM.framework/man:/opt/pkg/share/man:/opt/pkg/share/doc:/opt/local/share/man:/opt/local/share/doc:{{HOME}}/.oh-my-zsh/custom/plugins/fzf/man:{{HOME}}/.opam/4.10.0/man
+

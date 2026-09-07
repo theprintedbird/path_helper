@@ -447,7 +447,7 @@ The `--debug` flag is *really* helpful. For example:
 ```shell
 $ exe/path_helper -p --debug           
 Name: PATH
-Options: {:name=>"PATH", :current_path=>nil, :debug=>true, :verbose=>true}
+Options: {name: "PATH", current_path: nil, debug: true, verbose: true}
 Search order: [:config, :etc]
   /root/.config/paths/paths.d
   /root/.config/paths/paths
@@ -611,9 +611,9 @@ ok 2 - setup creates the path directories and files
 ok 3 - path_spec
 # Performance: path_spec took 189ms
 ...
-ok 62 - path_with_path_spec
-# Performance: path_with_path_spec took 190ms
-1..62
+ok 69 - an argument is appended for manpaths
+# Performance: an argument is appended for manpaths took 192ms
+1..69
 ```
 
 The exit status is 0 when every test point passed and 1 otherwise, so nothing

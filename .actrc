@@ -1,0 +1,16 @@
+# Runner image: catthehacker's ubuntu image is required because the composite
+# actions call sudo/apt-get and ruby/setup-ruby needs the runner tool cache.
+# Pinned to 22.04 rather than latest (24.04) because ruby/setup-ruby publishes
+# no Ruby 2.7 binaries for 24.04.
+-P ubuntu-latest=catthehacker/ubuntu:act-22.04
+
+# actions/upload-artifact@v4 fails without a local artifact server.
+--artifact-server-path /tmp/act-artifacts
+
+# The workflows never use Docker, so don't mount the host daemon socket in.
+--container-daemon-socket -
+
+# NOTE: act finds the daemon via DOCKER_HOST, which .actrc cannot set.
+# /var/run/docker.sock is a stale symlink on this machine, so export:
+#   export DOCKER_HOST="unix://$(podman machine inspect \
+#     --format '{{.ConnectionInfo.PodmanSocket.Path}}')"

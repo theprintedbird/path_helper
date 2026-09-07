@@ -481,12 +481,33 @@ else
 	tap_yaml "--setup did not create the full path tree"
 fi
 
+# Every kind of path is built twice: once plainly, and once under --debug.
+# The plain run checks the path that gets exported; the --debug run checks the
+# account of how it was arrived at -- the env var's name, the options it was
+# parsed into, the search order, the directories and files each segment looked
+# at, and which line came from which file, with duplicates marked. That report
+# is the only view of the search that a user ever gets, so it is worth pinning
+# for each env var and not just for PATH: the section names are derived from
+# the env var name (MANPATH -> manpaths.d/manpaths), and it is the debug output
+# that shows the derivation went the way it was supposed to.
+#
+# The two DYLD paths are the interesting pair here. Their fixture input files
+# are named dyld_framework_paths and dyld_library_paths, which are *not* the
+# names the sections derive (dyld_fallback_framework_paths and
+# dyld_fallback_library_paths), so nothing is ever read from them and the plain
+# output is empty. Under --debug that same emptiness is legible: the search
+# order and the four paths searched are still reported, the two files that do
+# exist are listed with nothing beneath them, and the env var comes out blank.
 test_a_path "path_spec" "path.txt" "-p"
 test_a_path "debug_path_spec" "debug_path.txt" "-p" "--debug"
 test_a_path "manpath_spec" "manpath.txt" "-m"
+test_a_path "debug_manpath_spec" "debug_manpath.txt" "-m" "--debug"
 test_a_path "c_include_spec" "c_include.txt" "-c"
+test_a_path "debug_c_include_spec" "debug_c_include.txt" "-c" "--debug"
 test_a_path "dyld-fram_spec" "dyld-fram.txt" "-f"
+test_a_path "debug_dyld-fram_spec" "debug_dyld-fram.txt" "-f" "--debug"
 test_a_path "dyld-lib_spec" "dyld-lib.txt" "-l"
+test_a_path "debug_dyld-lib_spec" "debug_dyld-lib.txt" "-l" "--debug"
 test_a_path "pkg_config_spec" "pkg_config.txt" "--pc"
 test_a_path "debug_pkg_config_spec" "debug_pkg_config.txt" "--pc" "--debug"
 
