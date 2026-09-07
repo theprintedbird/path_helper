@@ -16,4 +16,5 @@ RUN chmod +x /tmp/install.sh && \
     rm /tmp/install.sh
 
 ENV PATH_HELPER_DOCKER_INSTANCE=true
+ENV PATH_HELPER_EXECUTABLE=/root/exe/path_helper
 ENTRYPOINT ["spec/shell_spec.sh"]

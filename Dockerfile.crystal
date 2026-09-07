@@ -21,4 +21,7 @@ RUN chmod +x /tmp/install.sh && \
     rm /tmp/install.sh
 
 ENV PATH_HELPER_DOCKER_INSTANCE=true
+# The Crystal binary is the implementation under test here; without this the
+# suite would default to $PWD/exe/path_helper, which is the Ruby script.
+ENV PATH_HELPER_EXECUTABLE=/root/bin/path_helper
 ENTRYPOINT ["spec/shell_spec.sh"]

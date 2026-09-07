@@ -70,12 +70,15 @@ passed. A missing `PATH_HELPER_DOCKER_INSTANCE` produces `1..0 # SKIP` and exit 
 `Dockerfile` (Ruby) and `Dockerfile.crystal` copy the project to `/tmp`, run `docker/install*.sh` to lay
 things out under `/root`, set `PATH_HELPER_DOCKER_INSTANCE` and `ENTRYPOINT ["spec/shell_spec.sh"]`.
 
-Note: `Dockerfile.crystal` installs Ruby too (the suite's timing helper shells out to `ruby`) and puts
-the Crystal binary at `/root/bin/path_helper` while the Ruby script stays at `/root/exe/path_helper`.
-Since neither Dockerfile sets `PATH_HELPER_EXECUTABLE`, the suite's default (`$PWD/exe/path_helper`)
-means `make test-crystal` exercises the Ruby script unless the variable is passed in. The GitHub
-Actions path avoids this by copying the implementation under test to `/root/exe/path_helper`
-(`.github/actions/setup-test-env`).
+Each Dockerfile sets `PATH_HELPER_EXECUTABLE` to name the implementation under test —
+`/root/exe/path_helper` for Ruby, `/root/bin/path_helper` for Crystal. That matters for the Crystal
+image, which also installs Ruby (the suite's timing helper shells out to `ruby`) and keeps the Ruby
+script at `/root/exe/path_helper`: without the variable the suite's default of `$PWD/exe/path_helper`
+would silently test Ruby instead. CI installs the implementation under test at `/root/exe/path_helper`
+whatever the language (`.github/actions/setup-test-env`), and that action's `executable` output is
+passed into `run-shell-tests`, which sets `PATH_HELPER_EXECUTABLE` for both the `--setup` call and the
+suite — `sudo` drops the environment, so the value is named inside each `sudo bash -c` string rather
+than exported around it.
 
 CI: `.github/workflows/path_helper_tests.yml` (Ruby matrix) and `test-crystal.yml`, both driving the two
 composite actions in `.github/actions/`. They run on `master` and `dev`.

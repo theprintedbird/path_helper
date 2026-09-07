@@ -39,6 +39,7 @@ jobs:
         ruby-version: ${{ matrix.ruby-version }}
 
     - name: Set up test environment
+      id: setup-test-env
       uses: ./.github/actions/setup-test-env
       with:
         exe-path: 'exe/path_helper'
@@ -46,6 +47,7 @@ jobs:
     - name: Run shell tests
       uses: ./.github/actions/run-shell-tests
       with:
+        executable: ${{ steps.setup-test-env.outputs.executable }}
         language-version: 'Ruby ${{ matrix.ruby-version }}'
 
     - name: Upload test results

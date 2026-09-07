@@ -7,6 +7,11 @@ inputs:
     required: true
     default: 'exe/path_helper'
 
+outputs:
+  executable:
+    description: 'Absolute path of the installed executable under test, to pass to run-shell-tests'
+    value: ${{ steps.copy-executable.outputs.executable }}
+
 runs:
   using: 'composite'
   steps:
@@ -28,7 +33,12 @@ runs:
         sudo chmod +x /root/spec/shell_spec.sh
 
     - name: Copy executable
+      id: copy-executable
       shell: bash
       run: |
         sudo cp ${{ inputs.exe-path }} /root/exe/path_helper
         sudo chmod +x /root/exe/path_helper
+        # The implementation under test is installed under a language-neutral
+        # name, so name it explicitly for the test suite rather than leaving it
+        # to the suite's default.
+        echo "executable=/root/exe/path_helper" >> "$GITHUB_OUTPUT"

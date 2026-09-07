@@ -48,6 +48,7 @@ jobs:
         ls -la bin/
 
     - name: Set up test environment
+      id: setup-test-env
       uses: ./.github/actions/setup-test-env
       with:
         exe-path: 'bin/path_helper'
@@ -55,6 +56,7 @@ jobs:
     - name: Run shell tests
       uses: ./.github/actions/run-shell-tests
       with:
+        executable: ${{ steps.setup-test-env.outputs.executable }}
         language-version: 'Crystal ${{ matrix.crystal-version }}'
 
     - name: Upload test results
