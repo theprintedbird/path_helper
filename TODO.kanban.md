@@ -39,7 +39,6 @@ The goal is to support multiple language implementations (Ruby, Crystal, Go) whi
 To Do - Medium Term
 
 Language-Agnostic Infrastructure
-- Create/rename current path helper workflow to `test-ruby.yml` (language-specific) <!-- backlog: 1763431283 -->
 - Create `ci.yml` main workflow (orchestrator) <!-- backlog: 1763431283 -->
 - Design workflow structure for Go implementation <!-- backlog: 1763431283 -->
 - Create template for adding new language implementations <!-- backlog: 1763431283 -->
@@ -108,3 +107,4 @@ Language-Agnostic Infrastructure
 - Add workflow for release automation <!-- backlog: 1763431283, done: 1788742334 -->
 - Add workflow for testing Docker builds <!-- backlog: 1763431283, done: 1788742337 -->
 - Adopt TAP for tests. <!-- backlog: 1788744353, done: 1788744362 -->
+- Create/rename current path helper workflow to `test-ruby.yml` (language-specific) <!-- backlog: 1763431283, done: 1788757196 -->
