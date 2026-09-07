@@ -1,0 +1,2 @@
+You must declare the kind of path you wish to build e.g. --manpath or -m if you want MANPATH built
+See --help for available options.

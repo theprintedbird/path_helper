@@ -11,10 +11,10 @@
 
 ## Phase 2: Core Test Coverage
 
-- Add exit code tests for all scenarios (success, failure, help, version)
-- Add `--version` output test
-- Add `-h/--help` output test
-- Add stderr capture and comparison for error tests
+- DONE Add exit code tests for all scenarios (success, failure, help, version)
+- DONE Add `--version` output test
+- DONE Add `-h/--help` output test
+- *DONE* Add stderr capture and comparison for error tests
 - Add test for invalid flag handling
 - Add test for missing required arguments
 - Add tests for all flag combinations (`--no-etc`, `--no-config`, `--no-lib`)

@@ -611,9 +611,9 @@ ok 2 - setup creates the path directories and files
 ok 3 - path_spec
 # Performance: path_spec took 189ms
 ...
-ok 13 - path_with_path_spec
+ok 29 - path_with_path_spec
 # Performance: path_with_path_spec took 190ms
-1..13
+1..29
 ```
 
 The exit status is 0 when every test point passed and 1 otherwise, so nothing
@@ -638,6 +638,14 @@ not ok 3 - path_spec
 # --- expected ---
 ...
 ```
+
+Error cases are checked the same way, only on **stderr**: a refusal has to exit
+non-zero, leave stdout empty — stdout carries the path, so a complaint written
+there would end up inside `PATH` — and say why. Where the wording is the same in
+every implementation it is compared byte for byte with a fixture
+(`spec/fixtures/results/error_no_kind.txt`); where the refusal answers with the
+whole help message, which the two option parsers lay out differently, stderr is
+checked for a usage line and for coverage of every switch instead.
 
 The dumps are comments rather than YAML block scalars on purpose: a diff can
 contain blank and space-indented lines, which are exactly what make a

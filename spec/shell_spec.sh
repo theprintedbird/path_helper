@@ -219,23 +219,97 @@ test_a_path(){
 	rm -f "$actual" "$expected" "$difference"
 }
 
-# expect_failure <description> <argument>...
+# The captured streams of the last run_expecting_failure, for the assertions
+# that build on it. Held in globals because a shell function can only return a
+# status, and the two files have to outlive the call that produced them.
+failure_stdout=""
+failure_stderr=""
+
+# run_expecting_failure <description> <argument>...
 # The executable is supposed to refuse these, so a zero exit status is the
-# failure.
-expect_failure(){
+# failure. Diagnosing a refusal means reading what it said, so stderr is
+# captured for the caller and asserted on by the wrappers below; stdout has to
+# stay empty either way, because an `export PATH=$(path_helper -p)` would
+# otherwise swallow the complaint into PATH.
+# The caller owns the captured files and must call end_expected_failure.
+run_expecting_failure(){
 	local description="$1"
 	shift
-	local errors=$(mktemp)
+	local status
+	failure_stdout=$(mktemp)
+	failure_stderr=$(mktemp)
 
-	if "$EXECUTABLE" "${@}" >/dev/null 2>"$errors"; then
-		tap_not_ok "$description"
+	"$EXECUTABLE" "${@}" > "$failure_stdout" 2> "$failure_stderr"
+	status=$?
+
+	if [ $status -eq 0 ]; then
+		tap_not_ok "$description exits with a non-zero status"
 		tap_yaml "expected a non-zero exit status" "arguments: '$*'"
-		tap_comment_file "stderr" "$errors"
+		tap_comment_file "stderr" "$failure_stderr"
 	else
-		tap_ok "$description"
+		tap_ok "$description exits with a non-zero status"
 	fi
 
-	rm -f "$errors"
+	if [ -s "$failure_stdout" ]; then
+		tap_not_ok "$description writes nothing to stdout"
+		tap_yaml "stdout carries the built path, so it must stay empty here" \
+			"arguments: '$*'"
+		tap_comment_file "stdout" "$failure_stdout"
+	else
+		tap_ok "$description writes nothing to stdout"
+	fi
+}
+
+end_expected_failure(){
+	rm -f "$failure_stdout" "$failure_stderr"
+	failure_stdout=""
+	failure_stderr=""
+}
+
+# expect_failure <description> <fixture> <argument>...
+# A refusal whose wording is part of the contract: the message is the same in
+# every implementation, so stderr is compared byte for byte with a fixture, the
+# same way stdout is for the path tests.
+expect_failure(){
+	local description="$1"
+	local output_file="$2"
+	shift 2
+	local expected=$(mktemp)
+	local difference=$(mktemp)
+
+	run_expecting_failure "$description" "${@}"
+
+	sed "s|{{HOME}}|$HOME|g" "$PWD/spec/fixtures/results/${output_file}" > "$expected"
+
+	if cmp -s "$expected" "$failure_stderr"; then
+		tap_ok "$description explains itself on stderr"
+	else
+		cmp "$expected" "$failure_stderr" > "$difference" 2>&1
+		tap_not_ok "$description explains itself on stderr"
+		tap_yaml "stderr did not match the fixture" \
+			"fixture: '$output_file'" \
+			"arguments: '$*'"
+		tap_comment_file "cmp" "$difference"
+		tap_comment_file "expected" "$expected"
+		tap_comment_file "actual" "$failure_stderr"
+	fi
+
+	end_expected_failure
+	rm -f "$expected" "$difference"
+}
+
+# expect_failure_with_usage <description> <argument>...
+# A refusal that answers with the whole help message instead of a one-line
+# complaint. That text is not comparable across implementations -- see
+# HELP_SWITCHES below -- so it gets the same coverage check the --help tests
+# use rather than a fixture.
+expect_failure_with_usage(){
+	local description="$1"
+	shift
+
+	run_expecting_failure "$description" "${@}"
+	assert_usage_text "$description" "$failure_stderr" "$*"
+	end_expected_failure
 }
 
 # test_version <description> <argument>...
@@ -318,7 +392,6 @@ test_help(){
 	local out=$(mktemp)
 	local err=$(mktemp)
 	local status
-	local missing=""
 
 	"$EXECUTABLE" "${@}" > "$out" 2> "$err"
 	status=$?
@@ -342,12 +415,26 @@ test_help(){
 		tap_ok "$description writes nothing to stdout"
 	fi
 
+	assert_usage_text "$description" "$err" "$*"
+
+	rm -f "$out" "$err"
+}
+
+# assert_usage_text <description> <file> <arguments>
+# The help message, wherever it turns up: asked for with -h, or volunteered by
+# a refusal that has nothing more specific to say.
+assert_usage_text(){
+	local description="$1"
+	local err="$2"
+	local arguments="$3"
+	local missing=""
+
 	if grep -Eq '^Usage: .*\[options\]' "$err"; then
 		tap_ok "$description prints a usage line on stderr"
 	else
 		tap_not_ok "$description prints a usage line on stderr"
 		tap_yaml "expected a line of the form 'Usage: ... [options]'" \
-			"arguments: '$*'"
+			"arguments: '$arguments'"
 		tap_comment_file "stderr" "$err"
 	fi
 
@@ -360,12 +447,10 @@ test_help(){
 	else
 		tap_not_ok "$description documents every switch"
 		tap_yaml "the help output left some switches undocumented" \
-			"arguments: '$*'" \
+			"arguments: '$arguments'" \
 			"missing: '${missing# }'"
 		tap_comment_file "stderr" "$err"
 	fi
-
-	rm -f "$out" "$err"
 }
 
 # --- Run --------------------------------------------------------------------
@@ -405,8 +490,8 @@ test_a_path "dyld-lib_spec" "dyld-lib.txt" "-l"
 test_a_path "pkg_config_spec" "pkg_config.txt" "--pc"
 test_a_path "debug_pkg_config_spec" "debug_pkg_config.txt" "--pc" "--debug"
 
-expect_failure "must provide an argument"
-expect_failure "the kind of path must be declared" "-q"
+expect_failure_with_usage "must provide an argument"
+expect_failure "the kind of path must be declared" "error_no_kind.txt" "-q"
 
 test_version "--version" "--version"
 
