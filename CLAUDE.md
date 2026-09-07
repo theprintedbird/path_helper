@@ -98,8 +98,11 @@ composite actions in `.github/actions/`. They run on `master` and `dev`.
   occurrence wins. Directory entries are read in sorted filename order (hence the numeric prefixes),
   then the plain file for that segment. Segments are processed in search order, which is the whole point
   of the project: user paths land *before* the system ones.
-- **Current path**: with no argument, `-p` etc. default to the existing value of that env var and append
-  it after the generated segments; that is what `path-with-path.txt` covers.
+- **Current path**: the argument to `-p` etc. is appended after the generated segments, de-duplicated
+  against them and `~`-expanded like any other line, so `export PATH=$(path_helper -p "$PATH")` keeps
+  the old path behind the new one. With no argument -- or an empty one -- nothing is appended: the
+  switch always sets `:current_path`, so the `ENV[name]` fallback in both `CLI#initialize`s is
+  unreachable from the CLI. `path-appended.txt`/`manpath-appended.txt` cover this.
 - `~` in a path line is expanded to `HOME` only at the final join step.
 - **Invalid switches**: both parsers are wrapped so an unknown switch prints `Invalid option: <switch>`
   and `See --help for available options.` on stderr and exits 1. The wording is fixture-compared, so

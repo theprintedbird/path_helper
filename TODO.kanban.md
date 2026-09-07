@@ -62,10 +62,10 @@ Language-Agnostic Infrastructure
 - Add local GitHub Actions testing setup (act) <!-- backlog: 1763431283 -->
 - Add pre-commit hooks for common issues <!-- backlog: 1763431283 -->
 - Add developer setup script <!-- backlog: 1763431283 -->
+- --no-lib coverage needs `~/Library/Paths` to be set up <!-- backlog: 1788768670 -->
 
 ###### Ready
 
-- Add append mode tests (`-p $PATH`) <!-- backlog: 1788767620, ready: 1788768217 -->
 - Add debug output tests for all 6 path types (currently only 2) <!-- backlog: 1788767641, ready: 1788768220 -->
 
 
@@ -76,8 +76,10 @@ Language-Agnostic Infrastructure
 
 
 
+
 ###### Done
 
+- Add append mode tests (`-p $PATH`) <!-- backlog: 1788767620, done: 1788769004, in_progress: 1788768758, ready: 1788768217 -->
 - Add tests for all flag combinations (`--no-etc`, `--no-config`, `--no-lib`) <!-- backlog: 1788767542, done: 1788768412, in_progress: 1788768212 -->
 - Add test for missing required arguments <!-- backlog: 1788767523, done: 1788767827, in_progress: 1788767703 -->
 - Add test for invalid flag handling <!-- done: 1788763175, in_progress: 1788762156 -->

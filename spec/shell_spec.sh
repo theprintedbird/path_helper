@@ -549,8 +549,22 @@ test_version "--version" "--version"
 test_help "-h" "-h"
 test_help "--help" "--help"
 
-# With pre-existing path
-test_a_path "path_with_path_spec" "path-with-path.txt" "-p"
+# Append mode. The path switches take an optional argument, and whatever is
+# passed there is appended to the generated path -- pass the current value of
+# the env var and the generated segments land in front of it, which is the
+# whole point of `export PATH=$(path_helper -p "$PATH")`.
+#
+# Note that an argument is the *only* way to append: `-p` on its own builds a
+# fresh path and ignores whatever PATH happens to hold, which is what the help
+# text promises and what the path_spec case above already shows. The appended
+# components keep the order they were given, go after everything the search
+# found, are de-duplicated against it (first occurrence wins, so a component
+# already generated stays where it was rather than moving to the end), and get
+# the same `~` expansion as a line read from a file.
+test_a_path "an empty argument builds a fresh path" "path.txt" "-p" ""
+test_a_path "an argument is appended" "path-appended.txt" "-p" "/opt/appended/bin:~/appended:/usr/bin"
+test_a_path "an argument of duplicates changes nothing" "path.txt" "-p" "/usr/bin:/bin"
+test_a_path "an argument is appended for manpaths" "manpath-appended.txt" "-m" "/opt/appended/man:/opt/pkg/share/man"
 
 tap_plan
 
