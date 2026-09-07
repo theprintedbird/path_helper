@@ -24,8 +24,10 @@ runs:
         PATH_HELPER_EXECUTABLE: ${{ inputs.executable }}
       run: |
         # sudo does not pass the environment through, so the executable is named
-        # inside the command rather than exported around it.
-        sudo bash -c "cd /root && '$PATH_HELPER_EXECUTABLE' --setup --no-lib --quiet"
+        # inside the command rather than exported around it. PATH is carried in
+        # the same way: sudo resets it to secure_path, which does not contain the
+        # tool-cache Ruby that `#!/usr/bin/env ruby` needs.
+        sudo bash -c "cd /root && PATH=\"$PATH\" '$PATH_HELPER_EXECUTABLE' --setup --no-lib --quiet"
         sudo cp -R spec/fixtures/moredirs/* /root/.config/paths
         # Populate /etc/paths if it's empty and the source file exists
         if [ ! -s /etc/paths ] && [ -f docker/assets/etc-paths ]; then
