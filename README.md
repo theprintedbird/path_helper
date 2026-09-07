@@ -21,7 +21,7 @@ Interested? Then read on!
 - [Why Library/Paths/paths and not Library/paths?](#why-library-paths-paths-and-not-library-paths-)
 - [MAN and DYLD and C_INCLUDE and PKG_CONFIG](#man-and-dyld-and-c-include-and-pkg-config)
 - [MANPATH](#manpath)
-- [DYLD_FALLBACK_LIBRARY_PATH and DYLD_FALLBACK_FRAMEWORK_PATH](#dyld-fallback-library-path-and-dyld-fallback-framework-path)
+- [The DYLD paths](#the-dyld-paths)
 - [C_INCLUDE_PATH](#c-include-path)
 - [PKG_CONFIG_PATH](#pkg-config-path)
 - [An example install](#an-example-install)
@@ -301,25 +301,51 @@ Apple has already dictated that `/etc/manpaths` and `/etc/manpaths.d/` are the d
 I can tell you it's a very pleasant experience typing `man blah` for the thing I just installed and getting the correct man page up.
 
 
-### <a name="dyld-fallback-library-path-and-dyld-fallback-framework-path">DYLD_FALLBACK_LIBRARY_PATH and DYLD_FALLBACK_FRAMEWORK_PATH</a>
+### <a name="the-dyld-paths">The DYLD paths</a>
 
-Same goes for DYLD_FALLBACK_LIBRARY_PATH and DYLD_FALLBACK_FRAMEWORK_PATH:
+There are four of these, and the directory names follow the env var names exactly, as everywhere else. `DYLD_FALLBACK_LIBRARY_PATH`:
+
+- `~/Library/Paths/dyld_fallback_library_paths.d/`
+- `~/Library/Paths/dyld_fallback_library_paths`
+- `~/.config/paths/dyld_fallback_library_paths.d/`
+- `~/.config/paths/dyld_fallback_library_paths`
+- `/etc/dyld_fallback_library_paths.d/`
+- `/etc/dyld_fallback_library_paths`
+
+`DYLD_FALLBACK_FRAMEWORK_PATH`:
+
+- `~/Library/Paths/dyld_fallback_framework_paths.d/`
+- `~/Library/Paths/dyld_fallback_framework_paths`
+- `~/.config/paths/dyld_fallback_framework_paths.d/`
+- `~/.config/paths/dyld_fallback_framework_paths`
+- `/etc/dyld_fallback_framework_paths.d/`
+- `/etc/dyld_fallback_framework_paths`
+
+`DYLD_LIBRARY_PATH`:
 
 - `~/Library/Paths/dyld_library_paths.d/`
 - `~/Library/Paths/dyld_library_paths`
-- `~/.config/dyld_library_paths.d/`
-- `~/.config/dyld_library_paths`
+- `~/.config/paths/dyld_library_paths.d/`
+- `~/.config/paths/dyld_library_paths`
 - `/etc/dyld_library_paths.d/`
 - `/etc/dyld_library_paths`
 
-and:
+`DYLD_FRAMEWORK_PATH`:
 
 - `~/Library/Paths/dyld_framework_paths.d/`
 - `~/Library/Paths/dyld_framework_paths`
-- `~/.config/dyld_framework_paths.d/` 
-- `~/.config/dyld_framework_paths` 
+- `~/.config/paths/dyld_framework_paths.d/`
+- `~/.config/paths/dyld_framework_paths`
 - `/etc/dyld_framework_paths.d/`
 - `/etc/dyld_framework_paths`
+
+The switches are `--dyld-fallback-lib` (short form `-l`), `--dyld-fallback-fram` (`-f`), `--dyld-lib` and `--dyld-fram`.
+
+Two warnings, neither of which is this tool's doing:
+
+The *fallback* vars are consulted only after a library or framework's linked install path has been tried, so they are a backstop and are hard to get wrong. The other two are consulted *before* it, so they override the install path and can shadow a system dylib with your own build of it. That is occasionally exactly what you want and usually not, so reach for the fallback pair first.
+
+And System Integrity Protection strips every `DYLD_*` variable from the environment when a protected binary is exec'd, so anything under `/usr/bin`, `/bin`, `/usr/sbin` or `/sbin` will not see what you set here. The variables still reach your own builds and anything installed under `/usr/local`, `/opt` and friends.
 
 
 ### <a name="c-include-path">C_INCLUDE_PATH</a>
@@ -405,16 +431,20 @@ but you'll probably use the helpful instructions `--setup` provides at the end o
 # Put this in your ~/.bashrc or your ~/.zshenv
 if [ -x /Users/$USER/Projects/path_helper/exe/path_helper ]; then
   C_INCLUDE_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -c)
-  DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fram)
-  DYLD_FALLBACK_LIBRARY_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-lib)
+  DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fallback-fram)
+  DYLD_FALLBACK_LIBRARY_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fallback-lib)
+  DYLD_FRAMEWORK_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fram)
+  DYLD_LIBRARY_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-lib)
   MANPATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -m)
-  PKG_CONFIG_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -pc)
+  PKG_CONFIG_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --pc)
   PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -p)
 fi
 
 export C_INCLUDE_PATH
 export DYLD_FALLBACK_FRAMEWORK_PATH
 export DYLD_FALLBACK_LIBRARY_PATH
+export DYLD_FRAMEWORK_PATH
+export DYLD_LIBRARY_PATH
 export MANPATH
 export PKG_CONFIG_PATH
 export PATH

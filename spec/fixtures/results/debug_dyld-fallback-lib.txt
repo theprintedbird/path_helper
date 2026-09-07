@@ -1,0 +1,30 @@
+Name: DYLD_FALLBACK_LIBRARY_PATH
+Options: {name: "DYLD_FALLBACK_LIBRARY_PATH", current_path: nil, debug: true, verbose: true}
+Search order: [:config, :etc]
+	{{HOME}}/.config/paths/dyld_fallback_library_paths.d
+	{{HOME}}/.config/paths/dyld_fallback_library_paths
+	/etc/dyld_fallback_library_paths.d
+	/etc/dyld_fallback_library_paths
+
+Results: (duplicates marked by ✗)
+
+{{HOME}}/.config/paths/dyld_fallback_library_paths.d/04-llvm
+ ├── /opt/local/libexec/llvm-11/lib
+ ├── /opt/pkg/lib
+ ├── /opt/pkg/lib/cmake/llvm
+ └── ~/Library/Frameworks/LLVM.framework/Libraries
+{{HOME}}/.config/paths/dyld_fallback_library_paths.d/05-gcc7
+ └── /opt/pkg/gcc7/lib
+{{HOME}}/.config/paths/dyld_fallback_library_paths.d/06-gcc48
+ └── /opt/pkg/gcc48/lib
+{{HOME}}/.config/paths/dyld_fallback_library_paths.d/61-Opam-and-OCaml
+ └── ~/.opam/4.10.0/lib
+{{HOME}}/.config/paths/dyld_fallback_library_paths.d/libiconv
+ └── ~/Library/Frameworks/Libiconv.framework/Versions/Current/lib
+{{HOME}}/.config/paths/dyld_fallback_library_paths
+ └── /opt/pkg/lib ✗
+/etc/dyld_fallback_library_paths
+
+Env var:
+/opt/local/libexec/llvm-11/lib:/opt/pkg/lib:/opt/pkg/lib/cmake/llvm:{{HOME}}/Library/Frameworks/LLVM.framework/Libraries:/opt/pkg/gcc7/lib:/opt/pkg/gcc48/lib:{{HOME}}/.opam/4.10.0/lib:{{HOME}}/Library/Frameworks/Libiconv.framework/Versions/Current/lib
+

@@ -1,16 +1,22 @@
-Name: DYLD_FALLBACK_FRAMEWORK_PATH
-Options: {name: "DYLD_FALLBACK_FRAMEWORK_PATH", current_path: nil, debug: true, verbose: true}
+Name: DYLD_FRAMEWORK_PATH
+Options: {name: "DYLD_FRAMEWORK_PATH", current_path: nil, debug: true, verbose: true}
 Search order: [:config, :etc]
-	{{HOME}}/.config/paths/dyld_fallback_framework_paths.d
-	{{HOME}}/.config/paths/dyld_fallback_framework_paths
-	/etc/dyld_fallback_framework_paths.d
-	/etc/dyld_fallback_framework_paths
+	{{HOME}}/.config/paths/dyld_framework_paths.d
+	{{HOME}}/.config/paths/dyld_framework_paths
+	/etc/dyld_framework_paths.d
+	/etc/dyld_framework_paths
 
 Results: (duplicates marked by ✗)
 
-{{HOME}}/.config/paths/dyld_fallback_framework_paths
-/etc/dyld_fallback_framework_paths
+{{HOME}}/.config/paths/dyld_framework_paths.d/04-llvm
+ └── ~/Library/Frameworks/LLVM.framework
+{{HOME}}/.config/paths/dyld_framework_paths.d/50-local
+ ├── /opt/pkg/lib/Frameworks
+ └── ~/Library/Frameworks
+{{HOME}}/.config/paths/dyld_framework_paths
+ └── /Library/Frameworks
+/etc/dyld_framework_paths
 
 Env var:
-
+{{HOME}}/Library/Frameworks/LLVM.framework:/opt/pkg/lib/Frameworks:{{HOME}}/Library/Frameworks:/Library/Frameworks
 

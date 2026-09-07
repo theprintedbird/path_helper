@@ -1,0 +1,1 @@
+{{HOME}}/Library/Frameworks/LLVM.framework:/opt/pkg/lib/Frameworks:{{HOME}}/Library/Frameworks:/Library/Frameworks

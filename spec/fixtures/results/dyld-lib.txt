@@ -1,0 +1,1 @@
+/opt/local/libexec/llvm-11/lib:{{HOME}}/Library/Frameworks/Libiconv.framework/Versions/Current/lib:/opt/pkg/lib

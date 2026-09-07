@@ -1,5 +1,26 @@
 # CHANGES #
 
+## Tuesday the 8th of September 2026 ##
+
+### v5.0.0
+
+- **Breaking:** `--dyld-fram` and `--dyld-lib` now mean `DYLD_FRAMEWORK_PATH` and
+  `DYLD_LIBRARY_PATH`, the vars whose names they actually read as. The fallback
+  vars they used to mean have moved to `--dyld-fallback-fram` and
+  `--dyld-fallback-lib`; the `-f` and `-l` short forms are unchanged and still
+  mean the fallback vars.
+- Added support for `DYLD_FRAMEWORK_PATH` and `DYLD_LIBRARY_PATH`, read from
+  `dyld_framework_paths{,.d}` and `dyld_library_paths{,.d}` under each segment.
+- Fixed `--setup`, which emitted `path_helper -pc` for `PKG_CONFIG_PATH`. That
+  parses as `-p` with the argument `c`, so the generated snippet set
+  `PKG_CONFIG_PATH` to the PATH with `c` appended. It is `--pc` now.
+- Fixed the README, which documented the fallback DYLD vars as living in
+  `dyld_library_paths` and `dyld_framework_paths`. Those are now the names of
+  the *non*-fallback sections, so anyone who followed the old instructions
+  should either rename their files to `dyld_fallback_*` or start using the new
+  switches to read them.
+
+
 ## Tuesday the 19th of May 2020 ##
 
 ### v3.0.0

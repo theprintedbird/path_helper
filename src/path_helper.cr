@@ -47,7 +47,7 @@ module PathHelper
         options[:current_path] = path_argument(path)
       end
 
-      opts.on("-f [DYLD]", "--dyld-fram [DYLD]",
+      opts.on("-f [DYLD]", "--dyld-fallback-fram [DYLD]",
         "DYLD_FALLBACK_FRAMEWORK_PATH env var\n" \
         "  See `path' instructions for argument options."
       ) do |path|
@@ -55,11 +55,29 @@ module PathHelper
         options[:current_path] = path_argument(path)
       end
 
-      opts.on("-l [DYLD]", "--dyld-lib [DYLD]",
+      opts.on("-l [DYLD]", "--dyld-fallback-lib [DYLD]",
         "DYLD_FALLBACK_LIBRARY_PATH env var\n" \
         "  See `path' instructions for argument options."
       ) do |path|
         options[:name] = "DYLD_FALLBACK_LIBRARY_PATH"
+        options[:current_path] = path_argument(path)
+      end
+
+      opts.on("--dyld-fram [DYLD]",
+        "DYLD_FRAMEWORK_PATH env var\n" \
+        "  Searched *before* a framework's linked install path, so it overrides\n" \
+        "  rather than backstops. See `path' instructions for argument options."
+      ) do |path|
+        options[:name] = "DYLD_FRAMEWORK_PATH"
+        options[:current_path] = path_argument(path)
+      end
+
+      opts.on("--dyld-lib [DYLD]",
+        "DYLD_LIBRARY_PATH env var\n" \
+        "  Searched *before* a library's linked install path, so it overrides\n" \
+        "  rather than backstops. See `path' instructions for argument options."
+      ) do |path|
+        options[:name] = "DYLD_LIBRARY_PATH"
         options[:current_path] = path_argument(path)
       end
 

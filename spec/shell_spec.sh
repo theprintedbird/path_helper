@@ -127,6 +127,14 @@ cleanup(){
 		safe_remove /etc/dyld_fallback_library_paths.d
 		safe_remove /etc/dyld_fallback_library_paths
 	fi
+	if [ -d /etc/dyld_framework_paths.d ]; then
+		safe_remove /etc/dyld_framework_paths.d
+		safe_remove /etc/dyld_framework_paths
+	fi
+	if [ -d /etc/dyld_library_paths.d ]; then
+		safe_remove /etc/dyld_library_paths.d
+		safe_remove /etc/dyld_library_paths
+	fi
 	if [ -d /etc/pkg_config_paths.d ]; then
 		safe_remove /etc/pkg_config_paths.d
 		safe_remove /etc/pkg_config_paths
@@ -152,6 +160,14 @@ test_setup(){
 	[ -d /etc/dyld_fallback_library_paths.d ] &&
 	[ -f $HOME/.config/paths/dyld_fallback_library_paths ] &&
 	[ -f /etc/dyld_fallback_library_paths ] &&
+	[ -d $HOME/.config/paths/dyld_framework_paths.d ] &&
+	[ -d /etc/dyld_framework_paths.d ] &&
+	[ -f $HOME/.config/paths/dyld_framework_paths ] &&
+	[ -f /etc/dyld_framework_paths ] &&
+	[ -d $HOME/.config/paths/dyld_library_paths.d ] &&
+	[ -d /etc/dyld_library_paths.d ] &&
+	[ -f $HOME/.config/paths/dyld_library_paths ] &&
+	[ -f /etc/dyld_library_paths ] &&
 	[ -d $HOME/.config/paths/manpaths.d ] &&
 	[ -d /etc/manpaths.d ] &&
 	[ -f $HOME/.config/paths/manpaths ] &&
@@ -369,6 +385,8 @@ test_version(){
 # check and not a fixture comparison.
 HELP_SWITCHES='--path
 --man
+--dyld-fallback-fram
+--dyld-fallback-lib
 --dyld-fram
 --dyld-lib
 --c-include
@@ -491,23 +509,26 @@ fi
 # the env var name (MANPATH -> manpaths.d/manpaths), and it is the debug output
 # that shows the derivation went the way it was supposed to.
 #
-# The two DYLD paths are the interesting pair here. Their fixture input files
-# are named dyld_framework_paths and dyld_library_paths, which are *not* the
-# names the sections derive (dyld_fallback_framework_paths and
-# dyld_fallback_library_paths), so nothing is ever read from them and the plain
-# output is empty. Under --debug that same emptiness is legible: the search
-# order and the four paths searched are still reported, the two files that do
-# exist are listed with nothing beneath them, and the env var comes out blank.
+# Note the four DYLD paths, as their names are so close to each other.
+# DYLD_LIBRARY_PATH uses dyld_library_paths.
+# DYLD_FALLBACK_LIBRARY_PATH uses dyld_fallback_library_paths. Same goes for FRAMEWORK.
+# Previously, the fixtures had only the DYLD_LIBRARY_PATH 
+# while the CLI actually used DYLD_FALLBACK_LIBRARY_PATH.`-l` read nothing and the
+# expected output was an empty file. All now have their own input files.
 test_a_path "path_spec" "path.txt" "-p"
 test_a_path "debug_path_spec" "debug_path.txt" "-p" "--debug"
 test_a_path "manpath_spec" "manpath.txt" "-m"
 test_a_path "debug_manpath_spec" "debug_manpath.txt" "-m" "--debug"
 test_a_path "c_include_spec" "c_include.txt" "-c"
 test_a_path "debug_c_include_spec" "debug_c_include.txt" "-c" "--debug"
-test_a_path "dyld-fram_spec" "dyld-fram.txt" "-f"
-test_a_path "debug_dyld-fram_spec" "debug_dyld-fram.txt" "-f" "--debug"
-test_a_path "dyld-lib_spec" "dyld-lib.txt" "-l"
-test_a_path "debug_dyld-lib_spec" "debug_dyld-lib.txt" "-l" "--debug"
+test_a_path "dyld-fallback-fram_spec" "dyld-fallback-fram.txt" "-f"
+test_a_path "debug_dyld-fallback-fram_spec" "debug_dyld-fallback-fram.txt" "-f" "--debug"
+test_a_path "dyld-fallback-lib_spec" "dyld-fallback-lib.txt" "-l"
+test_a_path "debug_dyld-fallback-lib_spec" "debug_dyld-fallback-lib.txt" "-l" "--debug"
+test_a_path "dyld-fram_spec" "dyld-fram.txt" "--dyld-fram"
+test_a_path "debug_dyld-fram_spec" "debug_dyld-fram.txt" "--dyld-fram" "--debug"
+test_a_path "dyld-lib_spec" "dyld-lib.txt" "--dyld-lib"
+test_a_path "debug_dyld-lib_spec" "debug_dyld-lib.txt" "--dyld-lib" "--debug"
 test_a_path "pkg_config_spec" "pkg_config.txt" "--pc"
 test_a_path "debug_pkg_config_spec" "debug_pkg_config.txt" "--pc" "--debug"
 

@@ -3,7 +3,7 @@
 # A better path helper - don't put the standard bins first.
 module PathHelper
   # see semver https://semver.org/spec/v2.0.0.html
-  VERSION="4.0.0"
+  VERSION="5.0.0"
 end
 
 require 'optparse'
@@ -22,14 +22,24 @@ begin
       options[:name] = "MANPATH"
       options[:current_path] = path
     end
-    opts.on("-f", "--dyld-fram [DYLD]", 'DYLD_FALLBACK_FRAMEWORK_PATH env var', '  See `path\' instructions for argument options.'
+    opts.on("-f", "--dyld-fallback-fram [DYLD]", 'DYLD_FALLBACK_FRAMEWORK_PATH env var', '  See `path\' instructions for argument options.'
     ) do |path|
       options[:name] = "DYLD_FALLBACK_FRAMEWORK_PATH"
       options[:current_path] = path
     end
-    opts.on("-l", "--dyld-lib [DYLD]", "DYLD_FALLBACK_LIBRARY_PATH env var", '  See `path\' instructions for argument options.'
+    opts.on("-l", "--dyld-fallback-lib [DYLD]", "DYLD_FALLBACK_LIBRARY_PATH env var", '  See `path\' instructions for argument options.'
     ) do |path|
       options[:name] = "DYLD_FALLBACK_LIBRARY_PATH"
+      options[:current_path] = path
+    end
+    opts.on("--dyld-fram [DYLD]", 'DYLD_FRAMEWORK_PATH env var', '  Searched *before* a framework\'s linked install path, so it overrides', '  rather than backstops. See `path\' instructions for argument options.'
+    ) do |path|
+      options[:name] = "DYLD_FRAMEWORK_PATH"
+      options[:current_path] = path
+    end
+    opts.on("--dyld-lib [DYLD]", 'DYLD_LIBRARY_PATH env var', '  Searched *before* a library\'s linked install path, so it overrides', '  rather than backstops. See `path\' instructions for argument options.'
+    ) do |path|
+      options[:name] = "DYLD_LIBRARY_PATH"
       options[:current_path] = path
     end
     opts.on("-c", "--c-include [C_INCLUDE]", 'C_INCLUDE_PATH env var', '  See `path\' instructions for argument options.'
@@ -56,7 +66,7 @@ begin
     ) do
       options[:dry_run] = true
     end
-    opts.on("--[no-]etc", "This has two applications:", "  1. In combination with any of:", "    `--path`, `--man`, `--dyld-fram`, `--dyld-lib`, `--c-include`, `--pc`",  "    will add/remove it from consideration for building the path.", "  2. When combined with --setup will set up /etc/paths..., erm, etcetera.", "  The default is for it to be included."
+    opts.on("--[no-]etc", "This has two applications:", "  1. In combination with any of:", "    `--path`, `--man`, `--dyld-fallback-fram`, `--dyld-fallback-lib`,", "    `--dyld-fram`, `--dyld-lib`, `--c-include`, `--pc`",  "    will add/remove it from consideration for building the path.", "  2. When combined with --setup will set up /etc/paths..., erm, etcetera.", "  The default is for it to be included."
     ) do |v|
       options[:etc] = v.nil? ? true : v
     end
@@ -307,10 +317,12 @@ module PathHelper
 
     ENV_VARS = {
       "C_INCLUDE_PATH".freeze => "-c",
-      "DYLD_FALLBACK_FRAMEWORK_PATH".freeze =>  "--dyld-fram",
-      "DYLD_FALLBACK_LIBRARY_PATH".freeze => "--dyld-lib",
+      "DYLD_FALLBACK_FRAMEWORK_PATH".freeze =>  "--dyld-fallback-fram",
+      "DYLD_FALLBACK_LIBRARY_PATH".freeze => "--dyld-fallback-lib",
+      "DYLD_FRAMEWORK_PATH".freeze => "--dyld-fram",
+      "DYLD_LIBRARY_PATH".freeze => "--dyld-lib",
       "MANPATH".freeze  =>  "-m",
-      "PKG_CONFIG_PATH".freeze  => "-pc",
+      "PKG_CONFIG_PATH".freeze  => "--pc",
       "PATH".freeze => "-p",
     }
 

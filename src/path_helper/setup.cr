@@ -1,12 +1,14 @@
 module PathHelper
   module Setup
     ENV_VARS = {
-      "C_INCLUDE_PATH"              => "-c",
-      "DYLD_FALLBACK_FRAMEWORK_PATH" => "--dyld-fram",
-      "DYLD_FALLBACK_LIBRARY_PATH"  => "--dyld-lib",
-      "MANPATH"                     => "-m",
-      "PKG_CONFIG_PATH"             => "-pc",
-      "PATH"                        => "-p",
+      "C_INCLUDE_PATH"               => "-c",
+      "DYLD_FALLBACK_FRAMEWORK_PATH" => "--dyld-fallback-fram",
+      "DYLD_FALLBACK_LIBRARY_PATH"   => "--dyld-fallback-lib",
+      "DYLD_FRAMEWORK_PATH"          => "--dyld-fram",
+      "DYLD_LIBRARY_PATH"            => "--dyld-lib",
+      "MANPATH"                      => "-m",
+      "PKG_CONFIG_PATH"              => "--pc",
+      "PATH"                         => "-p",
     }
 
     def self.setup!(options : Hash(Symbol, String | Bool | Nil)) : Bool

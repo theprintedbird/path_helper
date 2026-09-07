@@ -1,16 +1,21 @@
-Name: DYLD_FALLBACK_LIBRARY_PATH
-Options: {name: "DYLD_FALLBACK_LIBRARY_PATH", current_path: nil, debug: true, verbose: true}
+Name: DYLD_LIBRARY_PATH
+Options: {name: "DYLD_LIBRARY_PATH", current_path: nil, debug: true, verbose: true}
 Search order: [:config, :etc]
-	{{HOME}}/.config/paths/dyld_fallback_library_paths.d
-	{{HOME}}/.config/paths/dyld_fallback_library_paths
-	/etc/dyld_fallback_library_paths.d
-	/etc/dyld_fallback_library_paths
+	{{HOME}}/.config/paths/dyld_library_paths.d
+	{{HOME}}/.config/paths/dyld_library_paths
+	/etc/dyld_library_paths.d
+	/etc/dyld_library_paths
 
 Results: (duplicates marked by ✗)
 
-{{HOME}}/.config/paths/dyld_fallback_library_paths
-/etc/dyld_fallback_library_paths
+{{HOME}}/.config/paths/dyld_library_paths.d/04-llvm
+ └── /opt/local/libexec/llvm-11/lib
+{{HOME}}/.config/paths/dyld_library_paths.d/libiconv
+ └── ~/Library/Frameworks/Libiconv.framework/Versions/Current/lib
+{{HOME}}/.config/paths/dyld_library_paths
+ └── /opt/pkg/lib
+/etc/dyld_library_paths
 
 Env var:
-
+/opt/local/libexec/llvm-11/lib:{{HOME}}/Library/Frameworks/Libiconv.framework/Versions/Current/lib:/opt/pkg/lib
 
