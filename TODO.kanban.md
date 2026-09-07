@@ -68,11 +68,14 @@ Language-Agnostic Infrastructure
 ###### Ready
 
 
+
 ###### In Progress
 
 
 ###### Done
 
+- Add `--version` output test <!-- done: 1788744786, ready: 1788744552 -->
+- Add `-h/--help` output test <!-- done: 1788744786, ready: 1788744564 -->
 - Update Ruby version matrix (remove 2.3.7, add 3.0, 3.1, 3.2) <!-- backlog: 1763431283, done: 1763432749, ready: 1763432044 -->
 - Update `actions/checkout` from v2 to v4 <!-- backlog: 1763431283, done: 1763445658, in_progress: 1763432783, ready: 1763432091 -->
 - Update `actions/checkout` from v2 to v4 <!-- backlog: 1763431283, done: 1763445658, in_progress: 1763432804, ready: 1763432616 -->

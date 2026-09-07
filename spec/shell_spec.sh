@@ -238,6 +238,136 @@ expect_failure(){
 	rm -f "$errors"
 }
 
+# test_version <description> <argument>...
+# --version is expected to print the version and nothing else, and to print it
+# on stderr: stdout belongs to the path being built, so anything landing there
+# would be swallowed by an `export PATH=$(path_helper -p)`. The version itself
+# is only checked for its semver shape -- the number changes with every release,
+# and each implementation carries its own copy of it.
+test_version(){
+	local description="$1"
+	shift
+	local out=$(mktemp)
+	local err=$(mktemp)
+	local status
+
+	"$EXECUTABLE" "${@}" > "$out" 2> "$err"
+	status=$?
+
+	if [ $status -eq 0 ]; then
+		tap_ok "$description exits successfully"
+	else
+		tap_not_ok "$description exits successfully"
+		tap_yaml "expected an exit status of 0" \
+			"arguments: '$*'" \
+			"status: $status"
+		tap_comment_file "stderr" "$err"
+	fi
+
+	if [ -s "$out" ]; then
+		tap_not_ok "$description writes nothing to stdout"
+		tap_yaml "stdout carries the built path, so it must stay empty here" \
+			"arguments: '$*'"
+		tap_comment_file "stdout" "$out"
+	else
+		tap_ok "$description writes nothing to stdout"
+	fi
+
+	if [ "$(wc -l < "$err")" -eq 1 ] &&
+		 grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)*$' "$err"; then
+		tap_ok "$description reports a semver version on stderr"
+	else
+		tap_not_ok "$description reports a semver version on stderr"
+		tap_yaml "expected a single line of MAJOR.MINOR.PATCH" \
+			"arguments: '$*'"
+		tap_comment_file "stderr" "$err"
+	fi
+
+	rm -f "$out" "$err"
+}
+
+# The switches the help output is expected to document. Each is an extended
+# regular expression rather than a literal because the same switch is not
+# rendered identically by every implementation's option parser: Ruby's
+# OptionParser collapses a negatable switch into `--[no-]etc` where Crystal's
+# lists `--etc` and `--no-etc` on separate lines. Wording and column layout are
+# not comparable across implementations at all, which is why this is a coverage
+# check and not a fixture comparison.
+HELP_SWITCHES='--path
+--man
+--dyld-fram
+--dyld-lib
+--c-include
+--pc
+--quiet
+--debug
+--setup
+--dry-run
+--(\[no-\])?etc
+--(\[no-\])?lib
+--(\[no-\])?config
+--version
+--help'
+
+# test_help <description> <argument>...
+# Help goes to stderr for the same reason the version does, and exits 0: asking
+# for help is not an error, unlike being given no arguments at all.
+test_help(){
+	local description="$1"
+	shift
+	local out=$(mktemp)
+	local err=$(mktemp)
+	local status
+	local missing=""
+
+	"$EXECUTABLE" "${@}" > "$out" 2> "$err"
+	status=$?
+
+	if [ $status -eq 0 ]; then
+		tap_ok "$description exits successfully"
+	else
+		tap_not_ok "$description exits successfully"
+		tap_yaml "expected an exit status of 0" \
+			"arguments: '$*'" \
+			"status: $status"
+		tap_comment_file "stderr" "$err"
+	fi
+
+	if [ -s "$out" ]; then
+		tap_not_ok "$description writes nothing to stdout"
+		tap_yaml "stdout carries the built path, so it must stay empty here" \
+			"arguments: '$*'"
+		tap_comment_file "stdout" "$out"
+	else
+		tap_ok "$description writes nothing to stdout"
+	fi
+
+	if grep -Eq '^Usage: .*\[options\]' "$err"; then
+		tap_ok "$description prints a usage line on stderr"
+	else
+		tap_not_ok "$description prints a usage line on stderr"
+		tap_yaml "expected a line of the form 'Usage: ... [options]'" \
+			"arguments: '$*'"
+		tap_comment_file "stderr" "$err"
+	fi
+
+	for switch in $HELP_SWITCHES; do
+		grep -Eq -- "$switch" "$err" || missing="$missing $switch"
+	done
+
+	if [ -z "$missing" ]; then
+		tap_ok "$description documents every switch"
+	else
+		tap_not_ok "$description documents every switch"
+		tap_yaml "the help output left some switches undocumented" \
+			"arguments: '$*'" \
+			"missing: '${missing# }'"
+		tap_comment_file "stderr" "$err"
+	fi
+
+	rm -f "$out" "$err"
+}
+
 # --- Run --------------------------------------------------------------------
 
 TMPDIR=$(mktemp -d)
@@ -277,6 +407,11 @@ test_a_path "debug_pkg_config_spec" "debug_pkg_config.txt" "--pc" "--debug"
 
 expect_failure "must provide an argument"
 expect_failure "the kind of path must be declared" "-q"
+
+test_version "--version" "--version"
+
+test_help "-h" "-h"
+test_help "--help" "--help"
 
 # With pre-existing path
 test_a_path "path_with_path_spec" "path-with-path.txt" "-p"
