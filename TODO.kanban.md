@@ -62,7 +62,9 @@ Language-Agnostic Infrastructure
 - Add local GitHub Actions testing setup (act) <!-- backlog: 1763431283 -->
 - Add pre-commit hooks for common issues <!-- backlog: 1763431283 -->
 - Add developer setup script <!-- backlog: 1763431283 -->
-- Create troubleshooting guide for CI failures <!-- backlog: 1763431283 -->
+- Add tests for all flag combinations (`--no-etc`, `--no-config`, `--no-lib`) <!-- backlog: 1788767542 -->
+- Add append mode tests (`-p $PATH`) <!-- backlog: 1788767620 -->
+- Add debug output tests for all 6 path types (currently only 2) <!-- backlog: 1788767641 -->
 
 ###### Ready
 
@@ -72,8 +74,10 @@ Language-Agnostic Infrastructure
 
 
 
+
 ###### Done
 
+- Add test for missing required arguments <!-- backlog: 1788767523, in_progress: 1788767703, done: 1788767827 -->
 - Add test for invalid flag handling <!-- done: 1788763175, in_progress: 1788762156 -->
 - Add `--version` output test <!-- done: 1788744786, ready: 1788744552 -->
 - Add `-h/--help` output test <!-- done: 1788744786, ready: 1788744564 -->
@@ -110,3 +114,4 @@ Language-Agnostic Infrastructure
 - Add workflow for testing Docker builds <!-- backlog: 1763431283, done: 1788742337 -->
 - Adopt TAP for tests. <!-- backlog: 1788744353, done: 1788744362 -->
 - Create/rename current path helper workflow to `test-ruby.yml` (language-specific) <!-- backlog: 1763431283, done: 1788757196 -->
+- Create troubleshooting guide for CI failures <!-- backlog: 1763431283, done: 1788767633 -->

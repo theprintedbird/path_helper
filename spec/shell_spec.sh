@@ -493,6 +493,16 @@ test_a_path "debug_pkg_config_spec" "debug_pkg_config.txt" "--pc" "--debug"
 expect_failure_with_usage "must provide an argument"
 expect_failure "the kind of path must be declared" "error_no_kind.txt" "-q"
 
+# The kind of path is the one argument the program cannot supply a default for,
+# so every other switch is still missing it when it stands on its own: a mode
+# switch (--debug), a switch that only says which segments to search (--no-etc,
+# --config), and one that is only meaningful next to --setup (--dry-run). Each
+# has to be refused with the same complaint rather than silently building PATH.
+expect_failure "the kind of path is still missing after --debug" "error_no_kind.txt" "-d"
+expect_failure "the kind of path is still missing after --no-etc" "error_no_kind.txt" "--no-etc"
+expect_failure "the kind of path is still missing after --config" "error_no_kind.txt" "--config"
+expect_failure "the kind of path is still missing after --dry-run" "error_no_kind.txt" "--dry-run"
+
 # An unrecognised switch is refused rather than ignored, and the complaint names
 # the switch so it is obvious which one was wrong. The second case follows a
 # valid switch to show that a good switch earlier in the line does not excuse a
