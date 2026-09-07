@@ -104,3 +104,4 @@ Language-Agnostic Infrastructure
 - Design workflow structure for Crystal implementation <!-- backlog: 1763431283, done: 1788742328 -->
 - Add workflow for release automation <!-- backlog: 1763431283, done: 1788742334 -->
 - Add workflow for testing Docker builds <!-- backlog: 1763431283, done: 1788742337 -->
+- Adopt TAP for tests. <!-- backlog: 1788744353, done: 1788744362 -->

@@ -1,26 +1,101 @@
 #!/bin/sh
 
-PASS=0
+# The suite reports in TAP (Test Anything Protocol) version 14, so its output
+# can be read by eye or piped into any TAP consumer (prove, tappy, tap-parser,
+# faucet...). Human-readable detail -- timings, diffs, stderr from a command
+# that was supposed to fail -- goes out as TAP comments and YAML diagnostic
+# blocks, both of which a consumer will either display or ignore, so nothing
+# has to be traded off against the machine-readable form.
+# See https://testanything.org/ for more on TAP.
+#
+# Exit status is 0 when every test point passed, 1 otherwise.
 
 trap cleanup 1 2 3 6
 
 EXECUTABLE="${PATH_HELPER_EXECUTABLE:-${PWD}/exe/path_helper}"
 
-if [ -z "$PATH_HELPER_DOCKER_INSTANCE" ]; then
-	echo "These tests are destructive"
-	echo "which is why there is a Docker setup for them."
-	echo "If you really want to run them"
-	echo "then you need to set the PATH_HELPER_DOCKER_INSTANCE."
-	echo "If it is empty this will not run."
-	echo "Caveat emptor."
-	exit 0;
-fi
+# --- TAP output -------------------------------------------------------------
 
-results=$(mktemp)
+tap_count=0
+tap_failed=0
+
+echo "TAP version 14"
+
+# A free-standing diagnostic line.
+tap_comment(){
+	echo "# $1"
+}
+
+# Pipe arbitrary text through this to make it TAP-safe. Any line beginning with
+# a '#' is a comment, which is why the dumps below are comments rather than YAML
+# block scalars: a diff can contain blank or space-indented lines, and those are
+# what make hand-rolled block scalars ambiguous to a YAML parser.
+# awk rather than sed because path output has no trailing newline, and awk's
+# print terminates the last line for us instead of running the next line of
+# output onto the end of it.
+tap_comment_stream(){
+	awk '{ print "# " $0 }'
+}
+
+# tap_comment_file <label> <file>
+tap_comment_file(){
+	tap_comment "--- $1 ---"
+	tap_comment_stream < "$2"
+	tap_comment "--- end $1 ---"
+}
+
+tap_ok(){
+	tap_count=$((tap_count + 1))
+	echo "ok $tap_count - $1"
+}
+
+tap_not_ok(){
+	tap_count=$((tap_count + 1))
+	tap_failed=1
+	echo "not ok $tap_count - $1"
+}
+
+# tap_yaml <message> [key: value]...
+# Emits the YAML diagnostic block belonging to the test point just printed.
+# Keys are indented one level deeper than the block itself, so pass them
+# pre-nested if they belong under `data:`.
+tap_yaml(){
+	local message="$1"
+	shift
+	echo "  ---"
+	echo "  message: '$message'"
+	echo "  severity: fail"
+	if [ $# -gt 0 ]; then
+		echo "  data:"
+		for pair in "$@"; do
+			echo "    $pair"
+		done
+	fi
+	echo "  ..."
+}
+
+# The plan goes last because the number of test points is whatever the run
+# actually emitted; TAP 14 allows a trailing plan.
+tap_plan(){
+	echo "1..$tap_count"
+}
+
+# --- Guard ------------------------------------------------------------------
+
+if [ -z "$PATH_HELPER_DOCKER_INSTANCE" ]; then
+	echo "1..0 # SKIP set PATH_HELPER_DOCKER_INSTANCE to run these destructive tests"
+	tap_comment "These tests are destructive,"
+	tap_comment "which is why there is a Docker setup for them."
+	tap_comment "If you really want to run them"
+	tap_comment "then you need to set PATH_HELPER_DOCKER_INSTANCE."
+	tap_comment "If it is empty this will not run."
+	tap_comment "Caveat emptor."
+	exit 0
+fi
 
 cleanup(){
 	handle_error() {
-		echo "Error: $1" >&2
+		echo "Bail out! $1"
 	}
 	safe_remove() {
 		local target="$1"
@@ -62,32 +137,7 @@ cleanup(){
 	fi
 }
 
-test_a_path(){
-	local test_name="$1"
-	local output_file="$2"
-	shift
-	shift
-	local actual=$(mktemp)
-	local expected=$(mktemp)
-
-	"$EXECUTABLE" "${@}" > "$actual"
-
-	# Fixtures store the home directory as a {{HOME}} placeholder so that they
-	# are not tied to the user the tests happen to run as. Any literal $HOME in
-	# a fixture is left alone: that comes from the input files and is expected
-	# in the output verbatim.
-	sed "s|{{HOME}}|$HOME|g" "$PWD/spec/fixtures/results/${output_file}" > "$expected"
-
-	if ! cmp -s "$expected" "$actual"; then
-		printf "$test_name:" >> "$results"
-		cmp "$expected" "$actual" >> "$results"
-		printf '\n\n---expected---\n\n' | cat - "$expected" >> "$results"
-		printf '\n\n---actual---\n\n' | cat - "$actual" >> "$results"
-		printf '\n\n------\n\n' >> "$results"
-		return 1
-	fi
-	return 0
-}
+# --- Tests ------------------------------------------------------------------
 
 test_setup(){
 	[ -d $HOME/.config/paths/c_include_paths.d ] &&
@@ -125,36 +175,80 @@ get_time_ns() {
 	ruby -e 'print Process.clock_gettime(Process::CLOCK_MONOTONIC, :nanosecond)'
 }
 
-# Run a path test, reporting how long it took
-test_a_path_with_time() {
-	local test_name="$1"
+# test_a_path <description> <fixture> <argument>...
+# Runs the executable and compares its output with a fixture, emitting one test
+# point plus a timing comment. On failure the YAML block names the fixture and
+# the arguments, and the diff, expected and actual output follow as comments.
+test_a_path(){
+	local description="$1"
+	local output_file="$2"
+	shift 2
+	local actual=$(mktemp)
+	local expected=$(mktemp)
+	local difference=$(mktemp)
 
-	# Measure test_a_path
-	local test_start=$(get_time_ns)
-	test_a_path "$@"
-	local test_result=$?
-	local test_end=$(get_time_ns)
-	local test_duration=$((test_end - test_start))
+	# Measured around the executable alone, not the comparison. Reported in
+	# milliseconds; this includes the startup time of the ruby process that
+	# takes the closing reading -- a constant offset of a few tens of
+	# milliseconds, uniform across runs and platforms.
+	local start=$(get_time_ns)
+	"$EXECUTABLE" "${@}" > "$actual"
+	local end=$(get_time_ns)
 
-	# Reported in milliseconds. This includes the startup time of the ruby
-	# process that takes the closing reading -- a constant offset of a few tens
-	# of milliseconds, uniform across runs and platforms.
-	echo "Performance: $test_name took $((test_duration / 1000000))ms"
+	# Fixtures store the home directory as a {{HOME}} placeholder so that they
+	# are not tied to the user the tests happen to run as. Any literal $HOME in
+	# a fixture is left alone: that comes from the input files and is expected
+	# in the output verbatim.
+	sed "s|{{HOME}}|$HOME|g" "$PWD/spec/fixtures/results/${output_file}" > "$expected"
 
-	return $test_result
+	if cmp -s "$expected" "$actual"; then
+		tap_ok "$description"
+	else
+		cmp "$expected" "$actual" > "$difference" 2>&1
+		tap_not_ok "$description"
+		tap_yaml "output did not match the fixture" \
+			"fixture: '$output_file'" \
+			"arguments: '$*'"
+		tap_comment_file "cmp" "$difference"
+		tap_comment_file "expected" "$expected"
+		tap_comment_file "actual" "$actual"
+	fi
+
+	tap_comment "Performance: $description took $(( (end - start) / 1000000 ))ms"
+
+	rm -f "$actual" "$expected" "$difference"
 }
 
+# expect_failure <description> <argument>...
+# The executable is supposed to refuse these, so a zero exit status is the
+# failure.
+expect_failure(){
+	local description="$1"
+	shift
+	local errors=$(mktemp)
+
+	if "$EXECUTABLE" "${@}" >/dev/null 2>"$errors"; then
+		tap_not_ok "$description"
+		tap_yaml "expected a non-zero exit status" "arguments: '$*'"
+		tap_comment_file "stderr" "$errors"
+	else
+		tap_ok "$description"
+	fi
+
+	rm -f "$errors"
+}
+
+# --- Run --------------------------------------------------------------------
 
 TMPDIR=$(mktemp -d)
 cleanup
 
-failures=""
-
-# This should fail the first time as there are no dirs/files
-# Hence, a pass is a fail ;-)
+# Nothing has been set up yet, so a complete setup is the failure here.
 if test_setup; then
-	PASS=1
-	failures="${failures:+"$failures:"}setup_spec 1"
+	tap_not_ok "the paths are absent before setup runs"
+	tap_yaml "found a set up path tree before --setup was run"
+else
+	tap_ok "the paths are absent before setup runs"
 fi
 
 "$EXECUTABLE" --setup --no-lib --quiet
@@ -165,84 +259,30 @@ if [ ! -s /etc/paths ] && [ -f docker/assets/etc-paths ]; then
 	cp docker/assets/etc-paths /etc/paths
 fi
 
-# This should pass now because the setup has been run
-if ! test_setup; then
-	PASS=1
-	failures="${failures:+"$failures:"}setup_spec 2"
+if test_setup; then
+	tap_ok "setup creates the path directories and files"
+else
+	tap_not_ok "setup creates the path directories and files"
+	tap_yaml "--setup did not create the full path tree"
 fi
 
+test_a_path "path_spec" "path.txt" "-p"
+test_a_path "debug_path_spec" "debug_path.txt" "-p" "--debug"
+test_a_path "manpath_spec" "manpath.txt" "-m"
+test_a_path "c_include_spec" "c_include.txt" "-c"
+test_a_path "dyld-fram_spec" "dyld-fram.txt" "-f"
+test_a_path "dyld-lib_spec" "dyld-lib.txt" "-l"
+test_a_path "pkg_config_spec" "pkg_config.txt" "--pc"
+test_a_path "debug_pkg_config_spec" "debug_pkg_config.txt" "--pc" "--debug"
 
-if ! test_a_path_with_time "path_spec" "path.txt" "-p"; then
-	PASS=1
-	failures="${failures:+"$failures:"}path_spec"
-fi
-
-if ! test_a_path_with_time "debug_path_spec" "debug_path.txt" "-p" "--debug"; then
-	PASS=1
-	failures="${failures:+"$failures:"}debug_path_spec"
-fi
-
-if ! test_a_path_with_time "manpath_spec" "manpath.txt" "-m"; then
-	PASS=1
-	failures="${failures:+"$failures:"}manpath_spec"
-fi
-
-if ! test_a_path_with_time "c_include_spec" "c_include.txt" "-c"; then
-	PASS=1
-	failures="${failures:+"$failures:"}c_include_spec"
-fi
-
-if ! test_a_path_with_time "dyld-fram_spec" "dyld-fram.txt" "-f"; then
-	PASS=1
-	failures="${failures:+"$failures:"}dyld-fram_spec"
-fi
-
-if ! test_a_path_with_time "dyld-lib_spec" "dyld-lib.txt" "-l"; then
-	PASS=1
-	failures="${failures:+"$failures:"}dyld-lib_spec"
-fi
-
-if ! test_a_path_with_time "pkg_config_spec" "pkg_config.txt" "--pc"; then
-	PASS=1
-	failures="${failures:+"$failures:"}pkg_config_spec"
-fi
-
-if ! test_a_path_with_time "pkg_config_spec" "debug_pkg_config.txt" "--pc" "--debug"; then
-	PASS=1
-	failures="${failures:+"$failures:"}pkg_config_spec"
-fi
-
-# This should not be okay, therefore it should be a fail if
-# running it seems okay.
-if "$EXECUTABLE" 2>/dev/null; then
-	PASS=1
-	failures="${failures:+"$failures:"}must provide an argument"
-fi
-
-# This should not be okay, therefore it should be a fail if
-# running it seems okay.
-if "$EXECUTABLE" -q 2>/dev/null; then
-	PASS=1
-	failures="${failures:+"$failures:"}the kind of path must be declared"
-fi
+expect_failure "must provide an argument"
+expect_failure "the kind of path must be declared" "-q"
 
 # With pre-existing path
-if ! test_a_path_with_time "path_with_path_spec" "path-with-path.txt" "-p"; then
-	PASS=1
-	failures="${failures:+"$failures:"}path_spec"
-fi
+test_a_path "path_with_path_spec" "path-with-path.txt" "-p"
 
-
-if [ $PASS -eq 0 ]; then
-	echo Passed!
-else
-	echo "Failure :'("
-	echo $failures | awk -F: '{for(i=1; i<=NF; i++) print "failed: "$i}'
-	echo "More info..."
-	cat $results
-fi
+tap_plan
 
 cleanup
 
-exit $PASS
-
+exit $tap_failed

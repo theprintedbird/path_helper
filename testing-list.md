@@ -1,6 +1,6 @@
 # Testing Improvements Task List
 
-## Phase 1: Critical Foundation
+## *DONE* Phase 1: Critical Foundation
 
 - Add executable path abstraction via `PATH_HELPER_EXECUTABLE` environment variable
 - Replace hardcoded `/usr/local/bin/ruby` with configurable executable path

@@ -29,6 +29,7 @@ Interested? Then read on!
 - [Development](#development)
 - [To get set up for development](#to-get-set-up-for-development)
 - [To run the specs](#to-run-the-specs)
+- [Test output is TAP](#test-output-is-tap)
 - [Shell in and have a play](#shell-in-and-have-a-play)
 - [Licence](#licence)
 
@@ -596,6 +597,79 @@ earlier no longer matches.
 make list
 ```
 
+### <a name="test-output-is-tap">Test output is TAP</a>
+
+`spec/shell_spec.sh` reports in [TAP (Test Anything Protocol) version
+14](https://testanything.org/tap-version-14-specification.html), so its output
+reads perfectly well by eye and can also be piped straight into any TAP
+consumer:
+
+```
+TAP version 14
+ok 1 - the paths are absent before setup runs
+ok 2 - setup creates the path directories and files
+ok 3 - path_spec
+# Performance: path_spec took 189ms
+...
+ok 13 - path_with_path_spec
+# Performance: path_with_path_spec took 190ms
+1..13
+```
+
+The exit status is 0 when every test point passed and 1 otherwise, so nothing
+needs a TAP parser to tell pass from fail.
+
+A failing test point carries a YAML diagnostic block naming the fixture and the
+arguments used, followed by the `cmp` output and the expected and actual text as
+TAP comments:
+
+```
+not ok 3 - path_spec
+  ---
+  message: 'output did not match the fixture'
+  severity: fail
+  data:
+    fixture: 'path.txt'
+    arguments: '-p'
+  ...
+# --- cmp ---
+# cmp: EOF on /tmp/tmp.jFJnhK
+# --- end cmp ---
+# --- expected ---
+...
+```
+
+The dumps are comments rather than YAML block scalars on purpose: a diff can
+contain blank and space-indented lines, which are exactly what make a
+hand-rolled block scalar ambiguous to a YAML parser, whereas a comment can hold
+anything.
+
+When `PATH_HELPER_DOCKER_INSTANCE` is unset the suite declines to run — these
+tests are destructive — and says so as a skipped plan, exiting 0:
+
+```
+TAP version 14
+1..0 # SKIP set PATH_HELPER_DOCKER_INSTANCE to run these destructive tests
+# These tests are destructive,
+...
+```
+
+**Consuming it**
+
+Any TAP 13 or 14 harness will do. Note that the `prove` bundled with system Perl
+predates TAP 14 and will report `TAP specified version 14 but we don't know
+about versions later than 13`; it still reads the results, but for clean output
+use a current `TAP::Harness`, or a parser such as
+[tapview](https://gitlab.com/esr/tapview),
+[tap-parser](https://www.npmjs.com/package/tap-parser) or
+[faucet](https://www.npmjs.com/package/faucet):
+
+```shell
+podman run --rm path_helper:latest-ruby3.3 | tapview
+```
+
+See <https://testanything.org/> for more on TAP.
+
 ### <a name="shell-in-and-have-a-play">Shell in and have a play</a>
 
 **Open an interactive shell in a container:**
@@ -770,7 +844,7 @@ Tests automatically run on GitHub Actions when:
 |--------|----------------|---------------------|
 | Environment | Alpine Linux | Ubuntu |
 | Ruby setup | Pre-built in image | ruby/setup-ruby action |
-| Test output | Console only | Artifacts + Summary |
+| Test output | TAP to the console | TAP, plus artifacts + summary |
 | Speed | Fast (cached image) | Depends on cache hits |
 
 ## <a name="#licence">Licence</a>

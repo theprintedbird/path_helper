@@ -42,7 +42,11 @@ runs:
         if [ -f test_output.log ]; then
           echo ""
           echo "Failed tests:"
-          grep -A 50 "Failure" test_output.log || cat test_output.log
+          # The suite reports in TAP 14, so a failure is a "not ok" test point.
+          # Print each one with the diagnostics that follow it, up to the next
+          # test point.
+          awk '/^not ok /{show=1} /^(ok|1\.\.)/{show=0} show' test_output.log \
+            || cat test_output.log
           echo ""
           echo "========================================"
         fi
@@ -54,16 +58,22 @@ runs:
         echo "## Test Results for ${{ inputs.language-version }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         if [ -f test_output.log ]; then
-          if grep -q "Passed!" test_output.log; then
-            echo ":white_check_mark: **All tests passed**" >> $GITHUB_STEP_SUMMARY
+          # TAP 14: count the test points rather than looking for a summary
+          # line, so the counts stay right however many tests the suite grows.
+          passed=$(grep -c '^ok ' test_output.log || true)
+          failed=$(grep -c '^not ok ' test_output.log || true)
+          if grep -q '^1\.\.0 # SKIP' test_output.log; then
+            echo ":fast_forward: **Suite skipped** - see the output below" >> $GITHUB_STEP_SUMMARY
+          elif [ "$failed" -eq 0 ] && [ "$passed" -gt 0 ]; then
+            echo ":white_check_mark: **All $passed tests passed**" >> $GITHUB_STEP_SUMMARY
           else
-            echo ":x: **Tests failed**" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Output" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            cat test_output.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo ":x: **$failed of $((passed + failed)) tests failed**" >> $GITHUB_STEP_SUMMARY
           fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### TAP output" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat test_output.log >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
         else
           echo ":warning: **No test output found**" >> $GITHUB_STEP_SUMMARY
         fi
