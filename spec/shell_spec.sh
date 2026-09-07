@@ -68,10 +68,15 @@ test_a_path(){
 	shift
 	shift
 	local actual=$(mktemp)
+	local expected=$(mktemp)
 
 	"$EXECUTABLE" "${@}" > "$actual"
 
-	local expected="$PWD/spec/fixtures/results/${output_file}"
+	# Fixtures store the home directory as a {{HOME}} placeholder so that they
+	# are not tied to the user the tests happen to run as. Any literal $HOME in
+	# a fixture is left alone: that comes from the input files and is expected
+	# in the output verbatim.
+	sed "s|{{HOME}}|$HOME|g" "$PWD/spec/fixtures/results/${output_file}" > "$expected"
 
 	if ! cmp -s "$expected" "$actual"; then
 		printf "$test_name:" >> "$results"
