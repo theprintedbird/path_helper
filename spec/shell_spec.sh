@@ -490,6 +490,32 @@ test_a_path "dyld-lib_spec" "dyld-lib.txt" "-l"
 test_a_path "pkg_config_spec" "pkg_config.txt" "--pc"
 test_a_path "debug_pkg_config_spec" "debug_pkg_config.txt" "--pc" "--debug"
 
+# Each segment of the search order can be switched off independently, and the
+# three switches are orthogonal, so every combination of them is covered here.
+# The expected output is the concatenation of whichever segments survive, in
+# search order: the fixtures copied into ~/.config/paths for `config`, and
+# /etc/paths for `etc`. Turning them all off is a legitimate request for an
+# empty path rather than an error.
+#
+# `lib` is the segment these tests run without: the suite sets up with
+# --no-lib, and on a non-Mac ~/Library/Paths is off by default anyway, so
+# --no-lib can only ever be a no-op here. It is still worth asserting that it
+# is one -- silently removing a segment nobody asked about would be a bug --
+# and that it does not disturb the other two switches when combined with them.
+test_a_path "no-etc leaves the config segment" "path-no-etc.txt" "-p" "--no-etc"
+test_a_path "no-config leaves the etc segment" "path-no-config.txt" "-p" "--no-config"
+test_a_path "no-lib changes nothing" "path.txt" "-p" "--no-lib"
+test_a_path "no-etc and no-config leave nothing" "path-no-segments.txt" "-p" "--no-etc" "--no-config"
+test_a_path "no-etc and no-lib leave the config segment" "path-no-etc.txt" "-p" "--no-etc" "--no-lib"
+test_a_path "no-config and no-lib leave the etc segment" "path-no-config.txt" "-p" "--no-config" "--no-lib"
+test_a_path "all three leave nothing" "path-no-segments.txt" "-p" "--no-etc" "--no-config" "--no-lib"
+
+# The same switches on another env var, to show the segment logic is a property
+# of the search order and not of PATH: MANPATH's /etc file is created empty by
+# --setup, so dropping the config segment leaves nothing at all behind.
+test_a_path "no-etc leaves the config segment for manpaths" "manpath.txt" "-m" "--no-etc"
+test_a_path "no-config leaves nothing for manpaths" "path-no-segments.txt" "-m" "--no-config"
+
 expect_failure_with_usage "must provide an argument"
 expect_failure "the kind of path must be declared" "error_no_kind.txt" "-q"
 

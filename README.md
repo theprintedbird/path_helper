@@ -611,9 +611,9 @@ ok 2 - setup creates the path directories and files
 ok 3 - path_spec
 # Performance: path_spec took 189ms
 ...
-ok 41 - path_with_path_spec
+ok 62 - path_with_path_spec
 # Performance: path_with_path_spec took 190ms
-1..41
+1..62
 ```
 
 The exit status is 0 when every test point passed and 1 otherwise, so nothing

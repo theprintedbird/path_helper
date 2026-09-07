@@ -16,8 +16,8 @@
 - DONE Add `-h/--help` output test
 - DONE Add stderr capture and comparison for error tests
 - DONE Add test for invalid flag handling
-- Add test for missing required arguments
-- Add tests for all flag combinations (`--no-etc`, `--no-config`, `--no-lib`)
+- DONE Add test for missing required arguments
+- DONE Add tests for all flag combinations (`--no-etc`, `--no-config`, `--no-lib`)
 - Add append mode tests (`-p $PATH`)
 - Add debug output tests for all 6 path types (currently only 2)
 
