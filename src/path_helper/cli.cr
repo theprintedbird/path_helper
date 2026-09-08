@@ -51,7 +51,11 @@ module PathHelper
     private def read_files
       @section.found.each do |path, _|
         next unless File.file?(path)
-        lines = File.read_lines(path).map(&.chomp)
+        # Blank lines are dropped here rather than at the join, so that
+        # everything downstream gets real components. Empty lines would
+        # join as `::`, which is the current working directory
+        # and thus a security problem to be avoided.
+        lines = File.read_lines(path).map(&.chomp).reject(&.empty?)
         @section.found[path] = lines
         lines.each do |line|
           next if @section.all_lines.has_key?(line)

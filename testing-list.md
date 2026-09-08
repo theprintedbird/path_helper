@@ -24,7 +24,7 @@
 ## Phase 3: Edge Case Coverage
 
 - DONE Add empty input file handling test
-- Add test for files with blank lines
+- DONE Add test for files with blank lines
 - Add test for files with trailing newlines
 - Add test for Windows line endings (CRLF)
 - Add test for paths with spaces

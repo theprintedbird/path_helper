@@ -171,6 +171,8 @@ $ cat /etc/paths
 /sbin
 ```
 
+Because an empty component in `PATH` is the current working directory, blank lines are ignored, as are empty files.
+
 The order *within* the file matters as well as the order the files are read/concatenated.
 
 ### Note: ###

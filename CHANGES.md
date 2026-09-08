@@ -14,6 +14,12 @@
 - Fixed `--setup`, which emitted `path_helper -pc` for `PKG_CONFIG_PATH`. That
   parses as `-p` with the argument `c`, so the generated snippet set
   `PKG_CONFIG_PATH` to the PATH with `c` appended. It is `--pc` now.
+- Fixed blank lines in a path file, which were read as components. An empty
+  line joined into the output as a stray `::`, and a `::` in `PATH` means the
+  current working directory -- so a fragment with one newline too many put
+  whatever directory you happened to be in on your path. Blank lines are now
+  dropped as the files are read, so they reach neither the output nor the
+  `--debug` report.
 - Fixed the README, which documented the fallback DYLD vars as living in
   `dyld_library_paths` and `dyld_framework_paths`. Those are now the names of
   the *non*-fallback sections, so anyone who followed the old instructions

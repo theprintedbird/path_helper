@@ -66,7 +66,6 @@ Language-Agnostic Infrastructure
 
 ###### Ready
 
-- Add test for files with blank lines <!-- ready: 1788854437 -->
 - Add test for files with trailing newlines <!-- ready: 1788854437 -->
 - Add test for Windows line endings (CRLF) <!-- ready: 1788854437 -->
 - Add test for paths with spaces <!-- ready: 1788854437 -->
@@ -93,8 +92,10 @@ Language-Agnostic Infrastructure
 
 
 
+
 ###### Done
 
+- Add test for files with blank lines <!-- done: 1788875846, in_progress: 1788875279, ready: 1788854437 -->
 - Add empty input file handling test <!-- done: 1788854673, in_progress: 1788854512, ready: 1788854437 -->
 - Add debug output tests for all 6 path types (currently only 2) <!-- backlog: 1788767641, done: 1788771000, in_progress: 1788769867, ready: 1788768220 -->
 - Add append mode tests (`-p $PATH`) <!-- backlog: 1788767620, done: 1788769004, in_progress: 1788768758, ready: 1788768217 -->

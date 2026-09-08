@@ -78,6 +78,8 @@ module PathHelper
 
         next if lines.nil?
 
+        # The reject is for the "current path" pseudo-entry, whose components
+        # come from splitting the argument rather than from a file.
         non_empty_lines = lines.compact.reject(&.empty?)
         non_empty_lines.each_with_index do |line, i|
           findings[line] = findings[line] + 1

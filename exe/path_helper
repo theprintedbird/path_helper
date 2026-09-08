@@ -199,7 +199,11 @@ module PathHelper
     def read_files
       @section[:found].each {|path, _|
         next if ! File.file? path
-        @section[:found][path] = IO.readlines(path).map(&:chomp)
+        # Blank lines are dropped here rather than at the join, so that
+        # everything downstream gets real components. Empty lines would
+        # join as `::`, which is the current working directory
+        # and thus a security problem to be avoided.
+        @section[:found][path] = IO.readlines(path).map(&:chomp).reject(&:empty?)
         @section[:found][path].each do |line|
           next if @section[:all_lines].has_key? line
           @section[:all_lines][line] = nil
@@ -303,9 +307,14 @@ module PathHelper
 					next
 				end
 				next if lines.nil?
-        lines.compact.reject(&:empty?).each_with_index do |line,i|
+        # The reject is for the "current path" pseudo-entry, whose components
+        # come from splitting the argument rather than from a file. Indexing
+        # against the filtered list, not the original, is what makes the last
+        # child render as L.
+        non_empty_lines = lines.compact.reject(&:empty?)
+        non_empty_lines.each_with_index do |line,i|
           findings[line] = findings.fetch(line, 0) + 1
-          output << "#{i == lines.size - 1 ? L : T} #{findings[line] >= 2 ? Colours::Red : Colours::Green}#{line}#{Colours::Normal}#{findings[line] >= 2 ? dup_text : ''}"
+          output << "#{i == non_empty_lines.size - 1 ? L : T} #{findings[line] >= 2 ? Colours::Red : Colours::Green}#{line}#{Colours::Normal}#{findings[line] >= 2 ? dup_text : ''}"
         end
       end
       output.join("\n")

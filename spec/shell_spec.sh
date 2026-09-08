@@ -601,6 +601,13 @@ test_help "--help" "--help"
 test_a_path "an empty input file adds no components" "path.txt" "-p"
 test_a_path "an empty input file is still listed in the debug report" "debug_path.txt" "-p" "--debug"
 
+# An empty component joins as `::` which must be dropped prior to the debug
+# report, else a blank line at the end of a file would leave the last
+# entry rendered as an intermediate child rather than a final one.
+# spec/fixtures/moredirs/paths.d/02-blank-lines has various blank lines.
+test_a_path "blank lines add no components" "path.txt" "-p"
+test_a_path "blank lines are absent from the debug report" "debug_path.txt" "-p" "--debug"
+
 # Append mode. The path switches take an optional argument, and whatever is
 # passed there is appended to the generated path -- pass the current value of
 # the env var and the generated segments land in front of it, which is the
