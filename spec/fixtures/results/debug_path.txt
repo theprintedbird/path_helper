@@ -8,6 +8,7 @@ Search order: [:config, :etc]
 
 Results: (duplicates marked by ✗)
 
+{{HOME}}/.config/paths/paths.d/01-empty
 {{HOME}}/.config/paths/paths.d/03-libiconv
  └── ~/Library/Frameworks/Libiconv.framework/Versions/Current/bin
 {{HOME}}/.config/paths/paths.d/04-llvm

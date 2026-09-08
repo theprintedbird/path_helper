@@ -591,6 +591,16 @@ test_version "--version" "--version"
 test_help "-h" "-h"
 test_help "--help" "--help"
 
+# Edge cases in the input files.
+# Empty files are skipped, as are blank lines. Adding `::`, would put
+# the current working directory on PATH, which is a security problem.
+# spec/fixtures/moredirs/paths.d/01-empty is that file, and it sorts
+# first, so anything it leaked would show up at the very front of the path.
+# The manpath tests also check this.
+# debug_manpath.txt has files listed with no lines beneath them.
+test_a_path "an empty input file adds no components" "path.txt" "-p"
+test_a_path "an empty input file is still listed in the debug report" "debug_path.txt" "-p" "--debug"
+
 # Append mode. The path switches take an optional argument, and whatever is
 # passed there is appended to the generated path -- pass the current value of
 # the env var and the generated segments land in front of it, which is the
