@@ -53,7 +53,6 @@ Language-Agnostic Infrastructure
 - Add test result reporting with PR comments <!-- backlog: 1763431283 -->
 - Add code coverage tracking (per language) <!-- backlog: 1763431283 -->
 - Add performance benchmarking workflow <!-- backlog: 1763431283 -->
-- Add automated changelog generation <!-- backlog: 1763431283 -->
 - Add automated release creation on version tags <!-- backlog: 1763431283 -->
 - Add dependency vulnerability scanning <!-- backlog: 1763431283 -->
 - Add SAST (static analysis security testing) <!-- backlog: 1763431283 -->
@@ -79,6 +78,7 @@ Language-Agnostic Infrastructure
 - Add test for symlinked directories <!-- ready: 1788854437 -->
 - Add test for non-existent paths in path files <!-- ready: 1788854437 -->
 - Add test for Unicode characters in paths <!-- ready: 1788854437 -->
+- Add automated changelog generation <!-- backlog: 1763431283, ready: 1788877330 -->
 
 
 
