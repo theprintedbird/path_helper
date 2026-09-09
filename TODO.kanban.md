@@ -67,10 +67,9 @@ Language-Agnostic Infrastructure
 
 - Add test for duplicate paths in same file <!-- ready: 1788854437 -->
 - Add test for duplicate paths across files <!-- ready: 1788854437 -->
-- Add test for `~` expansion at various positions <!-- ready: 1788854437 -->
 - Add automated changelog generation <!-- backlog: 1763431283, ready: 1788877330 -->
-
 ###### In Progress
+
 
 ###### Done
 - Add test for paths with special characters <!-- done: 1788943142, in_progress: 1788937966, ready: 1788854437 -->
@@ -127,3 +126,4 @@ Language-Agnostic Infrastructure
 - Add test for symlinked directories <!-- done: 1788964386, in_progress: 1788950452, ready: 1788854437 -->
 - Add test for symlinked path files <!-- done: 1788964446, in_progress: 1788950494, ready: 1788854437 -->
 - Add test for `$HOME` expansion <!-- done: 1788964613, in_progress: 1788950526, ready: 1788854437 -->
+- Add test for `~` expansion at various positions <!-- done: 1788964686, in_progress: 1788950568, ready: 1788854437 -->

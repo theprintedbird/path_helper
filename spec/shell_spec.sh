@@ -868,6 +868,24 @@ test_a_path "a literal \$HOME in an argument is appended verbatim" \
 test_expansion_under_home "~ expands to the HOME in the environment" \
 	"/tmp/not-a-real-home" "~/bin:~/sbin" "/tmp/not-a-real-home/bin:/tmp/not-a-real-home/sbin"
 
+# Where the tilde sits. Expansion is the last thing that happens, a plain
+# substitution over the joined string, and it is not anchored to the front of a
+# component -- so every `~` in it goes, wherever it is and however many there
+# are. spec/fixtures/moredirs/paths.d/18-tildes puts one in each position:
+# leading, alone on the line, in the middle of a path, at the end of one,
+# doubled, and in front of a name (`~user`, which the shell would read as
+# another user's home and which this does not -- it becomes this home followed
+# by the letters `user`).
+# The last three are worth knowing about rather than relying on: a component
+# with a `~` in it that was never meant as a home directory will not survive
+# intact. They are pinned here so that a change to the rule is a visible change
+# to this file.
+# The debug report shows the lines as they were read, before any of this.
+test_a_path "a tilde is expanded wherever it appears" "path.txt" "-p"
+test_a_path "the debug report shows tildes unexpanded" "debug_path.txt" "-p" "--debug"
+test_a_path "a tilde in an argument is expanded the same way" \
+	"path-tilde-appended.txt" "-p" "~/appended/bin:/opt/app~ended/bin"
+
 # Colons are not allowed within path declarations as they are separators for PATH et al
 # When found, they are rejected but do not fail the whole run. That continues,
 # and a message is put on STDERR.
