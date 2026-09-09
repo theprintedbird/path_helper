@@ -684,6 +684,16 @@ test_a_path "an empty input file is still listed in the debug report" "debug_pat
 test_a_path "blank lines add no components" "path.txt" "-p"
 test_a_path "blank lines are absent from the debug report" "debug_path.txt" "-p" "--debug"
 
+# A file's last line may or may not be terminated. Both readers chomp, so an
+# unterminated last line still has to arrive as a component rather than being
+# dropped or run onto the next file's first line, and a terminated one must not
+# produce a phantom empty component after it.
+# spec/fixtures/moredirs/paths.d/07-trailing-newline ends with a newline,
+# 08-no-trailing-newline does not. (Files ending in *several* newlines are
+# 02-blank-lines' business, above.)
+test_a_path "a last line is read with or without a trailing newline" "path.txt" "-p"
+test_a_path "both files read the same way in the debug report" "debug_path.txt" "-p" "--debug"
+
 # Colons are not allowed within path declarations as they are separators for PATH et al
 # When found, they are rejected but do not fail the whole run. That continues,
 # and a message is put on STDERR.
