@@ -694,6 +694,12 @@ test_a_path "blank lines are absent from the debug report" "debug_path.txt" "-p"
 test_a_path "a last line is read with or without a trailing newline" "path.txt" "-p"
 test_a_path "both files read the same way in the debug report" "debug_path.txt" "-p" "--debug"
 
+# The app must handle Windows line endings. A CRLF blank line must
+# also still count as blank and not become an "\r".
+# spec/fixtures/moredirs/paths.d/09-crlf is CRLF throughout.
+test_a_path "CRLF line endings do not leak a carriage return" "path.txt" "-p"
+test_a_path "CRLF lines are clean in the debug report" "debug_path.txt" "-p" "--debug"
+
 # Colons are not allowed within path declarations as they are separators for PATH et al
 # When found, they are rejected but do not fail the whole run. That continues,
 # and a message is put on STDERR.
