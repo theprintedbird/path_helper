@@ -906,6 +906,20 @@ test_a_path "a component repeated across files appears once, at its first occurr
 test_a_path "the debug report marks the losing occurrence whichever file it is in" \
 	"debug_path.txt" "-p" "--debug"
 
+# The same component named twice in the one file. There is nothing special
+# about it -- `all_lines` is a set either way -- but a fragment file that has
+# grown a repeat is much more common than two files agreeing, so it is worth
+# its own case. spec/fixtures/moredirs/paths.d/20-dupes-in-file repeats one
+# component immediately, repeats it again further down with another component
+# in between, and repeats that second one too.
+# Its last line is `/opt/dupe/bin/`, the first component with a trailing
+# slash. That is a different string, so it is a different component and both
+# survive: the comparison is on the text of the line, not on the directory it
+# would resolve to.
+test_a_path "a component repeated within a file appears once" "path.txt" "-p"
+test_a_path "every repeat within a file is marked in the debug report" \
+	"debug_path.txt" "-p" "--debug"
+
 # Colons are not allowed within path declarations as they are separators for PATH et al
 # When found, they are rejected but do not fail the whole run. That continues,
 # and a message is put on STDERR.
