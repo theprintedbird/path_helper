@@ -677,10 +677,11 @@ test_help "--help" "--help"
 test_a_path "an empty input file adds no components" "path.txt" "-p"
 test_a_path "an empty input file is still listed in the debug report" "debug_path.txt" "-p" "--debug"
 
-# An empty component joins as `::` which must be dropped prior to the debug
-# report, else a blank line at the end of a file would leave the last
-# entry rendered as an intermediate child rather than a final one.
-# spec/fixtures/moredirs/paths.d/02-blank-lines has various blank lines.
+# An empty component joins as `::` so must be dropped prior to the debug
+# report
+# A blank line must also be removed
+# spec/fixtures/moredirs/paths.d/02-blank-lines has various blank lines,
+# including whitespace-only ones.
 test_a_path "blank lines add no components" "path.txt" "-p"
 test_a_path "blank lines are absent from the debug report" "debug_path.txt" "-p" "--debug"
 
@@ -704,7 +705,11 @@ test_a_path "CRLF lines are clean in the debug report" "debug_path.txt" "-p" "--
 # Nothing is stripped or collapsed, so a component arrives verbatim, and spaces never split
 # items. The caller is still recommended to quote calls, e.g. `export PATH="$(path_helper -p)"`.
 # spec/fixtures/moredirs/paths.d/11-spaces has the examples.
+# Only a wholly blank line is dropped: a line that has a path in it keeps
+# whatever whitespace surrounds that path, so `11-spaces`' last line arrives
+# with its leading space intact.
 test_a_path "spaces within a path are preserved" "path.txt" "-p"
+test_a_path "spaces around a path are not stripped" "path.txt" "-p"
 test_a_path "spaces within a path survive the debug report" "debug_path.txt" "-p" "--debug"
 test_a_path "a path with spaces is appended verbatim" "path-spaces-appended.txt" "-p" "/opt/appended with spaces/bin:~/appended with spaces"
 

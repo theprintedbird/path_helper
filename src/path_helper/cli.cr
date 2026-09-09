@@ -54,8 +54,12 @@ module PathHelper
         # Blank lines are dropped here rather than at the join, so that
         # everything downstream gets real components. Empty lines would
         # join as `::`, which is the current working directory
-        # and thus a security problem to be avoided.
-        lines = File.read_lines(path).map(&.chomp).reject(&.empty?)
+        # and thus a security problem to be avoided. A line of nothing but
+        # whitespace is blank too -- it is not `empty?` once chomped, so it
+        # has to be tested stripped. Only the test is stripped: a line with
+        # a path in it keeps the whitespace around that path, since a path
+        # may legitimately contain spaces.
+        lines = File.read_lines(path).map(&.chomp).reject { |line| line.strip.empty? }
         # When a colon is present, it would reach PATH as two components,
         # so those items are dropped and reported to STDERR or in the debug report.
         dropped, kept = lines.partition { |line| line.includes?(":") }

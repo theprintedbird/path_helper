@@ -1,3 +1,4 @@
 /opt/dir with spaces/bin
 ~/dir with spaces/sbin
 /opt/two  consecutive/bin
+ /opt/leading space/bin

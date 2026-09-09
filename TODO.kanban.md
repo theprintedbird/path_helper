@@ -93,6 +93,7 @@ Language-Agnostic Infrastructure
 
 
 
+
 ###### Done
 
 - Add test for paths with spaces <!-- done: 1788937142, in_progress: 1788936901, ready: 1788854437 -->
@@ -142,3 +143,4 @@ Language-Agnostic Infrastructure
 - Adopt TAP for tests. <!-- backlog: 1788744353, done: 1788744362 -->
 - Create/rename current path helper workflow to `test-ruby.yml` (language-specific) <!-- backlog: 1763431283, done: 1788757196 -->
 - Create troubleshooting guide for CI failures <!-- backlog: 1763431283, done: 1788767633 -->
+- Bug fix and test - a whitespace-only line ("   ") is not empty?, so it currently becomes a real path component. <!-- backlog: 1788938049, done: 1788942837, in_progress: 1788938105 -->

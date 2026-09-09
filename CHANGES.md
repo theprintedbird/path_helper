@@ -19,7 +19,11 @@
   current working directory -- so a fragment with one newline too many put
   whatever directory you happened to be in on your path. Blank lines are now
   dropped as the files are read, so they reach neither the output nor the
-  `--debug` report.
+  `--debug` report. A line of nothing but spaces or tabs counts as blank too;
+  it is not empty once the newline is stripped, so it used to survive as a
+  component named after whitespace. Only wholly blank lines go: a line with a
+  path in it keeps the whitespace around that path, since a path may contain
+  spaces.
 - A line in a path file that contains a colon is now dropped as the file is
   read, and reported on stderr (silenced by `--quiet`) so it can be fixed. A
   colon is the separator the output is joined with, so such a line was never
