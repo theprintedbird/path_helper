@@ -1,0 +1,4 @@
+$HOME/dollar/bin
+${HOME}/braced/bin
+/opt/embedded$HOME/bin
+$HOMEBREW/bin

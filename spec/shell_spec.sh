@@ -557,6 +557,34 @@ assert_usage_text(){
 	fi
 }
 
+# test_expansion_under_home <description> <home> <argument> <expected>
+# The fixture comparison bakes in the HOME the suite is running as, so a run
+# under a different HOME cannot be pinned that way. This builds the expectation
+# from the home it passes in and compares the two strings directly.
+test_expansion_under_home(){
+	local description="$1"
+	local home="$2"
+	local argument="$3"
+	local expected="$4"
+	local actual
+
+	# The argument has to follow -p directly: it is the switch's own optional
+	# argument, and a token sitting after the other switches would be a stray
+	# positional instead.
+	actual=$(HOME="$home" "$EXECUTABLE" --no-etc --no-config --no-lib -p "$argument" 2>/dev/null)
+
+	if [ "$actual" = "$expected" ]; then
+		tap_ok "$description"
+	else
+		tap_not_ok "$description"
+		tap_yaml "the expansion did not follow HOME" \
+			"home: '$home'" \
+			"argument: '$argument'" \
+			"expected: '$expected'" \
+			"actual: '$actual'"
+	fi
+}
+
 # --- Run --------------------------------------------------------------------
 
 TMPDIR=$(mktemp -d)
@@ -817,6 +845,28 @@ test_a_path "a symlinked search directory is reported by the path it was reached
 test_a_path "a symlinked fragment file is read" "path.txt" "-p"
 test_a_path "a dangling symlink adds nothing and is marked in the debug report" \
 	"debug_path.txt" "-p" "--debug"
+
+# `$HOME` is not `~`. Only a literal tilde is expanded, so a fragment written
+# with a shell variable in it arrives with that variable still in it -- and
+# since the output of `$(path_helper -p)` is not re-scanned by the shell, that
+# component reaches PATH as the four characters `$HOME`, not as a home
+# directory. It is left alone rather than being dropped or expanded, which is
+# what spec/fixtures/moredirs/paths.d/17-dollar-home pins: the bare form, the
+# braced form, one embedded mid-path, and `$HOMEBREW`, which merely starts with
+# the same letters and must not be mistaken for it.
+# (10-keybase is the same behaviour arrived at honestly, from a real dotfile.)
+test_a_path "a literal \$HOME is not expanded" "path.txt" "-p"
+test_a_path "a literal \$HOME survives the debug report" "debug_path.txt" "-p" "--debug"
+test_a_path "a literal \$HOME in an argument is appended verbatim" \
+	"path-dollar-home-appended.txt" "-p" '$HOME/appended/bin'
+
+# What `~` does expand to is whatever HOME says at the time -- both readers ask
+# the environment (Ruby's Dir.home, Crystal's Path.home) rather than baking a
+# home in or going to the passwd database. With every segment switched off the
+# argument is the only thing in the output, so this compares the expansion on
+# its own.
+test_expansion_under_home "~ expands to the HOME in the environment" \
+	"/tmp/not-a-real-home" "~/bin:~/sbin" "/tmp/not-a-real-home/bin:/tmp/not-a-real-home/sbin"
 
 # Colons are not allowed within path declarations as they are separators for PATH et al
 # When found, they are rejected but do not fail the whole run. That continues,
