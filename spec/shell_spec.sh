@@ -720,6 +720,19 @@ test_a_path "special characters survive the debug report" "debug_path.txt" "-p" 
 test_a_path "a path with special characters is appended verbatim" \
 	"path-special-chars-appended.txt" "-p" '/opt/appended*glob?/bin:/opt/appended$(dollars)&{braces}/bin'
 
+# Non-ASCII paths. A component is bytes to be passed through, not text to be
+# interpreted, so nothing is transliterated, re-encoded or normalised on the way
+# out. spec/fixtures/moredirs/paths.d/13-unicode holds the examples: Latin with
+# an accent, CJK, Cyrillic, Greek behind a `~`, and an astral-plane emoji.
+# Its first two lines are the same word spelled two ways -- NFC (one codepoint
+# for the accented letter) and NFD (letter plus a combining accent). They render
+# identically but are different byte sequences, so de-duplication must keep both
+# rather than folding them together.
+test_a_path "non-ASCII characters within a path are preserved" "path.txt" "-p"
+test_a_path "non-ASCII characters survive the debug report" "debug_path.txt" "-p" "--debug"
+test_a_path "a path with non-ASCII characters is appended verbatim" \
+	"path-unicode-appended.txt" "-p" "/opt/appended/ünïcødé/bin:~/appended/漢字"
+
 # Colons are not allowed within path declarations as they are separators for PATH et al
 # When found, they are rejected but do not fail the whole run. That continues,
 # and a message is put on STDERR.
