@@ -112,6 +112,12 @@ cleanup(){
 	if [ -d "$HOME/.config/paths" ]; then
 		safe_remove "$HOME/.config/paths"
 	fi
+	# The target of the /etc/paths.d symlink (see below). /etc/paths.d itself is
+	# removed with the rest of /etc, and `rm -rf` on a symlink takes the link
+	# rather than what it points at, so the target has to be named separately.
+	if [ -d "$HOME/symlinked-paths.d" ]; then
+		safe_remove "$HOME/symlinked-paths.d"
+	fi
 	if [ -d /etc/paths.d ]; then
 		safe_remove /etc/paths.d
 	fi
@@ -575,6 +581,26 @@ else
 	tap_yaml "--setup did not create the full path tree"
 fi
 
+# A segment's directory may be a symlink -- a dotfile repo that keeps its
+# fragments together and links them into place is the ordinary case -- and it
+# has to be walked like a real directory rather than skipped. `Dir.exist?` and
+# `Dir.exists?` both follow the link, so this pins that neither implementation
+# grows a check that does not.
+# /etc/paths.d is the one search directory the run leaves empty, so it is the
+# one that can be replaced without disturbing what is already pinned. It is
+# swapped only after the assertion above has had its look at what --setup made.
+rm -rf /etc/paths.d
+mkdir -p "$HOME/symlinked-paths.d"
+cp -R spec/fixtures/linkeddir/* "$HOME/symlinked-paths.d"
+ln -s "$HOME/symlinked-paths.d" /etc/paths.d
+
+if [ -L /etc/paths.d ] && [ -d /etc/paths.d ]; then
+	tap_ok "the etc search directory is a symlink to a real directory"
+else
+	tap_not_ok "the etc search directory is a symlink to a real directory"
+	tap_yaml "the test could not put a symlinked directory in the search graph"
+fi
+
 # Every kind of path is built twice: once plainly, and once under --debug.
 # The plain run checks the path that gets exported; the --debug run checks the
 # account of how it was arrived at -- the env var's name, the options it was
@@ -745,6 +771,17 @@ test_a_path "a non-existent directory is still a component" "path.txt" "-p"
 test_a_path "a non-existent directory is listed in the debug report" "debug_path.txt" "-p" "--debug"
 test_a_path "a non-existent directory given as an argument is appended too" \
 	"path-nonexistent-appended.txt" "-p" "/opt/appended-does-not-exist/bin:~/appended-does-not-exist"
+
+# A symlinked search directory. /etc/paths.d is a symlink to
+# $HOME/symlinked-paths.d for the whole run (see the setup above), so every
+# path fixture already goes through it; these name the behaviour so a failure
+# says what broke. The fragment behind the link is read like any other, in the
+# etc segment and so behind everything the config segment found, and the debug
+# report names it by the path it was reached through -- /etc/paths.d/01-linked,
+# not the resolved target -- since it is the search graph being reported on.
+test_a_path "a symlinked search directory is walked" "path.txt" "-p"
+test_a_path "a symlinked search directory is reported by the path it was reached through" \
+	"debug_path.txt" "-p" "--debug"
 
 # Colons are not allowed within path declarations as they are separators for PATH et al
 # When found, they are rejected but do not fail the whole run. That continues,

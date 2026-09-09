@@ -70,11 +70,11 @@ Language-Agnostic Infrastructure
 - Add test for `~` expansion at various positions <!-- ready: 1788854437 -->
 - Add test for `$HOME` expansion <!-- ready: 1788854437 -->
 - Add test for symlinked path files <!-- ready: 1788854437 -->
-- Add test for symlinked directories <!-- ready: 1788854437 -->
 - Add test for non-existent paths in path files <!-- ready: 1788854437 -->
 - Add automated changelog generation <!-- backlog: 1763431283, ready: 1788877330 -->
 
 ###### In Progress
+
 
 
 ###### Done
@@ -130,3 +130,4 @@ Language-Agnostic Infrastructure
 - Bug fix and test - a whitespace-only line ("   ") is not empty?, so it currently becomes a real path component. <!-- backlog: 1788938049, done: 1788942837, in_progress: 1788938105 -->
 - Add test for Unicode characters in paths <!-- done: 1788964234, in_progress: 1788950362, ready: 1788854437 -->
 - Add test for non-existent paths in path files <!-- done: 1788964286, in_progress: 1788950412, ready: 1788854437 -->
+- Add test for symlinked directories <!-- done: 1788964386, in_progress: 1788950452, ready: 1788854437 -->
