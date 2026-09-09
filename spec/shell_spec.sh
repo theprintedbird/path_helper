@@ -118,6 +118,10 @@ cleanup(){
 	if [ -d "$HOME/symlinked-paths.d" ]; then
 		safe_remove "$HOME/symlinked-paths.d"
 	fi
+	# Likewise the target of the symlinked fragment file in paths.d.
+	if [ -d "$HOME/symlinked-fragments" ]; then
+		safe_remove "$HOME/symlinked-fragments"
+	fi
 	if [ -d /etc/paths.d ]; then
 		safe_remove /etc/paths.d
 	fi
@@ -601,6 +605,26 @@ else
 	tap_yaml "the test could not put a symlinked directory in the search graph"
 fi
 
+# A fragment file may itself be a symlink, for the same dotfile-repo reason as
+# the directory above, so one is linked into the config segment's paths.d. A
+# second link is left dangling: `File.file?` is false for both a link to
+# nothing and a link to a directory, which is what keeps an unreadable entry
+# out of the path in either implementation.
+mkdir -p "$HOME/symlinked-fragments"
+cp -R spec/fixtures/linkedfile/* "$HOME/symlinked-fragments"
+ln -s "$HOME/symlinked-fragments/paths-fragment" "$HOME/.config/paths/paths.d/15-symlinked-file"
+ln -s "$HOME/symlinked-fragments/no-such-fragment" "$HOME/.config/paths/paths.d/16-dangling"
+
+if [ -L "$HOME/.config/paths/paths.d/15-symlinked-file" ] &&
+   [ -f "$HOME/.config/paths/paths.d/15-symlinked-file" ] &&
+   [ -L "$HOME/.config/paths/paths.d/16-dangling" ] &&
+   [ ! -e "$HOME/.config/paths/paths.d/16-dangling" ]; then
+	tap_ok "paths.d holds a symlinked fragment file and a dangling one"
+else
+	tap_not_ok "paths.d holds a symlinked fragment file and a dangling one"
+	tap_yaml "the test could not put symlinked files in the search graph"
+fi
+
 # Every kind of path is built twice: once plainly, and once under --debug.
 # The plain run checks the path that gets exported; the --debug run checks the
 # account of how it was arrived at -- the env var's name, the options it was
@@ -781,6 +805,17 @@ test_a_path "a non-existent directory given as an argument is appended too" \
 # not the resolved target -- since it is the search graph being reported on.
 test_a_path "a symlinked search directory is walked" "path.txt" "-p"
 test_a_path "a symlinked search directory is reported by the path it was reached through" \
+	"debug_path.txt" "-p" "--debug"
+
+# A symlinked fragment file. 15-symlinked-file points at a real file and is
+# read like any other; 16-dangling points at nothing and contributes no
+# components. Both are linked in for the whole run (see the setup above).
+# The debug report names each by its path in paths.d rather than by what it
+# resolves to, and marks the dangling one "does not exist!" -- which is the
+# same line a subdirectory would get, since what is being said is that there
+# was no file there to read.
+test_a_path "a symlinked fragment file is read" "path.txt" "-p"
+test_a_path "a dangling symlink adds nothing and is marked in the debug report" \
 	"debug_path.txt" "-p" "--debug"
 
 # Colons are not allowed within path declarations as they are separators for PATH et al
