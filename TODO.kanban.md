@@ -66,12 +66,14 @@ Language-Agnostic Infrastructure
 ###### Ready
 
 - Add test for duplicate paths in same file <!-- ready: 1788854437 -->
-- Add test for duplicate paths across files <!-- ready: 1788854437 -->
 - Add automated changelog generation <!-- backlog: 1763431283, ready: 1788877330 -->
+
 ###### In Progress
 
 
+
 ###### Done
+
 - Add test for paths with special characters <!-- done: 1788943142, in_progress: 1788937966, ready: 1788854437 -->
 - Add test for paths with spaces <!-- done: 1788937142, in_progress: 1788936901, ready: 1788854437 -->
 - Add test for Windows line endings (CRLF) <!-- done: 1788936567, in_progress: 1788936410, ready: 1788854437 -->
@@ -127,3 +129,4 @@ Language-Agnostic Infrastructure
 - Add test for symlinked path files <!-- done: 1788964446, in_progress: 1788950494, ready: 1788854437 -->
 - Add test for `$HOME` expansion <!-- done: 1788964613, in_progress: 1788950526, ready: 1788854437 -->
 - Add test for `~` expansion at various positions <!-- done: 1788964686, in_progress: 1788950568, ready: 1788854437 -->
+- Add test for duplicate paths across files <!-- done: 1788965413, in_progress: 1788950591, ready: 1788854437 -->

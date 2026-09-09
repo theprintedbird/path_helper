@@ -886,6 +886,26 @@ test_a_path "the debug report shows tildes unexpanded" "debug_path.txt" "-p" "--
 test_a_path "a tilde in an argument is expanded the same way" \
 	"path-tilde-appended.txt" "-p" "~/appended/bin:/opt/app~ended/bin"
 
+# The same component named in two different files. First occurrence wins and
+# keeps its place, so what matters is which file was read first -- and that is
+# the search order, which is the whole reason this program exists: a user's
+# fragment lands in front of the system's rather than being ignored as a
+# repeat of it.
+# spec/fixtures/moredirs/paths.d/19-dupes-across-files names three components
+# that already appear elsewhere, one from each direction:
+#   /usr/local/bin  is in /etc/paths, a later segment, so this copy wins and
+#                   the /etc/paths one is the duplicate;
+#   /opt/local/sbin is in ~/.config/paths/paths, the same segment's plain file,
+#                   which is read after the directory, so this copy wins too;
+#   /opt/pkg/bin    is already in 04-llvm and 05-pkgsrc, earlier in the same
+#                   directory, so here it is the duplicate.
+# The debug report marks whichever occurrence lost with ✗, which is the only
+# place the losing ones are visible at all -- the path itself just has the one.
+test_a_path "a component repeated across files appears once, at its first occurrence" \
+	"path.txt" "-p"
+test_a_path "the debug report marks the losing occurrence whichever file it is in" \
+	"debug_path.txt" "-p" "--debug"
+
 # Colons are not allowed within path declarations as they are separators for PATH et al
 # When found, they are rejected but do not fail the whole run. That continues,
 # and a message is put on STDERR.
