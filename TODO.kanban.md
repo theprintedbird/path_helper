@@ -65,7 +65,6 @@ Language-Agnostic Infrastructure
 
 ###### Ready
 
-- Add test for paths with spaces <!-- ready: 1788854437 -->
 - Add test for paths with special characters <!-- ready: 1788854437 -->
 - Add test for duplicate paths in same file <!-- ready: 1788854437 -->
 - Add test for duplicate paths across files <!-- ready: 1788854437 -->
@@ -93,8 +92,10 @@ Language-Agnostic Infrastructure
 
 
 
+
 ###### Done
 
+- Add test for paths with spaces <!-- done: 1788937142, in_progress: 1788936901, ready: 1788854437 -->
 - Add test for Windows line endings (CRLF) <!-- done: 1788936567, in_progress: 1788936410, ready: 1788854437 -->
 - Add test for files with trailing newlines <!-- done: 1788928504, in_progress: 1788928303, ready: 1788854437 -->
 - Add test for paths with colons (edge case for separator) <!-- done: 1788917566, in_progress: 1788914611, ready: 1788854437 -->

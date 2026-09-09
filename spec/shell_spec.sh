@@ -700,6 +700,14 @@ test_a_path "both files read the same way in the debug report" "debug_path.txt" 
 test_a_path "CRLF line endings do not leak a carriage return" "path.txt" "-p"
 test_a_path "CRLF lines are clean in the debug report" "debug_path.txt" "-p" "--debug"
 
+# Path env vars like PATH, MANPATH etc do accept spaces, so path_helper accepts spaces.
+# Nothing is stripped or collapsed, so a component arrives verbatim, and spaces never split
+# items. The caller is still recommended to quote calls, e.g. `export PATH="$(path_helper -p)"`.
+# spec/fixtures/moredirs/paths.d/11-spaces has the examples.
+test_a_path "spaces within a path are preserved" "path.txt" "-p"
+test_a_path "spaces within a path survive the debug report" "debug_path.txt" "-p" "--debug"
+test_a_path "a path with spaces is appended verbatim" "path-spaces-appended.txt" "-p" "/opt/appended with spaces/bin:~/appended with spaces"
+
 # Colons are not allowed within path declarations as they are separators for PATH et al
 # When found, they are rejected but do not fail the whole run. That continues,
 # and a message is put on STDERR.
