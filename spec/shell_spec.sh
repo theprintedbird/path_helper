@@ -713,6 +713,13 @@ test_a_path "spaces around a path are not stripped" "path.txt" "-p"
 test_a_path "spaces within a path survive the debug report" "debug_path.txt" "-p" "--debug"
 test_a_path "a path with spaces is appended verbatim" "path-spaces-appended.txt" "-p" "/opt/appended with spaces/bin:~/appended with spaces"
 
+# Special characters (except colon)
+# spec/fixtures/moredirs/paths.d/12-special-chars holds the examples.
+test_a_path "special characters within a path are preserved" "path.txt" "-p"
+test_a_path "special characters survive the debug report" "debug_path.txt" "-p" "--debug"
+test_a_path "a path with special characters is appended verbatim" \
+	"path-special-chars-appended.txt" "-p" '/opt/appended*glob?/bin:/opt/appended$(dollars)&{braces}/bin'
+
 # Colons are not allowed within path declarations as they are separators for PATH et al
 # When found, they are rejected but do not fail the whole run. That continues,
 # and a message is put on STDERR.

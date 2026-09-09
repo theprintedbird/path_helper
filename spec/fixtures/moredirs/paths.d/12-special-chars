@@ -1,0 +1,7 @@
+/opt/glob*chars?/bin
+/opt/(parens)[brackets]{braces}/bin
+/opt/dollar$and`backticks`/bin
+/opt/quotes'single"double/bin
+/opt/back\slash/bin
+/opt/semi;amp&pipe|redirect<>/bin
+/opt/hash#bang!percent%star^/bin
