@@ -16,11 +16,13 @@ module PathHelper
     property files : Hash(Segment, String)
     property found : Hash(String, Array(String)?)
     property all_lines : Hash(String, Nil)
+    property dropped : Hash(String, Nil)
     property search_order : Array(Segment)
 
     def initialize(@name, @directories, @files)
       @found = Hash(String, Array(String)?).new
       @all_lines = Hash(String, Nil).new
+      @dropped = Hash(String, Nil).new
       @search_order = [] of Segment
     end
   end

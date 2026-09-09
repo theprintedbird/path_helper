@@ -20,6 +20,13 @@
   whatever directory you happened to be in on your path. Blank lines are now
   dropped as the files are read, so they reach neither the output nor the
   `--debug` report.
+- A line in a path file that contains a colon is now dropped as the file is
+  read, and reported on stderr (silenced by `--quiet`) so it can be fixed. A
+  colon is the separator the output is joined with, so such a line was never
+  one component: it reached the path as two that nothing had de-duplicated,
+  and neither of which the `--debug` report had ever seen. The dropped line is
+  still shown in the `--debug` tree, marked with a red `⊘` and the reason, so
+  the report remains a full account of what was read.
 - Fixed the README, which documented the fallback DYLD vars as living in
   `dyld_library_paths` and `dyld_framework_paths`. Those are now the names of
   the *non*-fallback sections, so anyone who followed the old instructions

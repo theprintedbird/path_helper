@@ -145,6 +145,7 @@ module PathHelper
           },
           found: {},
           all_lines: {},
+          dropped: {},
         }
       end
     end
@@ -203,8 +204,17 @@ module PathHelper
         # everything downstream gets real components. Empty lines would
         # join as `::`, which is the current working directory
         # and thus a security problem to be avoided.
-        @section[:found][path] = IO.readlines(path).map(&:chomp).reject(&:empty?)
-        @section[:found][path].each do |line|
+        lines = IO.readlines(path).map(&:chomp).reject(&:empty?)
+        # When a colon is present, it would reach PATH as two components,
+        # so those items are dropped and reported to STDERR or in the debug report.
+        dropped, kept = lines.partition {|line| line.include? ":" }
+        dropped.each do |line|
+          warn "#{Colours::Yellow}#{path}: ignoring '#{line}', a path cannot contain a colon#{Colours::Normal}" unless @options[:quiet]
+          @section[:dropped][line] = nil
+        end
+        # The dropped lines stay in :found so the debug report can use them.
+        @section[:found][path] = lines
+        kept.each do |line|
           next if @section[:all_lines].has_key? line
           @section[:all_lines][line] = nil
         end
@@ -291,6 +301,8 @@ module PathHelper
       output = []
       findings = {}
       dup_text = " #{Colours::Red}✗#{Colours::Normal}"
+      drop_mark = " #{Colours::Red}⊘#{Colours::Normal}"
+      drop_text = " #{Colours::Red}⊘ a path cannot contain a colon#{Colours::Normal}"
       output << "Name: #{Colours::Green}#{@section[:name]}#{Colours::Normal}"
       output << "Options: #{format_options}"
       output << "Search order: #{@section[:search_order]}"
@@ -298,7 +310,7 @@ module PathHelper
         output << "\t#{Colours::Yellow}#{@section[:directories][segment]}#{Colours::Normal}"
         output << "\t#{Colours::Cyan}#{@section[:files][segment]}#{Colours::Normal}"
       end
-      output << "\nResults: (duplicates marked by#{dup_text})\n"
+      output << "\nResults: (duplicates marked by#{dup_text}, dropped lines by#{drop_mark})\n"
       @section[:found].each do |file,lines|
       	if File.file?(file)
 					output << "#{Colours::Cyan}#{file}#{Colours::Normal}"
@@ -313,8 +325,15 @@ module PathHelper
         # child render as L.
         non_empty_lines = lines.compact.reject(&:empty?)
         non_empty_lines.each_with_index do |line,i|
+          branch = i == non_empty_lines.size - 1 ? L : T
+          # A dropped line never reached the path, so it is not a duplicate of
+          # anything and is not counted as one; it is marked for what it is.
+          if @section[:dropped].has_key? line
+            output << "#{branch} #{Colours::Red}#{line}#{Colours::Normal}#{drop_text}"
+            next
+          end
           findings[line] = findings.fetch(line, 0) + 1
-          output << "#{i == non_empty_lines.size - 1 ? L : T} #{findings[line] >= 2 ? Colours::Red : Colours::Green}#{line}#{Colours::Normal}#{findings[line] >= 2 ? dup_text : ''}"
+          output << "#{branch} #{findings[line] >= 2 ? Colours::Red : Colours::Green}#{line}#{Colours::Normal}#{findings[line] >= 2 ? dup_text : ''}"
         end
       end
       output.join("\n")

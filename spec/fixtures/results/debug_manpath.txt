@@ -6,7 +6,7 @@ Search order: [:config, :etc]
 	/etc/manpaths.d
 	/etc/manpaths
 
-Results: (duplicates marked by ✗)
+Results: (duplicates marked by ✗, dropped lines by ⊘)
 
 {{HOME}}/.config/paths/manpaths.d/04-llvm
  └── ~/Library/Frameworks/LLVM.framework/man

@@ -1,0 +1,3 @@
+{{HOME}}/.config/paths/paths.d/06-colons: ignoring '/opt/colons/bin:/opt/colons/sbin', a path cannot contain a colon
+{{HOME}}/.config/paths/paths.d/06-colons: ignoring '~/colons:with:colons/bin', a path cannot contain a colon
+{{HOME}}/.config/paths/paths.d/06-colons: ignoring '/usr/bin:/bin', a path cannot contain a colon

@@ -173,6 +173,10 @@ $ cat /etc/paths
 
 Because an empty component in `PATH` is the current working directory, blank lines are ignored, as are empty files.
 
+One path per line. A line containing a colon is dropped, with a warning on stderr naming the file and the line so that you can fix it. `--quiet` silences the warning. `--debug` shows it in the tree marked with `⊘` along with the reason.
+
+Note that the warning goes to stderr because stdout carries the path itself, so, for example, `export PATH=$(path_helper -p)` still works but will not contain those items that were on the same line as a colon.
+
 The order *within* the file matters as well as the order the files are read/concatenated.
 
 ### Note: ###

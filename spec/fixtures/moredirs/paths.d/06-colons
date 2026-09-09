@@ -1,0 +1,3 @@
+/opt/colons/bin:/opt/colons/sbin
+~/colons:with:colons/bin
+/usr/bin:/bin

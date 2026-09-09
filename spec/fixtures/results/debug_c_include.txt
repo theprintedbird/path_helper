@@ -6,7 +6,7 @@ Search order: [:config, :etc]
 	/etc/c_include_paths.d
 	/etc/c_include_paths
 
-Results: (duplicates marked by ✗)
+Results: (duplicates marked by ✗, dropped lines by ⊘)
 
 {{HOME}}/.config/paths/c_include_paths.d/03-bdwgc
  └── ~/Library/Frameworks/BDWGC.framework/Headers

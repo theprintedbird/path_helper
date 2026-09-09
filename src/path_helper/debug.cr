@@ -52,6 +52,8 @@ module PathHelper
       output = [] of String
       findings = Hash(String, Int32).new(0)
       dup_text = " #{Colors::RED}\u2717#{Colors::NORMAL}"
+      drop_mark = " #{Colors::RED}\u2298#{Colors::NORMAL}"
+      drop_text = " #{Colors::RED}\u2298 a path cannot contain a colon#{Colors::NORMAL}"
 
       output << "Name: #{Colors::GREEN}#{@section.name}#{Colors::NORMAL}"
       output << "Options: #{format_options}"
@@ -66,7 +68,7 @@ module PathHelper
         end
       end
 
-      output << "\nResults: (duplicates marked by#{dup_text})\n"
+      output << "\nResults: (duplicates marked by#{dup_text}, dropped lines by#{drop_mark})\n"
 
       @section.found.each do |file, lines|
         if File.file?(file)
@@ -82,12 +84,18 @@ module PathHelper
         # come from splitting the argument rather than from a file.
         non_empty_lines = lines.compact.reject(&.empty?)
         non_empty_lines.each_with_index do |line, i|
+          branch = i == non_empty_lines.size - 1 ? L : T
+          # A dropped line never reached the path, so it is not a duplicate of
+          # anything and is not counted as one; it is marked for what it is.
+          if @section.dropped.has_key?(line)
+            output << "#{branch} #{Colors::RED}#{line}#{Colors::NORMAL}#{drop_text}"
+            next
+          end
           findings[line] = findings[line] + 1
-          is_last = i == non_empty_lines.size - 1
           is_dup = findings[line] >= 2
           color = is_dup ? Colors::RED : Colors::GREEN
           dup_marker = is_dup ? dup_text : ""
-          output << "#{is_last ? L : T} #{color}#{line}#{Colors::NORMAL}#{dup_marker}"
+          output << "#{branch} #{color}#{line}#{Colors::NORMAL}#{dup_marker}"
         end
       end
 

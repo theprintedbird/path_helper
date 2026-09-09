@@ -56,8 +56,18 @@ module PathHelper
         # join as `::`, which is the current working directory
         # and thus a security problem to be avoided.
         lines = File.read_lines(path).map(&.chomp).reject(&.empty?)
+        # When a colon is present, it would reach PATH as two components,
+        # so those items are dropped and reported to STDERR or in the debug report.
+        dropped, kept = lines.partition { |line| line.includes?(":") }
+        dropped.each do |line|
+          unless @options[:quiet]? == true
+            STDERR.puts "#{Colors::YELLOW}#{path}: ignoring '#{line}', a path cannot contain a colon#{Colors::NORMAL}"
+          end
+          @section.dropped[line] = nil
+        end
+        # The dropped lines stay in :found so the debug report can use them.
         @section.found[path] = lines
-        lines.each do |line|
+        kept.each do |line|
           next if @section.all_lines.has_key?(line)
           @section.all_lines[line] = nil
         end

@@ -6,7 +6,7 @@ Search order: [:config, :etc]
 	/etc/dyld_fallback_library_paths.d
 	/etc/dyld_fallback_library_paths
 
-Results: (duplicates marked by ✗)
+Results: (duplicates marked by ✗, dropped lines by ⊘)
 
 {{HOME}}/.config/paths/dyld_fallback_library_paths.d/04-llvm
  ├── /opt/local/libexec/llvm-11/lib

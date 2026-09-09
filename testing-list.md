@@ -29,7 +29,7 @@
 - Add test for Windows line endings (CRLF)
 - Add test for paths with spaces
 - Add test for paths with special characters
-- Add test for paths with colons (edge case for separator)
+- DONE Add test for paths with colons (edge case for separator)
 - Add test for duplicate paths in same file
 - Add test for duplicate paths across files
 - Add test for `~` expansion at various positions

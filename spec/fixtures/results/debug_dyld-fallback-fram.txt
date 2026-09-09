@@ -6,7 +6,7 @@ Search order: [:config, :etc]
 	/etc/dyld_fallback_framework_paths.d
 	/etc/dyld_fallback_framework_paths
 
-Results: (duplicates marked by ✗)
+Results: (duplicates marked by ✗, dropped lines by ⊘)
 
 {{HOME}}/.config/paths/dyld_fallback_framework_paths.d/90-system
  └── /System/Library/Frameworks

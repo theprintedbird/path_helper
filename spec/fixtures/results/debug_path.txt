@@ -6,7 +6,7 @@ Search order: [:config, :etc]
 	/etc/paths.d
 	/etc/paths
 
-Results: (duplicates marked by ✗)
+Results: (duplicates marked by ✗, dropped lines by ⊘)
 
 {{HOME}}/.config/paths/paths.d/01-empty
 {{HOME}}/.config/paths/paths.d/02-blank-lines
@@ -22,6 +22,10 @@ Results: (duplicates marked by ✗)
  ├── /opt/pkg/bin ✗
  ├── /opt/pkg/sbin
  └── /opt/pkg/gnu/bin
+{{HOME}}/.config/paths/paths.d/06-colons
+ ├── /opt/colons/bin:/opt/colons/sbin ⊘ a path cannot contain a colon
+ ├── ~/colons:with:colons/bin ⊘ a path cannot contain a colon
+ └── /usr/bin:/bin ⊘ a path cannot contain a colon
 {{HOME}}/.config/paths/paths.d/10-keybase
  ├── $HOME/gopath
  └── $HOME/gopath/bin

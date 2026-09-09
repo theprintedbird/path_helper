@@ -6,7 +6,7 @@ Search order: [:config, :etc]
 	/etc/pkg_config_paths.d
 	/etc/pkg_config_paths
 
-Results: (duplicates marked by ✗)
+Results: (duplicates marked by ✗, dropped lines by ⊘)
 
 {{HOME}}/.config/paths/pkg_config_paths.d/from-crystal
  └── /opt/crystal/embedded/lib/pkgconfig

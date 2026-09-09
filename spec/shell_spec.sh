@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# The suite reports in TAP (Test Anything Protocol) version 14, so its output
+# The suite reports in TAP (Test Anything Protocol) version 14
 # can be read by eye or piped into any TAP consumer (prove, tappy, tap-parser,
 # faucet...). Human-readable detail -- timings, diffs, stderr from a command
 # that was supposed to fail -- goes out as TAP comments and YAML diagnostic
@@ -202,14 +202,25 @@ test_a_path(){
 	local actual=$(mktemp)
 	local expected=$(mktemp)
 	local difference=$(mktemp)
+	local noise=$(mktemp)
 
 	# Measured around the executable alone, not the comparison. Reported in
 	# milliseconds; this includes the startup time of the ruby process that
 	# takes the closing reading -- a constant offset of a few tens of
 	# milliseconds, uniform across runs and platforms.
 	local start=$(get_time_ns)
-	"$EXECUTABLE" "${@}" > "$actual"
+	"$EXECUTABLE" "${@}" > "$actual" 2> "$noise"
 	local end=$(get_time_ns)
+
+	# A run can succeed and still output to STDERR
+	# For example, a line dropped for including a colon is
+	# reported on stderr while the test may be about about stdout,
+	# so anything on stderr is passed on as comments
+	# to avoid hitting the TAP stream.
+	# test_a_path_with_stderr does the assertion for that.
+	if [ -s "$noise" ]; then
+		tap_comment_file "stderr" "$noise"
+	fi
 
 	# Fixtures store the home directory as a {{HOME}} placeholder so that they
 	# are not tied to the user the tests happen to run as. Any literal $HOME in
@@ -232,7 +243,72 @@ test_a_path(){
 
 	tap_comment "Performance: $description took $(( (end - start) / 1000000 ))ms"
 
-	rm -f "$actual" "$expected" "$difference"
+	rm -f "$actual" "$expected" "$difference" "$noise"
+}
+
+# test_a_path_with_stderr <description> <stdout fixture> <stderr fixture> <argument>...
+# The other path tests leave stderr alone, as that is the normal run of things.
+# However, a malformed line in an input file is an exception to this.
+# It is dropped and a warning is provided, and the rest of the path is built.
+# It is not a failure state.
+# Both streams are compared to fixtures here, and the wording is identical
+# in every implementation, so the stderr comparison is byte for byte like the
+# stdout one.
+test_a_path_with_stderr(){
+	local description="$1"
+	local output_file="$2"
+	local error_file="$3"
+	shift 3
+	local actual=$(mktemp)
+	local actual_err=$(mktemp)
+	local expected=$(mktemp)
+	local expected_err=$(mktemp)
+	local difference=$(mktemp)
+	local status
+
+	"$EXECUTABLE" "${@}" > "$actual" 2> "$actual_err"
+	status=$?
+
+	if [ $status -eq 0 ]; then
+		tap_ok "$description exits successfully"
+	else
+		tap_not_ok "$description exits successfully"
+		tap_yaml "a dropped line is not a refusal, so the run must still succeed" \
+			"arguments: '$*'" \
+			"status: $status"
+		tap_comment_file "stderr" "$actual_err"
+	fi
+
+	sed "s|{{HOME}}|$HOME|g" "$PWD/spec/fixtures/results/${output_file}" > "$expected"
+	sed "s|{{HOME}}|$HOME|g" "$PWD/spec/fixtures/results/${error_file}" > "$expected_err"
+
+	if cmp -s "$expected" "$actual"; then
+		tap_ok "$description builds the expected path"
+	else
+		cmp "$expected" "$actual" > "$difference" 2>&1
+		tap_not_ok "$description builds the expected path"
+		tap_yaml "output did not match the fixture" \
+			"fixture: '$output_file'" \
+			"arguments: '$*'"
+		tap_comment_file "cmp" "$difference"
+		tap_comment_file "expected" "$expected"
+		tap_comment_file "actual" "$actual"
+	fi
+
+	if cmp -s "$expected_err" "$actual_err"; then
+		tap_ok "$description says the expected thing on stderr"
+	else
+		cmp "$expected_err" "$actual_err" > "$difference" 2>&1
+		tap_not_ok "$description says the expected thing on stderr"
+		tap_yaml "stderr did not match the fixture" \
+			"fixture: '$error_file'" \
+			"arguments: '$*'"
+		tap_comment_file "cmp" "$difference"
+		tap_comment_file "expected" "$expected_err"
+		tap_comment_file "actual" "$actual_err"
+	fi
+
+	rm -f "$actual" "$actual_err" "$expected" "$expected_err" "$difference"
 }
 
 # The captured streams of the last run_expecting_failure, for the assertions
@@ -607,6 +683,16 @@ test_a_path "an empty input file is still listed in the debug report" "debug_pat
 # spec/fixtures/moredirs/paths.d/02-blank-lines has various blank lines.
 test_a_path "blank lines add no components" "path.txt" "-p"
 test_a_path "blank lines are absent from the debug report" "debug_path.txt" "-p" "--debug"
+
+# Colons are not allowed within path declarations as they are separators for PATH et al
+# When found, they are rejected but do not fail the whole run. That continues,
+# and a message is put on STDERR.
+# spec/fixtures/moredirs/paths.d/06-colons holds the examples.
+test_a_path_with_stderr "a line containing a colon is dropped and reported" \
+	"path.txt" "colons_warning.txt" "-p"
+test_a_path_with_stderr "--quiet silences the report but still drops the line" \
+	"path.txt" "no_warnings.txt" "-p" "-q"
+test_a_path "a dropped line is absent from the debug report" "debug_path.txt" "-p" "--debug"
 
 # Append mode. The path switches take an optional argument, and whatever is
 # passed there is appended to the generated path -- pass the current value of

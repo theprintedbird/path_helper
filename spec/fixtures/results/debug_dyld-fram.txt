@@ -6,7 +6,7 @@ Search order: [:config, :etc]
 	/etc/dyld_framework_paths.d
 	/etc/dyld_framework_paths
 
-Results: (duplicates marked by ✗)
+Results: (duplicates marked by ✗, dropped lines by ⊘)
 
 {{HOME}}/.config/paths/dyld_framework_paths.d/04-llvm
  └── ~/Library/Frameworks/LLVM.framework
