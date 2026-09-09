@@ -733,6 +733,19 @@ test_a_path "non-ASCII characters survive the debug report" "debug_path.txt" "-p
 test_a_path "a path with non-ASCII characters is appended verbatim" \
 	"path-unicode-appended.txt" "-p" "/opt/appended/ünïcødé/bin:~/appended/漢字"
 
+# Nothing is stat'ed. A component is a declaration of where to look, not a
+# promise that anything is there, so a directory that does not exist is passed
+# through like any other -- the same as Apple's path_helper, and what lets a
+# fragment file be installed before the thing it points at.
+# spec/fixtures/moredirs/paths.d/14-nonexistent holds the examples: an absent
+# directory, one whose parent is absent too, one behind a `~`, one whose parent
+# is real but whose leaf is not, and a path that exists but is a *file*
+# (`/etc/paths`), which is not filtered out either.
+test_a_path "a non-existent directory is still a component" "path.txt" "-p"
+test_a_path "a non-existent directory is listed in the debug report" "debug_path.txt" "-p" "--debug"
+test_a_path "a non-existent directory given as an argument is appended too" \
+	"path-nonexistent-appended.txt" "-p" "/opt/appended-does-not-exist/bin:~/appended-does-not-exist"
+
 # Colons are not allowed within path declarations as they are separators for PATH et al
 # When found, they are rejected but do not fail the whole run. That continues,
 # and a message is put on STDERR.

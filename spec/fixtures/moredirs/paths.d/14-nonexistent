@@ -1,0 +1,5 @@
+/opt/does-not-exist/bin
+/nonexistent-root/nested/deeper/bin
+~/no-such-directory/bin
+/etc/paths.d/absent-leaf/bin
+/etc/paths
