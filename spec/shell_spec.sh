@@ -740,6 +740,22 @@ expect_failure "an unknown short option" "error_invalid_short_option.txt" "-q" "
 expect_failure "an unknown short option after --path" "error_invalid_short_option.txt" "-p" "-z"
 expect_failure "an unknown short option after --pc" "error_invalid_short_option.txt" "--pc" "-z"
 
+# A path switch's argument is optional and only the token straight after it, so
+# a path written after another switch is not the argument to append -- it is
+# left over. Ignoring it would quietly build the path without it, so it is
+# refused, wherever it sits, and after `--` too.
+expect_failure "a path after another switch" "error_unexpected_argument.txt" "-p" "--no-etc" "/some/path"
+expect_failure "a path before the switches" "error_unexpected_argument.txt" "/some/path" "-p"
+expect_failure "a second path after the argument" "error_unexpected_argument.txt" "-p" "/other/path" "/some/path"
+expect_failure "a path after --setup" "error_unexpected_argument.txt" "--setup" "--dry-run" "/some/path"
+expect_failure "a path after --" "error_unexpected_argument.txt" "-p" "--" "/some/path"
+
+# `--` straight after a path switch ends the options rather than becoming the
+# argument, so on its own it leaves nothing over and builds a fresh path. Ruby's
+# parser does that itself; Crystal's takes `--` as the value and has to be
+# stopped -- see PathHelper.path_argument in src/path_helper.cr.
+test_a_path "-- after a path switch builds a fresh path" "path.txt" "-p" "--"
+
 test_version "--version" "--version"
 
 test_help "-h" "-h"

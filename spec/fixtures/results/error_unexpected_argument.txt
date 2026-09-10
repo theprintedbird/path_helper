@@ -1,0 +1,2 @@
+Unexpected argument: /some/path
+See --help for available options.

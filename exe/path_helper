@@ -89,6 +89,15 @@ begin
       exit 1
     end
   end.parse!
+  # parse! leaves behind anything not consumed by a switch.
+  # The path switches only take the following token,
+  # so in `-p --no-etc /some/path` the path is left over,
+  # and thus ignored. This guards against left overs.
+  unless ARGV.empty?
+    warn "Unexpected argument: #{ARGV.first}"
+    warn "See --help for available options."
+    exit 1
+  end
 rescue OptionParser::InvalidOption => ex
   # Worded by hand rather than taken from ex.message so that it matches the
   # Crystal implementation byte for byte -- spec/fixtures/results compares it.

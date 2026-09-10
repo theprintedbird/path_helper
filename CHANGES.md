@@ -41,6 +41,14 @@
   expanded twice. A tilde is now expanded only at the front of a component,
   when it is the whole component or is followed by a `/`. `~user` is left as it
   is rather than becoming the home directory followed by `user`.
+- An argument that no switch takes is now refused with `Unexpected argument:`
+  on stderr and exit status 1. It used to be ignored: the path switches only
+  take the token straight after them, so `path_helper -p --no-etc "$PATH"`
+  built a path with the old one silently left off. Put the path directly after
+  the switch, e.g. `path_helper --no-etc -p "$PATH"`.
+- Fixed the Crystal build refusing `--` straight after a path switch with
+  `Invalid option: --`. It now ends the options there, as the Ruby script
+  always has.
 
 
 ## Tuesday the 19th of May 2020 ##

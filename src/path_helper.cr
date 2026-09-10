@@ -16,9 +16,17 @@ module PathHelper
   # "-" is left alone: Ruby treats it as an ordinary argument rather than a
   # switch.
   #
+  # "--" is the exception: Ruby does not take it as the argument either, but
+  # ends option parsing there instead, so `-p -- /some/path` leaves the path
+	# over. Crystal will consume it, so stop the parser when it's spotted.
+  #
   # Returns nil for an absent or empty argument, which is what the callers
   # store when no current path was given.
-  private def self.path_argument(value : String) : String?
+  private def self.path_argument(value : String, parser : OptionParser) : String?
+    if value == "--"
+      parser.stop
+      return nil
+    end
     if value.starts_with?("-") && value != "-"
       raise OptionParser::InvalidOption.new(value)
     end
@@ -36,7 +44,7 @@ module PathHelper
         "  To append something to the generated path pass the current path, or a path you wish appended."
       ) do |path|
         options[:name] = "PATH"
-        options[:current_path] = path_argument(path)
+        options[:current_path] = path_argument(path, opts)
       end
 
       opts.on("-m [MANPATH]", "--man [MANPATH]",
@@ -44,7 +52,7 @@ module PathHelper
         "  See `path' instructions for argument options."
       ) do |path|
         options[:name] = "MANPATH"
-        options[:current_path] = path_argument(path)
+        options[:current_path] = path_argument(path, opts)
       end
 
       opts.on("-f [DYLD]", "--dyld-fallback-fram [DYLD]",
@@ -52,7 +60,7 @@ module PathHelper
         "  See `path' instructions for argument options."
       ) do |path|
         options[:name] = "DYLD_FALLBACK_FRAMEWORK_PATH"
-        options[:current_path] = path_argument(path)
+        options[:current_path] = path_argument(path, opts)
       end
 
       opts.on("-l [DYLD]", "--dyld-fallback-lib [DYLD]",
@@ -60,7 +68,7 @@ module PathHelper
         "  See `path' instructions for argument options."
       ) do |path|
         options[:name] = "DYLD_FALLBACK_LIBRARY_PATH"
-        options[:current_path] = path_argument(path)
+        options[:current_path] = path_argument(path, opts)
       end
 
       opts.on("--dyld-fram [DYLD]",
@@ -69,7 +77,7 @@ module PathHelper
         "  rather than backstops. See `path' instructions for argument options."
       ) do |path|
         options[:name] = "DYLD_FRAMEWORK_PATH"
-        options[:current_path] = path_argument(path)
+        options[:current_path] = path_argument(path, opts)
       end
 
       opts.on("--dyld-lib [DYLD]",
@@ -78,7 +86,7 @@ module PathHelper
         "  rather than backstops. See `path' instructions for argument options."
       ) do |path|
         options[:name] = "DYLD_LIBRARY_PATH"
-        options[:current_path] = path_argument(path)
+        options[:current_path] = path_argument(path, opts)
       end
 
       opts.on("-c [C_INCLUDE]", "--c-include [C_INCLUDE]",
@@ -86,7 +94,7 @@ module PathHelper
         "  See `path' instructions for argument options."
       ) do |path|
         options[:name] = "C_INCLUDE_PATH"
-        options[:current_path] = path_argument(path)
+        options[:current_path] = path_argument(path, opts)
       end
 
       opts.on("--pc [PKG_CONFIG_PATH]",
@@ -94,7 +102,7 @@ module PathHelper
         "  See `path' instructions for argument options."
       ) do |path|
         options[:name] = "PKG_CONFIG_PATH"
-        options[:current_path] = path_argument(path)
+        options[:current_path] = path_argument(path, opts)
       end
 
       opts.on("-q", "--quiet", "Quiet, no output") do
@@ -168,6 +176,16 @@ module PathHelper
       # implementation spells the same line out by hand so that the two agree
       # byte for byte -- spec/fixtures/results compares it.
       STDERR.puts ex.message
+      STDERR.puts "See --help for available options."
+      exit 1
+    end
+
+		# parse leaves behind anything not consumed by a switch.
+		# The path switches only take the following token,
+		# so in `-p --no-etc /some/path` the path is left over,
+		# and thus ignored. This guards against left overs.
+    unless ARGV.empty?
+      STDERR.puts "Unexpected argument: #{ARGV.first}"
       STDERR.puts "See --help for available options."
       exit 1
     end
