@@ -49,6 +49,15 @@
 - Fixed the Crystal build refusing `--` straight after a path switch with
   `Invalid option: --`. It now ends the options there, as the Ruby script
   always has.
+- Fixed a fragment file that cannot be read -- one with the wrong mode, say --
+  taking the whole run down with a `Permission denied` error, which left
+  `export PATH=$(path_helper -p)` with nothing to export. It is now passed over
+  like any other entry that is not a file.
+- Fixed the `--debug` report marking everything in a `paths.d` that it did not
+  read as `does not exist!`. That is now kept for what really is missing, such
+  as a dangling symlink; a subdirectory is marked `is a directory!`, a named pipe
+  or other special file `is not a regular file!`, and a file that cannot be read
+  `is not readable!`.
 
 
 ## Tuesday the 19th of May 2020 ##

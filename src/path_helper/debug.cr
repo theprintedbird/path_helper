@@ -47,6 +47,22 @@ module PathHelper
       "[#{symbols.join(", ")}]"
     end
 
+    # Why CLI#read_files passed over an entry, or nil if it was read. Only a
+    # readable regular file is read, and everything else is named for what it
+    # is rather than all being called missing. The checks follow symlinks, so a
+    # dangling link does not exist and a link to a directory is a directory.
+    private def unreadable_because(file : String) : String?
+      if !File.exists?(file)
+        "does not exist!"
+      elsif File.directory?(file)
+        "is a directory!"
+      elsif !File.file?(file)
+        "is not a regular file!"
+      elsif !Helpers.readable?(file)
+        "is not readable!"
+      end
+    end
+
     # tree style render
     def render : String
       output = [] of String
@@ -71,12 +87,11 @@ module PathHelper
       output << "\nResults: (duplicates marked by#{dup_text}, dropped lines by#{drop_mark})\n"
 
       @section.found.each do |file, lines|
-        if File.file?(file)
-          output << "#{Colors::CYAN}#{file}#{Colors::NORMAL}"
-        else
-          output << "#{Colors::RED}#{file} - does not exist!#{Colors::NORMAL}"
+        if reason = unreadable_because(file)
+          output << "#{Colors::RED}#{file} - #{reason}#{Colors::NORMAL}"
           next
         end
+        output << "#{Colors::CYAN}#{file}#{Colors::NORMAL}"
 
         next if lines.nil?
 

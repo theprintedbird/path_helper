@@ -1,0 +1,15 @@
+Name: PATH
+Options: {name: "PATH", current_path: nil, etc: false, debug: true, verbose: true}
+Search order: [:config]
+	{{HOME}}/.config/paths/paths.d
+	{{HOME}}/.config/paths/paths
+
+Results: (duplicates marked by ✗, dropped lines by ⊘)
+
+{{HOME}}/.config/paths/paths.d/01-readable
+ └── /opt/readable/bin
+{{HOME}}/.config/paths/paths.d/02-unreadable - is not readable!
+
+Env var:
+/opt/readable/bin
+

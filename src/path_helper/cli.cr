@@ -54,7 +54,9 @@ module PathHelper
 
     private def read_files
       @section.found.each do |path, _|
-        next unless File.file?(path)
+        # Anything that is not a readable file is passed over rather than
+        # failing the run, and Debug#unreadable_because says why.
+        next unless File.file?(path) && Helpers.readable?(path)
         # Blank lines are dropped here rather than at the join, so that
         # everything downstream gets real components. Empty lines would
         # join as `::`, which is the current working directory

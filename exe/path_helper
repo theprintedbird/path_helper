@@ -213,7 +213,9 @@ module PathHelper
 
     def read_files
       @section[:found].each {|path, _|
-        next if ! File.file? path
+        # Anything that is not a readable file is passed over rather than
+        # failing the run, and Debug#unreadable_because says why.
+        next unless File.file?(path) && File.readable?(path)
         # Blank lines are dropped here rather than at the join, so that
         # everything downstream gets real components. Empty lines would
         # join as `::`, which is the current working directory
@@ -314,6 +316,23 @@ module PathHelper
     end
 
 
+    # Why CLI#read_files passed over an entry, or nil if it was read. Only a
+    # readable regular file is read, and everything else is named for what it
+    # is rather than all being called missing. The checks follow symlinks, so a
+    # dangling link does not exist and a link to a directory is a directory.
+    def unreadable_because file
+      if !File.exist? file
+        "does not exist!"
+      elsif File.directory? file
+        "is a directory!"
+      elsif !File.file? file
+        "is not a regular file!"
+      elsif !File.readable? file
+        "is not readable!"
+      end
+    end
+
+
     # tree style render
     def render
       output = []
@@ -330,13 +349,12 @@ module PathHelper
       end
       output << "\nResults: (duplicates marked by#{dup_text}, dropped lines by#{drop_mark})\n"
       @section[:found].each do |file,lines|
-      	if File.file?(file)
-					output << "#{Colours::Cyan}#{file}#{Colours::Normal}"
-				else
-					output << "#{Colours::Red}#{file} - does not exist!#{Colours::Normal}"
-					next
-				end
-				next if lines.nil?
+        if (reason = unreadable_because file)
+          output << "#{Colours::Red}#{file} - #{reason}#{Colours::Normal}"
+          next
+        end
+        output << "#{Colours::Cyan}#{file}#{Colours::Normal}"
+        next if lines.nil?
         # The reject is for the "current path" pseudo-entry, whose components
         # come from splitting the argument rather than from a file. Indexing
         # against the filtered list, not the original, is what makes the last

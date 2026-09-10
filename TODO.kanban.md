@@ -62,13 +62,13 @@ Language-Agnostic Infrastructure
 - Add pre-commit hooks for common issues <!-- backlog: 1763431283 -->
 - Add developer setup script <!-- backlog: 1763431283 -->
 - --no-lib coverage needs `~/Library/Paths` to be set up <!-- backlog: 1788768670 -->
-- Fix The debug report prints <path> - does not exist! for anything in paths.d that isn't a readable file. <!-- backlog: 1788965784 -->
 - Add automated changelog generation <!-- backlog: 1789018798, ready: 1788877330 -->
 
 ###### Ready
 
 
 ###### In Progress
+
 
 
 
@@ -135,3 +135,4 @@ Language-Agnostic Infrastructure
 - Add test for duplicate paths in same file <!-- done: 1788965493, in_progress: 1788950608, ready: 1788854437 -->
 - Fix ~ is expanded anywhere in a component, not just at the front <!-- backlog: 1788965755, done: 1789025216, in_progress: 1789022129 -->
 - Fix: A stray positional argument is silently ignored e.g. path_helper -p --no-etc /some/path <!-- backlog: 1788965769, done: 1789031085, in_progress: 1789025343 -->
+- Fix The debug report prints <path> - does not exist! for anything in paths.d that isn't a readable file. <!-- backlog: 1788965784, done: 1789044100, in_progress: 1789031177 -->

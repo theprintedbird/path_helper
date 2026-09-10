@@ -92,6 +92,8 @@ Results: (duplicates marked by ✗, dropped lines by ⊘)
  ├── /opt/dupe/bin ✗
  ├── /opt/dupe/sbin ✗
  └── /opt/dupe/bin/
+{{HOME}}/.config/paths/paths.d/21-subdirectory - is a directory!
+{{HOME}}/.config/paths/paths.d/22-fifo - is not a regular file!
 {{HOME}}/.config/paths/paths.d/30-oh-my-zshell
  └── ~/.oh-my-zsh/custom/plugins/fzf/bin
 {{HOME}}/.config/paths/paths.d/50-ngrok

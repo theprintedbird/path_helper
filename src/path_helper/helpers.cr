@@ -31,6 +31,14 @@ module PathHelper
   end
 
   module Helpers
+    # Whether this process may read path. `File.readable?` is deprecated in the
+    # newer Crystals this builds with, and the `File::Info.readable?` that
+    # replaces it is missing from the older ones, so this makes the access(2)
+    # call that both of them make.
+    def self.readable?(path : String) : Bool
+      LibC.access(path.check_no_null_byte, LibC::R_OK) == 0
+    end
+
     def self.default_order : Array(Segment)
       {% if flag?(:darwin) %}
         [Segment::Lib, Segment::Config, Segment::Etc]

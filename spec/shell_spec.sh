@@ -585,6 +585,58 @@ test_expansion_under_home(){
 	fi
 }
 
+# test_unreadable_fragment <description> <fixture> <argument>...
+# The suite runs as root, and root can read a file whatever its mode, so an
+# unreadable fragment can only be seen by running as somebody else. The run is
+# made as nobody, under a HOME of its own whose paths.d holds one readable
+# fragment and one that nobody may read. /root is closed to nobody, so the
+# executable is copied into that HOME, and the run starts from inside it
+# because the Crystal runtime stats the working directory as it starts up.
+# Fixtures store that HOME as {{HOME}}, as the other path fixtures do.
+test_unreadable_fragment(){
+	local description="$1"
+	local output_file="$2"
+	shift 2
+	local home=$(mktemp -d)
+	local actual=$(mktemp)
+	local expected=$(mktemp)
+	local difference=$(mktemp)
+	local noise=$(mktemp)
+
+	mkdir -p "$home/.config/paths/paths.d"
+	printf '/opt/readable/bin\n' > "$home/.config/paths/paths.d/01-readable"
+	printf '/opt/unreadable/bin\n' > "$home/.config/paths/paths.d/02-unreadable"
+	cp "$EXECUTABLE" "$home/path_helper"
+	chmod -R a+rX "$home"
+	chmod 000 "$home/.config/paths/paths.d/02-unreadable"
+
+	su -s /bin/sh nobody -c \
+		"cd '$home' && HOME='$home' PATH='$PATH' ./path_helper $*" > "$actual" 2> "$noise"
+
+	if [ -s "$noise" ]; then
+		tap_comment_file "stderr" "$noise"
+	fi
+
+	sed "s|{{HOME}}|$home|g" "$PWD/spec/fixtures/results/${output_file}" > "$expected"
+
+	if cmp -s "$expected" "$actual"; then
+		tap_ok "$description"
+	else
+		cmp "$expected" "$actual" > "$difference" 2>&1
+		tap_not_ok "$description"
+		tap_yaml "output did not match the fixture" \
+			"fixture: '$output_file'" \
+			"arguments: '$*'" \
+			"user: 'nobody'"
+		tap_comment_file "cmp" "$difference"
+		tap_comment_file "expected" "$expected"
+		tap_comment_file "actual" "$actual"
+	fi
+
+	rm -rf "$home"
+	rm -f "$actual" "$expected" "$difference" "$noise"
+}
+
 # --- Run --------------------------------------------------------------------
 
 TMPDIR=$(mktemp -d)
@@ -635,9 +687,7 @@ fi
 
 # A fragment file may itself be a symlink, for the same dotfile-repo reason as
 # the directory above, so one is linked into the config segment's paths.d. A
-# second link is left dangling: `File.file?` is false for both a link to
-# nothing and a link to a directory, which is what keeps an unreadable entry
-# out of the path in either implementation.
+# second link is left dangling, so there is an entry with nothing behind it.
 mkdir -p "$HOME/symlinked-fragments"
 cp -R spec/fixtures/linkedfile/* "$HOME/symlinked-fragments"
 ln -s "$HOME/symlinked-fragments/paths-fragment" "$HOME/.config/paths/paths.d/15-symlinked-file"
@@ -651,6 +701,22 @@ if [ -L "$HOME/.config/paths/paths.d/15-symlinked-file" ] &&
 else
 	tap_not_ok "paths.d holds a symlinked fragment file and a dangling one"
 	tap_yaml "the test could not put symlinked files in the search graph"
+fi
+
+# Not everything in a paths.d is a file. A subdirectory and a named pipe are
+# made here rather than kept as fixtures, since git keeps neither an empty
+# directory nor a pipe. Neither can be read as a list of paths -- and reading a
+# pipe would block until something wrote to it -- so both are passed over, and
+# the debug report says which kind of thing each one is.
+mkdir "$HOME/.config/paths/paths.d/21-subdirectory"
+mkfifo "$HOME/.config/paths/paths.d/22-fifo"
+
+if [ -d "$HOME/.config/paths/paths.d/21-subdirectory" ] &&
+   [ -p "$HOME/.config/paths/paths.d/22-fifo" ]; then
+	tap_ok "paths.d holds a subdirectory and a named pipe"
+else
+	tap_not_ok "paths.d holds a subdirectory and a named pipe"
+	tap_yaml "the test could not put a subdirectory and a pipe in the search graph"
 fi
 
 # Every kind of path is built twice: once plainly, and once under --debug.
@@ -842,12 +908,28 @@ test_a_path "a symlinked search directory is reported by the path it was reached
 # read like any other; 16-dangling points at nothing and contributes no
 # components. Both are linked in for the whole run (see the setup above).
 # The debug report names each by its path in paths.d rather than by what it
-# resolves to, and marks the dangling one "does not exist!" -- which is the
-# same line a subdirectory would get, since what is being said is that there
-# was no file there to read.
+# resolves to, and marks the dangling one "does not exist!".
 test_a_path "a symlinked fragment file is read" "path.txt" "-p"
 test_a_path "a dangling symlink adds nothing and is marked in the debug report" \
 	"debug_path.txt" "-p" "--debug"
+
+# An entry in paths.d that is there but is not a readable file is not reported
+# as missing: the report says what it found, so a subdirectory is marked "is a
+# directory!" and a named pipe, which is neither a file nor a directory, "is
+# not a regular file!". Both are made in the setup above.
+test_a_path "a subdirectory and a named pipe in paths.d add nothing" "path.txt" "-p"
+test_a_path "a subdirectory and a named pipe are marked for what they are in the debug report" \
+	"debug_path.txt" "-p" "--debug"
+
+# A regular file that cannot be read is passed over like the entries above,
+# rather than taking the whole run down with it -- a fragment with the wrong
+# mode would otherwise leave a login shell with no PATH at all. The debug report
+# marks it "is not readable!". See test_unreadable_fragment for why this runs
+# as nobody.
+test_unreadable_fragment "an unreadable fragment adds nothing" \
+	"unreadable_path.txt" "-p" "--no-etc"
+test_unreadable_fragment "an unreadable fragment is marked in the debug report" \
+	"debug_unreadable.txt" "-p" "--no-etc" "--debug"
 
 # `$HOME` is not `~`. Only a literal tilde is expanded, so a fragment written
 # with a shell variable in it arrives with that variable still in it -- and
