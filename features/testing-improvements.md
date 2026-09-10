@@ -100,22 +100,22 @@ Each implementation would need to conform to this output format.
 
 ### 4. Missing Test Coverage
 
-Add tests for these untested behaviors:
+Add tests for these untested behaviours:
 
 | Test Case | Why It Matters for Cross-Implementation |
 |-----------|----------------------------------------|
 | `--version` output | Exit codes and output format must match |
 | `-h/--help` output | Usage text should be consistent |
 | Exit codes for errors | All implementations must return same codes |
-| Empty input file handling | Edge case behavior must match |
+| Empty input file handling | Edge case behaviour must match |
 | `$HOME` expansion | Variable expansion semantics vary by language |
 | `~` expansion | Tilde expansion logic must be identical |
 | Append mode (`-p $PATH`) | String splitting/joining must match |
-| Duplicate removal order | Algorithm behavior must be identical |
+| Duplicate removal order | Algorithm behaviour must be identical |
 | File not found scenarios | Error handling consistency |
 | Permission denied scenarios | Error handling consistency |
 | Unicode in paths | String handling across languages |
-| Paths with spaces | Quoting/escaping behavior |
+| Paths with spaces | Quoting/escaping behaviour |
 | Paths with colons | Edge case for path separator |
 
 ---
@@ -384,7 +384,7 @@ Also update to `@v4` for actions.
 
 ### 14. Add a "Golden File" Generation Mode
 
-**Recommendation**: Add a mode to regenerate expected fixtures, useful when behavior intentionally changes:
+**Recommendation**: Add a mode to regenerate expected fixtures, useful when behaviour intentionally changes:
 
 ```sh
 if [ "$GENERATE_GOLDEN" = "true" ]; then
@@ -400,11 +400,11 @@ fi
 
 ### 15. Create a Spec Document
 
-**Recommendation**: Document the exact expected behavior in a specification file (`SPEC.md`) that:
+**Recommendation**: Document the exact expected behaviour in a specification file (`SPEC.md`) that:
 - Defines input/output contract
 - Documents exit codes
 - Specifies error message format
-- Details flag behavior and interactions
+- Details flag behaviour and interactions
 
 This becomes the "source of truth" for all implementations.
 
@@ -412,7 +412,7 @@ This becomes the "source of truth" for all implementations.
 
 ## Edge Cases Needing Test Coverage
 
-These edge cases are critical for ensuring consistent behavior across implementations:
+These edge cases are critical for ensuring consistent behaviour across implementations:
 
 ### File System Edge Cases
 ```sh
@@ -454,7 +454,7 @@ When creating Crystal, Go, or other implementations, the test suite should verif
 
 - [ ] Identical output for all 6 path types
 - [ ] Identical exit codes for all scenarios
-- [ ] Identical duplicate removal behavior
+- [ ] Identical duplicate removal behaviour
 - [ ] Identical file sorting (alphanumeric by filename)
 - [ ] Identical `~` and `$HOME` expansion
 - [ ] Identical handling of missing files/directories
@@ -468,11 +468,11 @@ When creating Crystal, Go, or other implementations, the test suite should verif
 
 1. **Add executable path abstraction** - Required for multi-language testing
 2. **Fix hardcoded `/root` paths** in fixtures - Use `{{HOME}}` placeholder
-3. **Add exit code tests** - Critical for behavioral consistency
+3. **Add exit code tests** - Critical for behavioural consistency
 4. **Add missing flag/combination tests** - Gap in current coverage
 5. **Adopt TAP output format** - Better CI integration
 6. **Fix CI workflow** - Add `PATH_HELPER_DOCKER_INSTANCE` env var
-7. **Create behavior specification document** - Single source of truth
+7. **Create behaviour specification document** - Single source of truth
 
 ---
 

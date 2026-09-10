@@ -21,15 +21,15 @@
 - Add append mode tests (`-p $PATH`)
 - Add debug output tests for all 6 path types (currently only 2)
 
-## Phase 3: Edge Case Coverage
+## DONE Phase 3: Edge Case Coverage
 
-- DONE Add empty input file handling test
-- DONE Add test for files with blank lines
-- DONE Add test for files with trailing newlines
+- Add empty input file handling test
+- Add test for files with blank lines
+- Add test for files with trailing newlines
 - Add test for Windows line endings (CRLF)
 - Add test for paths with spaces
 - Add test for paths with special characters
-- DONE Add test for paths with colons (edge case for separator)
+- Add test for paths with colons (edge case for separator)
 - Add test for duplicate paths in same file
 - Add test for duplicate paths across files
 - Add test for `~` expansion at various positions
@@ -66,11 +66,11 @@
 - DONE Add `PATH_HELPER_DOCKER_INSTANCE` environment variable to CI workflow
 - Fix fixture setup steps in CI workflow
 - Add performance regression tests with timing bounds
-- Create `SPEC.md` behavior specification document
+- Create `SPEC.md` behaviour specification document
 - Document input/output contract in specification
 - Document all exit codes in specification
 - Document error message formats in specification
-- Document flag behavior and interactions in specification
+- Document flag behaviour and interactions in specification
 
 ## Phase 7: Multi-Language Verification
 
