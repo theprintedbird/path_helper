@@ -36,6 +36,11 @@
   the *non*-fallback sections, so anyone who followed the old instructions
   should either rename their files to `dyld_fallback_*` or start using the new
   switches to read them.
+- Fixed `~` expansion, which replaced every tilde in the output with the home
+  directory -- so `/opt/app~1/bin` became `/opt/app/home/you1/bin`, and `~~` was
+  expanded twice. A tilde is now expanded only at the front of a component,
+  when it is the whole component or is followed by a `/`. `~user` is left as it
+  is rather than becoming the home directory followed by `user`.
 
 
 ## Tuesday the 19th of May 2020 ##

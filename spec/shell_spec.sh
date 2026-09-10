@@ -798,27 +798,14 @@ test_a_path "special characters survive the debug report" "debug_path.txt" "-p" 
 test_a_path "a path with special characters is appended verbatim" \
 	"path-special-chars-appended.txt" "-p" '/opt/appended*glob?/bin:/opt/appended$(dollars)&{braces}/bin'
 
-# Non-ASCII paths. A component is bytes to be passed through, not text to be
-# interpreted, so nothing is transliterated, re-encoded or normalised on the way
-# out. spec/fixtures/moredirs/paths.d/13-unicode holds the examples: Latin with
-# an accent, CJK, Cyrillic, Greek behind a `~`, and an astral-plane emoji.
-# Its first two lines are the same word spelled two ways -- NFC (one codepoint
-# for the accented letter) and NFD (letter plus a combining accent). They render
-# identically but are different byte sequences, so de-duplication must keep both
-# rather than folding them together.
+# Non-ASCII paths.
+# spec/fixtures/moredirs/paths.d/13-unicode has the examples.
 test_a_path "non-ASCII characters within a path are preserved" "path.txt" "-p"
 test_a_path "non-ASCII characters survive the debug report" "debug_path.txt" "-p" "--debug"
 test_a_path "a path with non-ASCII characters is appended verbatim" \
 	"path-unicode-appended.txt" "-p" "/opt/appended/ünïcødé/bin:~/appended/漢字"
 
-# Nothing is stat'ed. A component is a declaration of where to look, not a
-# promise that anything is there, so a directory that does not exist is passed
-# through like any other -- the same as Apple's path_helper, and what lets a
-# fragment file be installed before the thing it points at.
-# spec/fixtures/moredirs/paths.d/14-nonexistent holds the examples: an absent
-# directory, one whose parent is absent too, one behind a `~`, one whose parent
-# is real but whose leaf is not, and a path that exists but is a *file*
-# (`/etc/paths`), which is not filtered out either.
+# spec/fixtures/moredirs/paths.d/14-nonexistent has the examples.
 test_a_path "a non-existent directory is still a component" "path.txt" "-p"
 test_a_path "a non-existent directory is listed in the debug report" "debug_path.txt" "-p" "--debug"
 test_a_path "a non-existent directory given as an argument is appended too" \
@@ -868,20 +855,11 @@ test_a_path "a literal \$HOME in an argument is appended verbatim" \
 test_expansion_under_home "~ expands to the HOME in the environment" \
 	"/tmp/not-a-real-home" "~/bin:~/sbin" "/tmp/not-a-real-home/bin:/tmp/not-a-real-home/sbin"
 
-# Where the tilde sits. Expansion is the last thing that happens, a plain
-# substitution over the joined string, and it is not anchored to the front of a
-# component -- so every `~` in it goes, wherever it is and however many there
-# are. spec/fixtures/moredirs/paths.d/18-tildes puts one in each position:
-# leading, alone on the line, in the middle of a path, at the end of one,
-# doubled, and in front of a name (`~user`, which the shell would read as
-# another user's home and which this does not -- it becomes this home followed
-# by the letters `user`).
-# The last three are worth knowing about rather than relying on: a component
-# with a `~` in it that was never meant as a home directory will not survive
-# intact. They are pinned here so that a change to the rule is a visible change
-# to this file.
-# The debug report shows the lines as they were read, before any of this.
-test_a_path "a tilde is expanded wherever it appears" "path.txt" "-p"
+# `~` is only replaced when it is the whole component or is followed by a `/`.
+# Any other `~` is part of a name and is left alone, so a directory with a tilde in
+# survives intact.
+# The debug report shows the lines as they were read.
+test_a_path "a tilde is expanded only at the front of a component" "path.txt" "-p"
 test_a_path "the debug report shows tildes unexpanded" "debug_path.txt" "-p" "--debug"
 test_a_path "a tilde in an argument is expanded the same way" \
 	"path-tilde-appended.txt" "-p" "~/appended/bin:/opt/app~ended/bin"

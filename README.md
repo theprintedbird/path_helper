@@ -197,7 +197,7 @@ Apple's path\_helper doesn't help with paths that may only be applicable for a s
 
 You can use the `--setup` switch to have the path_helper set up the directory layout and files, you just have to fill them!
 
-You can also use the tilde `~` character in a path by replacing it with the `HOME` env variable. For example, if I install Haskell and want to put it in my path I can take the following steps.
+You can also start a path with the tilde `~` character and it will be replaced with the `HOME` env variable. Only a leading `~` on its own or followed by a `/` is expanded, so `/opt/app~1/bin` is left as it is, and so is `~user` (other users' home directories are not looked up). For example, if I install Haskell and want to put it in my path I can take the following steps.
 
 ### <a name="pre-req">Pre-req</a>
 

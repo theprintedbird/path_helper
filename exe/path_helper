@@ -191,9 +191,14 @@ module PathHelper
         @section[:found]["current path"] = components
       end
 
+      # A tilde is only a home directory at the front of a component, and only
+      # when it is the whole component or followed by a slash. Anywhere else
+      # it is part of a name.
+      # The block form stops a backslash in HOME being read as a
+      # back-reference.
       @section[:all_lines].keys
+                          .map {|line| line.sub(%r{\A~(?=/|\z)}) { HOME } }
                           .join(":")
-                          .gsub( /\~/, HOME)
     end
 
 
