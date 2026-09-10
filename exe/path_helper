@@ -118,6 +118,10 @@ module PathHelper
 
   HOME = Dir.home.freeze
 
+  # The key the argument's components are kept under in section[:found]. It is
+  # not a file, which the debug report has to know.
+  CURRENT_PATH = "current path".freeze
+
   SEGMENTS = [:lib,:config, :etc]
 
 
@@ -197,7 +201,7 @@ module PathHelper
           next if @section[:all_lines].has_key? line
           @section[:all_lines][line] = nil
         end
-        @section[:found]["current path"] = components
+        @section[:found][CURRENT_PATH] = components
       end
 
       # A tilde is only a home directory at the front of a component, and only
@@ -349,7 +353,9 @@ module PathHelper
       end
       output << "\nResults: (duplicates marked by#{dup_text}, dropped lines by#{drop_mark})\n"
       @section[:found].each do |file,lines|
-        if (reason = unreadable_because file)
+        # The argument's components were never in a file, so there is no file
+        # to look for.
+        if file != CURRENT_PATH && (reason = unreadable_because file)
           output << "#{Colours::Red}#{file} - #{reason}#{Colours::Normal}"
           next
         end

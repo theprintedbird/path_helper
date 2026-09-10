@@ -74,6 +74,7 @@ Language-Agnostic Infrastructure
 
 
 
+
 ###### Done
 
 - Add test for paths with special characters <!-- done: 1788943142, in_progress: 1788937966, ready: 1788854437 -->
@@ -136,3 +137,4 @@ Language-Agnostic Infrastructure
 - Fix ~ is expanded anywhere in a component, not just at the front <!-- backlog: 1788965755, done: 1789025216, in_progress: 1789022129 -->
 - Fix: A stray positional argument is silently ignored e.g. path_helper -p --no-etc /some/path <!-- backlog: 1788965769, done: 1789031085, in_progress: 1789025343 -->
 - Fix The debug report prints <path> - does not exist! for anything in paths.d that isn't a readable file. <!-- backlog: 1788965784, done: 1789044100, in_progress: 1789031177 -->
+- Fix crashing on fragment file <!-- backlog: 1789044137, done: 1789044670, in_progress: 1789044159 -->

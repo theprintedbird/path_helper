@@ -1023,6 +1023,13 @@ test_a_path "an argument is appended" "path-appended.txt" "-p" "/opt/appended/bi
 test_a_path "an argument of duplicates changes nothing" "path.txt" "-p" "/usr/bin:/bin"
 test_a_path "an argument is appended for manpaths" "manpath-appended.txt" "-m" "/opt/appended/man:/opt/pkg/share/man"
 
+# The debug report accounts for an argument too. It is not a file, so it is not
+# checked for being one: it comes last, under the name "current path", with
+# each component listed as it was given -- `~` unexpanded, like a line read
+# from a file -- and one the search already found marked as the duplicate.
+test_a_path "the debug report lists an argument's components after the search" \
+	"debug_path_appended.txt" "-p" "/opt/appended/bin:~/appended:/usr/bin" "--debug"
+
 tap_plan
 
 cleanup

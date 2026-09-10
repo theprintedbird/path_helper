@@ -87,7 +87,9 @@ module PathHelper
       output << "\nResults: (duplicates marked by#{dup_text}, dropped lines by#{drop_mark})\n"
 
       @section.found.each do |file, lines|
-        if reason = unreadable_because(file)
+        # The argument's components were never in a file, so there is no file
+        # to look for.
+        if file != CURRENT_PATH && (reason = unreadable_because(file))
           output << "#{Colors::RED}#{file} - #{reason}#{Colors::NORMAL}"
           next
         end

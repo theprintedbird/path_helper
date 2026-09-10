@@ -58,6 +58,11 @@
   as a dangling symlink; a subdirectory is marked `is a directory!`, a named pipe
   or other special file `is not a regular file!`, and a file that cannot be read
   `is not readable!`.
+- Fixed the `--debug` report for a run given a path to append, such as
+  `path_helper -p "$PATH" --debug`, which listed the argument as
+  `current path - does not exist!` and left out its components. They are now
+  listed under `current path`, after everything the search found, with any
+  that the search had already found marked as duplicates.
 
 
 ## Tuesday the 19th of May 2020 ##

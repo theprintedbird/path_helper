@@ -40,7 +40,7 @@ module PathHelper
           next if @section.all_lines.has_key?(line)
           @section.all_lines[line] = nil
         end
-        @section.found["current path"] = components
+        @section.found[CURRENT_PATH] = components
       end
 
 			# A tilde is only a home directory when preceding a component, and only

@@ -1,6 +1,10 @@
 module PathHelper
   HOME = Path.home.to_s
 
+  # The key the argument's components are kept under in Section#found. It is
+  # not a file, which the debug report has to know.
+  CURRENT_PATH = "current path"
+
   enum Segment
     Lib
     Config
