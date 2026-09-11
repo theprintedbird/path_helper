@@ -62,16 +62,19 @@ Language-Agnostic Infrastructure
 - Add pre-commit hooks for common issues <!-- backlog: 1763431283 -->
 - Add developer setup script <!-- backlog: 1763431283 -->
 - --no-lib coverage needs `~/Library/Paths` to be set up <!-- backlog: 1788768670 -->
-- Add automated changelog generation <!-- backlog: 1789018798, ready: 1788877330 -->
+- Add automated changelog generation <!-- ready: 1788877330 -->
 
 ###### Ready
+
+- Update the test runner to allow test names as arguments for single-test runs  <!-- ready: 1789097636 -->
+
 
 
 ###### In Progress
 
-
-
-
+- Update main runner to source and execute modular test files <!-- in_progress: 1789097244 -->
+- Create `spec/lib/test_helpers.sh` with common functions <!-- in_progress: 1789097066, ready: 1789096800 -->
+- Split tests into modular files under `spec/tests/` <!-- in_progress: 1789097066, ready: 1789096800 -->
 
 
 
