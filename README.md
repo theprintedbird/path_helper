@@ -837,6 +837,7 @@ Key files:
 - `.github/workflows/test-ruby.yml` - Main test workflow
 - `spec/shell_spec.sh` - Shell-based test suite
 - `spec/lib/test_helpers.sh` - TAP reporting, cleanup and assertions, sourced by the suite
+- `spec/tests/` - The tests themselves (setup, path, error and edge case), sourced by the suite in that order
 - `spec/fixtures/` - Test fixtures and expected results
 
 ### Running Tests Locally vs CI

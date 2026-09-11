@@ -91,7 +91,7 @@ cleanup(){
 	if [ -d "$HOME/.config/paths" ]; then
 		safe_remove "$HOME/.config/paths"
 	fi
-	# The target of the /etc/paths.d symlink (see the run in shell_spec.sh).
+	# The target of the /etc/paths.d symlink (see spec/tests/setup_test.sh).
 	# /etc/paths.d itself is removed with the rest of /etc, and `rm -rf` on a
 	# symlink takes the link rather than what it points at, so the target has to
 	# be named separately.

@@ -72,7 +72,6 @@ Language-Agnostic Infrastructure
 
 ###### In Progress
 
-- Split tests into modular files under `spec/tests/` <!-- in_progress: 1789097066, ready: 1789096800 -->
 
 
 
@@ -141,3 +140,4 @@ Language-Agnostic Infrastructure
 - Fix crashing on fragment file <!-- backlog: 1789044137, done: 1789044670, in_progress: 1789044159 -->
 - Update main runner to source and execute modular test files <!-- done: 1789112839, in_progress: 1789097244 -->
 - Create `spec/lib/test_helpers.sh` with common functions <!-- done: 1789112904, in_progress: 1789097066, ready: 1789096800 -->
+- Split tests into modular files under `spec/tests/` <!-- done: 1789112927, in_progress: 1789097066, ready: 1789096800 -->

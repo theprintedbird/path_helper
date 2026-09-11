@@ -37,9 +37,9 @@ make list / make clean
 The test/shell/extract targets build their image first, so there is no need to run a build target by
 hand. Image tags embed `git describe`, so a new commit invalidates images built earlier.
 
-There is no single-test runner: the suite is a flat sequence of calls at the bottom of
-`spec/shell_spec.sh`. To run one case, comment out the others or invoke the executable by hand inside
-`make shell`.
+There is no single-test runner yet: `spec/shell_spec.sh` sources every file in `spec/tests/` in a fixed
+order, and each is a flat sequence of calls. To run one case, comment out the others or invoke the
+executable by hand inside `make shell`.
 
 The Makefile picks podman or docker, whichever is on `PATH`.
 
@@ -51,8 +51,14 @@ scalars because diffs contain blank and space-indented lines). Exit status is 0 
 passed. A missing `PATH_HELPER_DOCKER_INSTANCE` produces `1..0 # SKIP` and exit 0.
 
 - `spec/lib/test_helpers.sh` — the TAP reporting, `cleanup`, and every assertion (`test_a_path`,
-  `expect_failure`, ...). It only defines things; `spec/shell_spec.sh` sources it (located via `$0`)
-  and holds the guard and the run itself.
+  `expect_failure`, ...). It only defines things; `spec/shell_spec.sh` sources it (located via `$0`),
+  holds the guard, and then sources the test files.
+- `spec/tests/*_test.sh` — the tests, sourced (not executed, since the TAP counters are shell globals)
+  in this order: `setup_test.sh` (`--setup`, and the symlinks, dangling link, subdirectory and fifo
+  every later file relies on — so it must stay first), `path_test.sh` (each env var plain and
+  `--debug`, the `--no-*` segment switches, append mode), `error_test.sh` (exit status and stream
+  contract: refusals, `--`, `--version`, `--help`), `edge_case_test.sh` (awkward input files).
+  Nothing after setup mutates shared state, so the last three can be reordered freely.
 - `spec/fixtures/moredirs/` — input path files, copied into `~/.config/paths` by the run.
 - `spec/fixtures/results/*.txt` — expected stdout, byte-compared with `cmp`. The home directory is
   stored as the placeholder `{{HOME}}`, substituted at compare time; a literal `$HOME` in a fixture is
