@@ -627,6 +627,23 @@ target beforehand. That matters more than it sounds: the image tag includes
 `git describe`, so a new commit changes the tag and any image you built
 earlier no longer matches.
 
+**Run only some test files:**
+
+```shell
+make test RUBY_VER=3.3 TESTS=path
+make test-crystal CRYSTAL_VER=1.14.0 TESTS="error edge_case"
+```
+
+The argument to `TESTS` is the name of a files in `spec/tests/`.
+
+For example, `path`, `path_test` and `path_test.sh` will run `spec/tests/path_test.sh`.
+This works with the `-all` targets too, so `make test-all TESTS=path` runs `setup`
+and `path` on 2.7, 3.3 and 4.0.6.
+
+`setup` always runs first, as every other file relies on it, and the files run in
+their usual order regardless of the order they are passed in.
+A name with no matches halts the run with `Bail out!` and exit status 1.
+
 **List available images:**
 
 ```shell
@@ -746,6 +763,7 @@ Run some tests yourself:
 ```shell
 podman run --rm -ti --entrypoint sh path_helper:latest-ruby3.3
 ./spec/shell_spec.sh
+./spec/shell_spec.sh path error   # only these test files, after setup
 
 # Or test the Crystal binary directly
 podman run --rm -ti --entrypoint sh path_helper:latest-crystallatest

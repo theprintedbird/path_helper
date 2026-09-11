@@ -54,11 +54,13 @@ help:
 	@echo "  RUBY_VERSIONS             Ruby versions to build (default: $(RUBY_VERSIONS))"
 	@echo "  CRYSTAL_VERSIONS          Crystal versions to build (default: $(CRYSTAL_VERSIONS))"
 	@echo "  CONTAINER_RUNTIME         Override container runtime (podman or docker)"
+	@echo "  TESTS                     Test files to run, e.g. 'path error' (default: all; setup always runs)"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make build-all                          # Dev build with git-based version"
 	@echo "  VERSION=5.0.0 make all                  # Release build both Ruby and Crystal"
 	@echo "  make test RUBY_VER=3.3                  # Test specific Ruby version"
+	@echo "  make test RUBY_VER=3.3 TESTS=path       # Run one test file (after setup)"
 	@echo "  make test-crystal CRYSTAL_VER=latest    # Test latest Crystal"
 	@echo ""
 	@echo "Notes:"
@@ -116,7 +118,7 @@ test-all: build-all
 	for ruby in $(RUBY_VERSIONS); do \
 		echo ""; \
 		echo "==> Testing Ruby $$ruby..."; \
-		if $(CONTAINER_RUNTIME) run --rm $(REPO):$(VERSION)-ruby$$ruby; then \
+		if $(CONTAINER_RUNTIME) run --rm $(REPO):$(VERSION)-ruby$$ruby $(TESTS); then \
 			echo "✓ Ruby $$ruby tests passed"; \
 		else \
 			echo "✗ Ruby $$ruby tests failed"; \
@@ -140,7 +142,7 @@ ifndef RUBY_VER
 endif
 	@$(MAKE) build RUBY_VER=$(RUBY_VER)
 	@echo "Running tests for Ruby $(RUBY_VER)..."
-	@$(CONTAINER_RUNTIME) run --rm $(REPO):$(VERSION)-ruby$(RUBY_VER)
+	@$(CONTAINER_RUNTIME) run --rm $(REPO):$(VERSION)-ruby$(RUBY_VER) $(TESTS)
 
 .PHONY: shell
 shell:
@@ -208,7 +210,7 @@ test-crystal-all: build-crystal-all
 	for crystal in $(CRYSTAL_VERSIONS); do \
 		echo ""; \
 		echo "==> Testing Crystal $$crystal..."; \
-		if $(CONTAINER_RUNTIME) run --rm $(REPO):$(VERSION)-crystal$$crystal; then \
+		if $(CONTAINER_RUNTIME) run --rm $(REPO):$(VERSION)-crystal$$crystal $(TESTS); then \
 			echo "✓ Crystal $$crystal tests passed"; \
 		else \
 			echo "✗ Crystal $$crystal tests failed"; \
@@ -232,7 +234,7 @@ ifndef CRYSTAL_VER
 endif
 	@$(MAKE) build-crystal CRYSTAL_VER=$(CRYSTAL_VER)
 	@echo "Running tests for Crystal $(CRYSTAL_VER)..."
-	@$(CONTAINER_RUNTIME) run --rm $(REPO):$(VERSION)-crystal$(CRYSTAL_VER)
+	@$(CONTAINER_RUNTIME) run --rm $(REPO):$(VERSION)-crystal$(CRYSTAL_VER) $(TESTS)
 
 .PHONY: shell-crystal
 shell-crystal:

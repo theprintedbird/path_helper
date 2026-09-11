@@ -66,7 +66,6 @@ Language-Agnostic Infrastructure
 
 ###### Ready
 
-- Update the test runner to allow test names as arguments for single-test runs <!-- ready: 1789097636 -->
 
 
 
@@ -141,3 +140,4 @@ Language-Agnostic Infrastructure
 - Update main runner to source and execute modular test files <!-- done: 1789112839, in_progress: 1789097244 -->
 - Create `spec/lib/test_helpers.sh` with common functions <!-- done: 1789112904, in_progress: 1789097066, ready: 1789096800 -->
 - Split tests into modular files under `spec/tests/` <!-- done: 1789112927, in_progress: 1789097066, ready: 1789096800 -->
+- Update the test runner to allow test names as arguments for single-test runs <!-- done: 1789112976, ready: 1789097636 -->
