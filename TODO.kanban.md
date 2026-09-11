@@ -66,14 +66,12 @@ Language-Agnostic Infrastructure
 
 ###### Ready
 
-- Update the test runner to allow test names as arguments for single-test runs  <!-- ready: 1789097636 -->
+- Update the test runner to allow test names as arguments for single-test runs <!-- ready: 1789097636 -->
 
 
 
 ###### In Progress
 
-- Update main runner to source and execute modular test files <!-- in_progress: 1789097244 -->
-- Create `spec/lib/test_helpers.sh` with common functions <!-- in_progress: 1789097066, ready: 1789096800 -->
 - Split tests into modular files under `spec/tests/` <!-- in_progress: 1789097066, ready: 1789096800 -->
 
 
@@ -141,3 +139,5 @@ Language-Agnostic Infrastructure
 - Fix: A stray positional argument is silently ignored e.g. path_helper -p --no-etc /some/path <!-- backlog: 1788965769, done: 1789031085, in_progress: 1789025343 -->
 - Fix The debug report prints <path> - does not exist! for anything in paths.d that isn't a readable file. <!-- backlog: 1788965784, done: 1789044100, in_progress: 1789031177 -->
 - Fix crashing on fragment file <!-- backlog: 1789044137, done: 1789044670, in_progress: 1789044159 -->
+- Update main runner to source and execute modular test files <!-- done: 1789112839, in_progress: 1789097244 -->
+- Create `spec/lib/test_helpers.sh` with common functions <!-- done: 1789112904, in_progress: 1789097066, ready: 1789096800 -->

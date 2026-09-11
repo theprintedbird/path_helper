@@ -836,6 +836,7 @@ When making changes to the GitHub Actions workflow:
 Key files:
 - `.github/workflows/test-ruby.yml` - Main test workflow
 - `spec/shell_spec.sh` - Shell-based test suite
+- `spec/lib/test_helpers.sh` - TAP reporting, cleanup and assertions, sourced by the suite
 - `spec/fixtures/` - Test fixtures and expected results
 
 ### Running Tests Locally vs CI

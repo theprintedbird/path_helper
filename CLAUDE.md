@@ -50,6 +50,9 @@ YAML diagnostic blocks on failure, and diffs/timings as `#` comments (comments r
 scalars because diffs contain blank and space-indented lines). Exit status is 0 iff every test point
 passed. A missing `PATH_HELPER_DOCKER_INSTANCE` produces `1..0 # SKIP` and exit 0.
 
+- `spec/lib/test_helpers.sh` — the TAP reporting, `cleanup`, and every assertion (`test_a_path`,
+  `expect_failure`, ...). It only defines things; `spec/shell_spec.sh` sources it (located via `$0`)
+  and holds the guard and the run itself.
 - `spec/fixtures/moredirs/` — input path files, copied into `~/.config/paths` by the run.
 - `spec/fixtures/results/*.txt` — expected stdout, byte-compared with `cmp`. The home directory is
   stored as the placeholder `{{HOME}}`, substituted at compare time; a literal `$HOME` in a fixture is
