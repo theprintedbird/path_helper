@@ -653,12 +653,12 @@ make list
 ### <a name="test-output-is-tap">Test output is TAP</a>
 
 `spec/shell_spec.sh` reports in [TAP (Test Anything Protocol) version
-14](https://testanything.org/tap-version-14-specification.html), so its output
-reads perfectly well by eye and can also be piped straight into any TAP
-consumer:
+14](https://testanything.org/tap-version-14-specification.html), so its output 
+is human readable and can also be piped into any TAP consumer:
 
 ```
 TAP version 14
+# Platform: linux
 ok 1 - the paths are absent before setup runs
 ok 2 - setup creates the path directories and files
 ok 3 - path_spec
@@ -672,9 +672,16 @@ ok 69 - an argument is appended for manpaths
 The exit status is 0 when every test point passed and 1 otherwise, so nothing
 needs a TAP parser to tell pass from fail.
 
-A failing test point carries a YAML diagnostic block naming the fixture and the
-arguments used, followed by the `cmp` output and the expected and actual text as
-TAP comments:
+The `Platform` comment is `darwin` on macOS and `linux` everywhere else, taken
+from `uname -s`. The default search order comes from the platform the 
+executable runs on and cannot be overridden.
+
+Fixtures are searched for in `spec/fixtures/<platform>/results/` first and then
+in `spec/fixtures/results/`. The `fixture` a failure names is the name of the 
+file used for comparison.
+
+A failing test shows a YAML block naming the fixture and the arguments used, 
+followed by `cmp` output with the expected and actual text as TAP comments:
 
 ```
 not ok 3 - path_spec
@@ -682,7 +689,7 @@ not ok 3 - path_spec
   message: 'output did not match the fixture'
   severity: fail
   data:
-    fixture: 'path.txt'
+    fixture: 'spec/fixtures/results/path.txt'
     arguments: '-p'
   ...
 # --- cmp ---
@@ -710,6 +717,7 @@ tests are destructive — and says so as a skipped plan, exiting 0:
 
 ```
 TAP version 14
+# Platform: darwin
 1..0 # SKIP set PATH_HELPER_DOCKER_INSTANCE to run these destructive tests
 # These tests are destructive,
 ...

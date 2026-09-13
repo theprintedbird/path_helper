@@ -22,10 +22,22 @@ trap cleanup 1 2 3 6
 
 EXECUTABLE="${PATH_HELPER_EXECUTABLE:-${PWD}/exe/path_helper}"
 
+case "$(uname -s)" in
+	Darwin)
+		PLATFORM=darwin
+		USER_SEGMENT=lib OTHER_SEGMENT=config USER_PATHS=Library/Paths
+		;;
+	*)
+		PLATFORM=linux
+		USER_SEGMENT=config OTHER_SEGMENT=lib USER_PATHS=.config/paths
+		;;
+esac
+
 SPEC_DIR=$(cd "$(dirname "$0")" && pwd)
 . "$SPEC_DIR/lib/test_helpers.sh"
 
 echo "TAP version 14"
+tap_comment "Platform: $PLATFORM"
 
 # --- Test files -------------------------------------------------------------
 

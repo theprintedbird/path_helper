@@ -1,0 +1,15 @@
+Name: PATH
+Options: {name: "PATH", current_path: nil, etc: false, debug: true, verbose: true}
+Search order: [:lib]
+	{{HOME}}/Library/Paths/paths.d
+	{{HOME}}/Library/Paths/paths
+
+Results: (duplicates marked by ✗, dropped lines by ⊘)
+
+{{HOME}}/Library/Paths/paths.d/01-readable
+ └── /opt/readable/bin
+{{HOME}}/Library/Paths/paths.d/02-unreadable - is not readable!
+
+Env var:
+/opt/readable/bin
+

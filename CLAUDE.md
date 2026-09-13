@@ -53,6 +53,25 @@ YAML diagnostic blocks on failure, and diffs/timings as `#` comments (comments r
 scalars because diffs contain blank and space-indented lines). Exit status is 0 iff every test point
 passed. A missing `PATH_HELPER_DOCKER_INSTANCE` produces `1..0 # SKIP` and exit 0.
 
+`spec/shell_spec.sh` sets `PLATFORM` (`darwin` on macOS, `linux` for any other `uname -s`) before
+sourcing the helpers, and reports it as `# Platform:` straight after the version line. It is read from
+the OS rather than an env var on purpose: the default search order is fixed by where the executable runs,
+so claiming another platform could only make the fixtures disagree. Every expected-output lookup goes
+through `fixture_path` in `spec/lib/test_helpers.sh`: `spec/fixtures/$PLATFORM/results/<file>` if it
+exists, else the shared `spec/fixtures/results/<file>`. So a platform copy is only needed where the output
+differs (the default search order), and the failure YAML's `fixture:` is the path actually compared.
+
+The same `case` sets the user segment the inputs go in — the one the platform searches by default, so no
+path test has to switch a segment on: `USER_SEGMENT=config`/`USER_PATHS=.config/paths` with
+`OTHER_SEGMENT=lib` on Linux, and `lib`/`Library/Paths` with `config` on macOS. Setup is
+`--setup --$USER_SEGMENT --no-$OTHER_SEGMENT`, and the segment-switch tests in `path_test.sh` are written
+in those variables. The lines found are the same either way, so the plain path fixtures are shared; only
+the fixtures that name the user segment's directory have copies in `spec/fixtures/darwin/results/` — the
+ten `debug_*` ones (which also print `Search order:`) and `colons_warning.txt` (the warning names the
+fragment file). A new fixture containing `{{HOME}}/.config/paths/` needs a Darwin copy.
+Those can only be checked for real on a Mac, because the order comes from `RUBY_PLATFORM` or the Crystal
+compile target.
+
 - `spec/lib/test_helpers.sh` — the TAP reporting, `cleanup`, and every assertion (`test_a_path`,
   `expect_failure`, ...). It only defines things; `spec/shell_spec.sh` sources it (located via `$0`),
   holds the guard, and then sources the test files.
@@ -64,7 +83,8 @@ passed. A missing `PATH_HELPER_DOCKER_INSTANCE` produces `1..0 # SKIP` and exit 
   Nothing after setup mutates shared state, so the last three can be reordered freely. The order is
   `TEST_FILES` in `spec/shell_spec.sh`, which is also what named files are checked against, so a new
   test file has to be added there.
-- `spec/fixtures/moredirs/` — input path files, copied into `~/.config/paths` by the run.
+- `spec/fixtures/moredirs/` — input path files, copied by the run into the platform's user segment:
+  `~/.config/paths` on Linux, `~/Library/Paths` on macOS.
 - `spec/fixtures/results/*.txt` — expected stdout, byte-compared with `cmp`. The home directory is
   stored as the placeholder `{{HOME}}`, substituted at compare time; a literal `$HOME` in a fixture is
   intentional — it comes from an input file and must survive to the output verbatim.

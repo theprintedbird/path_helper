@@ -1,9 +1,9 @@
 # Common functions for spec/shell_spec.sh, which sources this file.
 #
-# Nothing here runs anything: it defines the TAP reporting, the cleanup of the
-# destructive parts of a run, and the assertions the tests are written with.
+# Helpers for TAP reporting, the cleanup of the destructive parts of a run,
+# and the assertions the tests are written with.
 # The functions expect EXECUTABLE to name the implementation under test, and
-# the fixtures are found relative to the working directory, so the suite is run
+# the fixtures should be relative to the working directory, so run the suite
 # from the project root.
 
 # --- TAP output -------------------------------------------------------------
@@ -137,38 +137,50 @@ cleanup(){
 
 # --- Assertions -------------------------------------------------------------
 
+# fixture_path <file>
+# The expected output to compare with, relative to the project root. A file in
+# spec/fixtures/$PLATFORM/results/ wins; otherwise the shared one in
+# spec/fixtures/results/ is used.
+fixture_path(){
+	if [ -f "$PWD/spec/fixtures/$PLATFORM/results/$1" ]; then
+		echo "spec/fixtures/$PLATFORM/results/$1"
+	else
+		echo "spec/fixtures/results/$1"
+	fi
+}
+
 test_setup(){
-	[ -d $HOME/.config/paths/c_include_paths.d ] &&
+	[ -d $HOME/$USER_PATHS/c_include_paths.d ] &&
 	[ -d /etc/c_include_paths.d ] &&
-	[ -f $HOME/.config/paths/c_include_paths ] &&
+	[ -f $HOME/$USER_PATHS/c_include_paths ] &&
 	[ -f /etc/c_include_paths ] &&
-	[ -d $HOME/.config/paths/dyld_fallback_framework_paths.d ] &&
+	[ -d $HOME/$USER_PATHS/dyld_fallback_framework_paths.d ] &&
 	[ -d /etc/dyld_fallback_framework_paths.d ] &&
-	[ -f $HOME/.config/paths/dyld_fallback_framework_paths ] &&
+	[ -f $HOME/$USER_PATHS/dyld_fallback_framework_paths ] &&
 	[ -f /etc/dyld_fallback_framework_paths ] &&
-	[ -d $HOME/.config/paths/dyld_fallback_library_paths.d ] &&
+	[ -d $HOME/$USER_PATHS/dyld_fallback_library_paths.d ] &&
 	[ -d /etc/dyld_fallback_library_paths.d ] &&
-	[ -f $HOME/.config/paths/dyld_fallback_library_paths ] &&
+	[ -f $HOME/$USER_PATHS/dyld_fallback_library_paths ] &&
 	[ -f /etc/dyld_fallback_library_paths ] &&
-	[ -d $HOME/.config/paths/dyld_framework_paths.d ] &&
+	[ -d $HOME/$USER_PATHS/dyld_framework_paths.d ] &&
 	[ -d /etc/dyld_framework_paths.d ] &&
-	[ -f $HOME/.config/paths/dyld_framework_paths ] &&
+	[ -f $HOME/$USER_PATHS/dyld_framework_paths ] &&
 	[ -f /etc/dyld_framework_paths ] &&
-	[ -d $HOME/.config/paths/dyld_library_paths.d ] &&
+	[ -d $HOME/$USER_PATHS/dyld_library_paths.d ] &&
 	[ -d /etc/dyld_library_paths.d ] &&
-	[ -f $HOME/.config/paths/dyld_library_paths ] &&
+	[ -f $HOME/$USER_PATHS/dyld_library_paths ] &&
 	[ -f /etc/dyld_library_paths ] &&
-	[ -d $HOME/.config/paths/manpaths.d ] &&
+	[ -d $HOME/$USER_PATHS/manpaths.d ] &&
 	[ -d /etc/manpaths.d ] &&
-	[ -f $HOME/.config/paths/manpaths ] &&
+	[ -f $HOME/$USER_PATHS/manpaths ] &&
 	[ -f /etc/manpaths ] &&
-	[ -d $HOME/.config/paths/pkg_config_paths.d ] &&
+	[ -d $HOME/$USER_PATHS/pkg_config_paths.d ] &&
 	[ -d /etc/pkg_config_paths.d ] &&
-	[ -f $HOME/.config/paths/pkg_config_paths ] &&
+	[ -f $HOME/$USER_PATHS/pkg_config_paths ] &&
 	[ -f /etc/pkg_config_paths ] &&
-	[ -d $HOME/.config/paths/paths.d ] &&
+	[ -d $HOME/$USER_PATHS/paths.d ] &&
 	[ -d /etc/paths.d ] &&
-	[ -f $HOME/.config/paths/paths ]
+	[ -f $HOME/$USER_PATHS/paths ]
 }
 
 # Function to get time in nanoseconds.
@@ -216,7 +228,8 @@ test_a_path(){
 	# are not tied to the user the tests happen to run as. Any literal $HOME in
 	# a fixture is left alone: that comes from the input files and is expected
 	# in the output verbatim.
-	sed "s|{{HOME}}|$HOME|g" "$PWD/spec/fixtures/results/${output_file}" > "$expected"
+	local fixture=$(fixture_path "$output_file")
+	sed "s|{{HOME}}|$HOME|g" "$PWD/$fixture" > "$expected"
 
 	if cmp -s "$expected" "$actual"; then
 		tap_ok "$description"
@@ -224,7 +237,7 @@ test_a_path(){
 		cmp "$expected" "$actual" > "$difference" 2>&1
 		tap_not_ok "$description"
 		tap_yaml "output did not match the fixture" \
-			"fixture: '$output_file'" \
+			"fixture: '$fixture'" \
 			"arguments: '$*'"
 		tap_comment_file "cmp" "$difference"
 		tap_comment_file "expected" "$expected"
@@ -269,8 +282,10 @@ test_a_path_with_stderr(){
 		tap_comment_file "stderr" "$actual_err"
 	fi
 
-	sed "s|{{HOME}}|$HOME|g" "$PWD/spec/fixtures/results/${output_file}" > "$expected"
-	sed "s|{{HOME}}|$HOME|g" "$PWD/spec/fixtures/results/${error_file}" > "$expected_err"
+	local fixture=$(fixture_path "$output_file")
+	sed "s|{{HOME}}|$HOME|g" "$PWD/$fixture" > "$expected"
+	local error_fixture=$(fixture_path "$error_file")
+	sed "s|{{HOME}}|$HOME|g" "$PWD/$error_fixture" > "$expected_err"
 
 	if cmp -s "$expected" "$actual"; then
 		tap_ok "$description builds the expected path"
@@ -278,7 +293,7 @@ test_a_path_with_stderr(){
 		cmp "$expected" "$actual" > "$difference" 2>&1
 		tap_not_ok "$description builds the expected path"
 		tap_yaml "output did not match the fixture" \
-			"fixture: '$output_file'" \
+			"fixture: '$fixture'" \
 			"arguments: '$*'"
 		tap_comment_file "cmp" "$difference"
 		tap_comment_file "expected" "$expected"
@@ -291,7 +306,7 @@ test_a_path_with_stderr(){
 		cmp "$expected_err" "$actual_err" > "$difference" 2>&1
 		tap_not_ok "$description says the expected thing on stderr"
 		tap_yaml "stderr did not match the fixture" \
-			"fixture: '$error_file'" \
+			"fixture: '$error_fixture'" \
 			"arguments: '$*'"
 		tap_comment_file "cmp" "$difference"
 		tap_comment_file "expected" "$expected_err"
@@ -361,7 +376,8 @@ expect_failure(){
 
 	run_expecting_failure "$description" "${@}"
 
-	sed "s|{{HOME}}|$HOME|g" "$PWD/spec/fixtures/results/${output_file}" > "$expected"
+	local fixture=$(fixture_path "$output_file")
+	sed "s|{{HOME}}|$HOME|g" "$PWD/$fixture" > "$expected"
 
 	if cmp -s "$expected" "$failure_stderr"; then
 		tap_ok "$description explains itself on stderr"
@@ -369,7 +385,7 @@ expect_failure(){
 		cmp "$expected" "$failure_stderr" > "$difference" 2>&1
 		tap_not_ok "$description explains itself on stderr"
 		tap_yaml "stderr did not match the fixture" \
-			"fixture: '$output_file'" \
+			"fixture: '$fixture'" \
 			"arguments: '$*'"
 		tap_comment_file "cmp" "$difference"
 		tap_comment_file "expected" "$expected"
@@ -565,39 +581,46 @@ test_expansion_under_home(){
 	fi
 }
 
+# as_nobody <command line>
+# Runs a shell command line as *nobody*. Due to different versions of `su`,
+# with different switches, this function works out which.
+as_nobody(){
+	if su -s /bin/sh nobody -c true >/dev/null 2>&1; then
+		su -s /bin/sh nobody -c "$1"
+	else
+		su -m nobody -c "$1"
+	fi
+}
+
 # test_unreadable_fragment <description> <fixture> <argument>...
-# The suite runs as root, and root can read a file whatever its mode, so an
-# unreadable fragment can only be seen by running as somebody else. The run is
-# made as nobody, under a HOME of its own whose paths.d holds one readable
-# fragment and one that nobody may read. /root is closed to nobody, so the
-# executable is copied into that HOME, and the run starts from inside it
-# because the Crystal runtime stats the working directory as it starts up.
-# Fixtures store that HOME as {{HOME}}, as the other path fixtures do.
+# The suite runs as root, but since root can read a file whatever its mode we
+# switch users to *nobody*, which is a heavily restricted account. Temp
+# folders and permissions are also used to provide an unreadable fragment.
 test_unreadable_fragment(){
 	local description="$1"
 	local output_file="$2"
 	shift 2
-	local home=$(mktemp -d)
+	local home=$(mktemp -d /tmp/path_helper.XXXXXX)
 	local actual=$(mktemp)
 	local expected=$(mktemp)
 	local difference=$(mktemp)
 	local noise=$(mktemp)
 
-	mkdir -p "$home/.config/paths/paths.d"
-	printf '/opt/readable/bin\n' > "$home/.config/paths/paths.d/01-readable"
-	printf '/opt/unreadable/bin\n' > "$home/.config/paths/paths.d/02-unreadable"
+	mkdir -p "$home/$USER_PATHS/paths.d"
+	printf '/opt/readable/bin\n' > "$home/$USER_PATHS/paths.d/01-readable"
+	printf '/opt/unreadable/bin\n' > "$home/$USER_PATHS/paths.d/02-unreadable"
 	cp "$EXECUTABLE" "$home/path_helper"
 	chmod -R a+rX "$home"
-	chmod 000 "$home/.config/paths/paths.d/02-unreadable"
+	chmod 000 "$home/$USER_PATHS/paths.d/02-unreadable"
 
-	su -s /bin/sh nobody -c \
-		"cd '$home' && HOME='$home' PATH='$PATH' ./path_helper $*" > "$actual" 2> "$noise"
+	as_nobody "cd '$home' && HOME='$home' PATH='$PATH' ./path_helper $*" > "$actual" 2> "$noise"
 
 	if [ -s "$noise" ]; then
 		tap_comment_file "stderr" "$noise"
 	fi
 
-	sed "s|{{HOME}}|$home|g" "$PWD/spec/fixtures/results/${output_file}" > "$expected"
+	local fixture=$(fixture_path "$output_file")
+	sed "s|{{HOME}}|$home|g" "$PWD/$fixture" > "$expected"
 
 	if cmp -s "$expected" "$actual"; then
 		tap_ok "$description"
@@ -605,7 +628,7 @@ test_unreadable_fragment(){
 		cmp "$expected" "$actual" > "$difference" 2>&1
 		tap_not_ok "$description"
 		tap_yaml "output did not match the fixture" \
-			"fixture: '$output_file'" \
+			"fixture: '$fixture'" \
 			"arguments: '$*'" \
 			"user: 'nobody'"
 		tap_comment_file "cmp" "$difference"

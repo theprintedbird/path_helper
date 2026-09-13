@@ -67,10 +67,7 @@ Language-Agnostic Infrastructure
 
 ###### Ready
 
-- Run the suite in CI on ubuntu-latest, alpine and macOS-latest (was: Add tests for different OS environments (Ubuntu, Alpine, macOS)) <!-- backlog: 1763431283, depends_on: [card_01M2CH8809WEBW5WDVMC6D6J70], id: card_01M2CH881VFZB6Y03HGZ0RX4F5, ready: 1789267594 -->
-- Add a `macOS-latest` job to `test-ruby.yml` and `test-crystal.yml` (the only place the Darwin fixtures get checked, since the default search order comes from `RUBY_PLATFORM`/the compile target and can't be overridden) <!-- depends_on: [card_01M2CH8809WEBW5WDVMC6D6J70], id: card_01M2CH88W6TF6BFGHE9P7V29N9, ready: 1789268873 -->
 - Add an Alpine container job to CI so CI matches the local `ruby:*-alpine` images <!-- id: card_01M2CH88QHYWE5ECP7NG0K70RQ, ready: 1789268873 -->
-- Test the default search order per OS: macOS `[:lib, :config, :etc]` (config off unless `--config`), Linux `[:config, :lib, :etc]` (lib off unless `--lib`) <!-- id: card_01M2CH88QEBJCFBBT4WEGH01WN, ready: 1789268873 -->
 - Test `--lib`/`--config` enabling the second segment on each OS, and `--no-lib` against a real `~/Library/Paths` (covers the backlog item "--no-lib coverage needs `~/Library/Paths`") <!-- id: card_01M2CH88B8M17GETM9TZ5VHC10, ready: 1789268873 -->
 - macOS file-system: test case-insensitive APFS name clashes (e.g. `Paths` vs `paths`, `paths.d` entries differing only by case) <!-- id: card_01M2CH889WK0DNQW99H11YZYA7, ready: 1789268873 -->
 - macOS file-system: check the Unicode path test and `paths.d` sort order survive Unicode normalisation of filenames (NFC vs NFD) <!-- id: card_01M2CH88SFE3YTZVTKKXG331RG, ready: 1789268873 -->
@@ -84,16 +81,16 @@ Language-Agnostic Infrastructure
 - Runtime/arch: test against the old system Ruby shipped with macOS, or document the minimum Ruby supported there <!-- id: card_01M2CH88R4CMWBQ65KGX13PC38, ready: 1789268873 -->
 - macOS login shell: show the ordering from `path_helper` survives `/etc/zprofile` running Apple's `/usr/libexec/path_helper` after `.zshenv` (overlaps with the backlog item "Add shell integration tests (bash, zsh, sh)", which stays separate because it is about shells, not OSes) <!-- id: card_01M2CH889GJT186S6KRJEY9ZGD, ready: 1789268873 -->
 - Create `spec/fixtures/linux/` directory structure <!-- backlog: 1789267643, id: card_01M2CH880XFA4B8JBWCFD3VVH1, ready: 1789267705 -->
-- Create `spec/fixtures/darwin/` directory structure <!-- backlog: 1789267653, id: card_01M2CH88DZABAN9WV2F6SP2QE3, ready: 1789267708 -->
 - Move current fixtures to linux subdirectory <!-- backlog: 1789267661, id: card_01M2CH8854KA6470A5P2WZS37B, ready: 1789267711 -->
-- Create macOS-specific fixtures with Library paths <!-- backlog: 1789267671, id: card_01M2CH88K67Q43ZZHX7NS1RP0Q, ready: 1789267720 -->
-- Add platform detection to test runner <!-- backlog: 1789267681, id: card_01M2CH88PH5DDPKSSMG4E3NYG0, ready: 1789267727 -->
-- Update fixture paths to use platform-specific directories <!-- backlog: 1789267692, id: card_01M2CH887AHC847CEJG31F71PK, ready: 1789267729 -->
 
 
 
 
 ###### In Progress
+
+- Add a `macOS-latest` job to `test-ruby.yml` and `test-crystal.yml` (the only place the Darwin fixtures get checked, since the default search order comes from `RUBY_PLATFORM`/the compile target and can't be overridden) <!-- depends_on: [card_01M2CH8809WEBW5WDVMC6D6J70], id: card_01M2CH88W6TF6BFGHE9P7V29N9, in_progress: 1789277274, ready: 1789268873 -->
+- Run the suite in CI on ubuntu-latest, alpine and macOS-latest (was: Add tests for different OS environments (Ubuntu, Alpine, macOS)) <!-- backlog: 1763431283, depends_on: [card_01M2CH8809WEBW5WDVMC6D6J70], id: card_01M2CH881VFZB6Y03HGZ0RX4F5, in_progress: 1789277287, ready: 1789267594 -->
+- Test the default search order per OS: macOS `[:lib, :config, :etc]` (config off unless `--config`), Linux `[:config, :lib, :etc]` (lib off unless `--lib`) <!-- id: card_01M2CH88QEBJCFBBT4WEGH01WN, in_progress: 1789279254, ready: 1789268873 -->
 
 
 
@@ -167,3 +164,7 @@ Language-Agnostic Infrastructure
 - Split tests into modular files under `spec/tests/` <!-- done: 1789112927, id: card_01M2CH8842DD3BFTPY8RFJFMGT, in_progress: 1789097066, ready: 1789096800 -->
 - Update the test runner to allow test names as arguments for single-test runs <!-- done: 1789112976, id: card_01M2CH88CQNN55QSWQ04DXR3NS, ready: 1789097636 -->
 - Make `run-shell-tests`/`setup-test-env` work on macOS runners and in an Alpine container. They currently assume Ubuntu with sudo: `apt-get install bc`, everything under `/root` via `sudo bash -c` (so a Mac would test root's home, not `/Users/runner`), no `sudo`/`bash` in Alpine, `crystal-lang/install-crystal` has no Alpine support (use a `crystallang/crystal:*-alpine` image), and `/etc` is `/private/etc` on macOS. `ci.yml` is not a prerequisite: add an OS matrix axis to `test-ruby.yml`/`test-crystal.yml` now and fold them into `ci.yml` later <!-- done: 1789277153, id: card_01M2CH8809WEBW5WDVMC6D6J70, in_progress: 1789274797, ready: 1789268873 -->
+- Create `spec/fixtures/darwin/` directory structure <!-- backlog: 1789267653, done: 1789279506, id: card_01M2CH88DZABAN9WV2F6SP2QE3, in_progress: 1789279322, ready: 1789267708 -->
+- Add platform detection to test runner <!-- backlog: 1789267681, done: 1789279943, id: card_01M2CH88PH5DDPKSSMG4E3NYG0, ready: 1789267727 -->
+- Update fixture paths to use platform-specific directories <!-- backlog: 1789267692, done: 1789280382, id: card_01M2CH887AHC847CEJG31F71PK, ready: 1789267729 -->
+- Create macOS-specific fixtures with Library paths <!-- backlog: 1789267671, done: 1789297640, id: card_01M2CH88K67Q43ZZHX7NS1RP0Q, ready: 1789267720 -->

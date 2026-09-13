@@ -21,13 +21,20 @@ permissions:
 
 jobs:
   test-crystal:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    # macOS is the only place the Darwin fixtures can be checked: the default
+    # search order comes from the platform (the compile target) and can't be
+    # overridden. Until spec/fixtures has Darwin results, the expected output is
+    # Linux's, so the macOS leg is reported but doesn't fail the workflow.
+    continue-on-error: ${{ matrix.os == 'macos-latest' }}
     timeout-minutes: 30
     env:
       PATH_HELPER_DOCKER_INSTANCE: 'true'
     strategy:
       fail-fast: false
       matrix:
+        # macos-latest is arm64, ubuntu-latest x86_64.
+        os: ['ubuntu-latest', 'macos-latest']
         # Test multiple Crystal versions
         crystal-version: ['1.10.1', '1.16.0', 'latest']
 
@@ -58,13 +65,13 @@ jobs:
       with:
         executable: ${{ steps.setup-test-env.outputs.executable }}
         home: ${{ steps.setup-test-env.outputs.home }}
-        language-version: 'Crystal ${{ matrix.crystal-version }}'
+        language-version: 'Crystal ${{ matrix.crystal-version }} on ${{ matrix.os }}'
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: test-results-crystal-${{ matrix.crystal-version }}
+        name: test-results-crystal-${{ matrix.crystal-version }}-${{ matrix.os }}
         path: test_output.log
         retention-days: 7
 
