@@ -1,6 +1,11 @@
 name: 'Setup Test Environment'
 description: 'Sets up the test environment for path_helper tests (language-agnostic)'
 
+# Runs on a hosted Ubuntu or macOS runner, where the job is a user with
+# passwordless sudo, and in a container job such as Alpine, where it is already
+# root and there is no sudo or bash. Hence `shell: sh` and no package manager:
+# the suite needs nothing beyond a POSIX shell, the usual utilities and Ruby.
+
 inputs:
   exe-path:
     description: 'Path to the path_helper executable'
@@ -10,35 +15,40 @@ inputs:
 outputs:
   executable:
     description: 'Absolute path of the installed executable under test, to pass to run-shell-tests'
-    value: ${{ steps.copy-executable.outputs.executable }}
+    value: ${{ steps.install.outputs.executable }}
+  home:
+    description: 'Home directory the suite runs in (root''s), to pass to run-shell-tests'
+    value: ${{ steps.install.outputs.home }}
 
 runs:
   using: 'composite'
   steps:
-    - name: Install system dependencies
-      shell: bash
+    - name: Install the suite and the executable under test
+      id: install
+      shell: sh
+      env:
+        EXE_PATH: ${{ inputs.exe-path }}
       run: |
-        sudo apt-get update
-        sudo apt-get install -y bc
+        # The suite writes to /etc, so it runs as root.
+        as_root=""
+        [ "$(id -u)" -eq 0 ] || as_root=sudo
 
-    - name: Set up test directory structure
-      shell: bash
-      run: |
-        sudo mkdir -p /root/.config/paths
-        sudo cp -R spec/fixtures/moredirs/* /root/.config/paths
-        sudo cp -R spec /root/spec
-        sudo cp docker/assets/.ashenv /root/.ashenv
-        sudo mkdir -p /root/exe
-        sudo cp docker/assets/etc-paths /etc/paths
-        sudo chmod +x /root/spec/shell_spec.sh
+        # Root's home comes from the account database rather than $HOME, which
+        # is the runner user's on a hosted runner and /github/home in a
+        # container job: /root on Linux, /var/root on macOS.
+        home=$($as_root sh -c 'cd ~root && pwd')
 
-    - name: Copy executable
-      id: copy-executable
-      shell: bash
-      run: |
-        sudo cp ${{ inputs.exe-path }} /root/exe/path_helper
-        sudo chmod +x /root/exe/path_helper
+        $as_root mkdir -p "$home/exe"
+        $as_root cp -R spec "$home/spec"
+        $as_root chmod +x "$home/spec/shell_spec.sh"
         # The implementation under test is installed under a language-neutral
         # name, so name it explicitly for the test suite rather than leaving it
         # to the suite's default.
-        echo "executable=/root/exe/path_helper" >> "$GITHUB_OUTPUT"
+        $as_root cp "$EXE_PATH" "$home/exe/path_helper"
+        $as_root chmod +x "$home/exe/path_helper"
+        # The expected output assumes this /etc/paths. The suite only fills an
+        # empty one, and a macOS runner already has its own, so replace it.
+        $as_root cp docker/assets/etc-paths /etc/paths
+
+        echo "executable=$home/exe/path_helper" >> "$GITHUB_OUTPUT"
+        echo "home=$home" >> "$GITHUB_OUTPUT"

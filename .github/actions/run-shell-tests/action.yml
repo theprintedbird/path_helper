@@ -1,14 +1,20 @@
 name: 'Run Shell Tests'
 description: 'Runs the shell-based test suite for path_helper'
 
+# Like setup-test-env, this has to run both as a sudo-capable user on a hosted
+# runner and as root in a container job without sudo or bash, so every step is
+# POSIX sh.
+
 inputs:
   language-version:
     description: 'Language version being tested (for reporting)'
     required: true
   executable:
     description: 'Absolute path of the path_helper executable to test (the `executable` output of setup-test-env)'
-    required: false
-    default: '/root/exe/path_helper'
+    required: true
+  home:
+    description: 'Home directory to run the suite in (the `home` output of setup-test-env)'
+    required: true
 
 outputs:
   test-result:
@@ -18,37 +24,44 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Run setup
-      shell: bash
-      env:
-        PATH_HELPER_EXECUTABLE: ${{ inputs.executable }}
-      run: |
-        # sudo does not pass the environment through, so the executable is named
-        # inside the command rather than exported around it. PATH is carried in
-        # the same way: sudo resets it to secure_path, which does not contain the
-        # tool-cache Ruby that `#!/usr/bin/env ruby` needs.
-        sudo bash -c "cd /root && PATH=\"$PATH\" '$PATH_HELPER_EXECUTABLE' --setup --no-lib --quiet"
-        sudo cp -R spec/fixtures/moredirs/* /root/.config/paths
-        # Populate /etc/paths if it's empty and the source file exists
-        if [ ! -s /etc/paths ] && [ -f docker/assets/etc-paths ]; then
-          sudo cp docker/assets/etc-paths /etc/paths
-        fi
+    # The suite does its own --setup and copies its own fixtures after clearing
+    # out any earlier run, so there is nothing to prepare beyond setup-test-env.
     - name: Run tests
       id: run-tests
-      shell: bash
+      shell: sh
       env:
-        PATH_HELPER_DOCKER_INSTANCE: '1'
-        PATH_HELPER_EXECUTABLE: ${{ inputs.executable }}
+        EXECUTABLE: ${{ inputs.executable }}
+        TEST_HOME: ${{ inputs.home }}
       run: |
-        set -o pipefail
-        sudo bash -c "cd /root && PATH=\"$PATH\" PATH_HELPER_DOCKER_INSTANCE=1 PATH_HELPER_EXECUTABLE='$PATH_HELPER_EXECUTABLE' ./spec/shell_spec.sh" 2>&1 | tee test_output.log
+        as_root=""
+        [ "$(id -u)" -eq 0 ] || as_root=sudo
+
+        # sudo resets the environment, so what the suite needs is handed over
+        # through env(1) rather than exported. That includes PATH, since sudo's
+        # secure_path does not contain the tool-cache Ruby that
+        # `#!/usr/bin/env ruby` needs, and HOME, which in a container job is
+        # /github/home rather than root's.
+        # sh has no pipefail, so the suite's status is kept in a file to survive
+        # the pipe into tee. `&& ... ||` rather than a bare command, because
+        # `sh -e` would otherwise stop the group before the status is written.
+        status_file="$RUNNER_TEMP/shell-tests-status"
+        {
+          $as_root env HOME="$TEST_HOME" PATH="$PATH" \
+            PATH_HELPER_DOCKER_INSTANCE=1 PATH_HELPER_EXECUTABLE="$EXECUTABLE" \
+            sh -c 'cd "$HOME" && exec ./spec/shell_spec.sh' 2>&1 \
+            && status=0 || status=$?
+          echo "$status" > "$status_file"
+        } | tee test_output.log
+        exit "$(cat "$status_file")"
 
     - name: Display test failures
       if: failure()
-      shell: bash
+      shell: sh
+      env:
+        LANGUAGE_VERSION: ${{ inputs.language-version }}
       run: |
         echo "========================================"
-        echo "TEST FAILURES - ${{ inputs.language-version }}"
+        echo "TEST FAILURES - $LANGUAGE_VERSION"
         echo "========================================"
         if [ -f test_output.log ]; then
           echo ""
@@ -64,28 +77,29 @@ runs:
 
     - name: Generate test summary
       if: always()
-      shell: bash
+      shell: sh
+      env:
+        LANGUAGE_VERSION: ${{ inputs.language-version }}
       run: |
-        echo "## Test Results for ${{ inputs.language-version }}" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Test Results for $LANGUAGE_VERSION" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
         if [ -f test_output.log ]; then
           # TAP 14: count the test points rather than looking for a summary
           # line, so the counts stay right however many tests the suite grows.
           passed=$(grep -c '^ok ' test_output.log || true)
           failed=$(grep -c '^not ok ' test_output.log || true)
           if grep -q '^1\.\.0 # SKIP' test_output.log; then
-            echo ":fast_forward: **Suite skipped** - see the output below" >> $GITHUB_STEP_SUMMARY
+            echo ":fast_forward: **Suite skipped** - see the output below" >> "$GITHUB_STEP_SUMMARY"
           elif [ "$failed" -eq 0 ] && [ "$passed" -gt 0 ]; then
-            echo ":white_check_mark: **All $passed tests passed**" >> $GITHUB_STEP_SUMMARY
+            echo ":white_check_mark: **All $passed tests passed**" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo ":x: **$failed of $((passed + failed)) tests failed**" >> $GITHUB_STEP_SUMMARY
+            echo ":x: **$failed of $((passed + failed)) tests failed**" >> "$GITHUB_STEP_SUMMARY"
           fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### TAP output" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          cat test_output.log >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### TAP output" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat test_output.log >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
         else
-          echo ":warning: **No test output found**" >> $GITHUB_STEP_SUMMARY
+          echo ":warning: **No test output found**" >> "$GITHUB_STEP_SUMMARY"
         fi
-

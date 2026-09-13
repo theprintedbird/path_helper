@@ -826,7 +826,6 @@ The project uses GitHub Actions for continuous integration. The workflow runs on
 - **Ruby Version Matrix**: Tests run against multiple Ruby versions (2.7, 3.3, 4.0.6)
 - **Manual Triggers**: Workflow can be manually triggered via `workflow_dispatch`
 - **Concurrency Control**: Duplicate runs are cancelled when new commits are pushed
-- **APT Caching**: Dependencies are cached to speed up builds
 - **Test Summaries**: Results are displayed in the GitHub Actions UI
 - **Artifact Retention**: Test results are kept for 7 days
 
@@ -836,10 +835,13 @@ The main workflow file is located at `.github/workflows/test-ruby.yml`. It:
 
 1. Checks out the code
 2. Sets up the specified Ruby version
-3. Installs dependencies (bc)
-4. Configures the test environment
-5. Runs the shell-based test suite
-6. Generates test summaries and uploads artifacts
+3. Installs the suite and the executable under test in root's home (`setup-test-env`)
+4. Runs the shell-based test suite as root (`run-shell-tests`)
+5. Generates test summaries and uploads artifacts
+
+The two composite actions in `.github/actions/` are plain POSIX `sh` and only use `sudo` when
+they aren't already root, so they work on hosted Ubuntu and macOS runners and in an Alpine
+container job.
 
 ### Contributing to CI/CD
 

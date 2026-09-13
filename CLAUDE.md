@@ -88,11 +88,14 @@ Each Dockerfile sets `PATH_HELPER_EXECUTABLE` to name the implementation under t
 `/root/exe/path_helper` for Ruby, `/root/bin/path_helper` for Crystal. That matters for the Crystal
 image, which also installs Ruby (the suite's timing helper shells out to `ruby`) and keeps the Ruby
 script at `/root/exe/path_helper`: without the variable the suite's default of `$PWD/exe/path_helper`
-would silently test Ruby instead. CI installs the implementation under test at `/root/exe/path_helper`
-whatever the language (`.github/actions/setup-test-env`), and that action's `executable` output is
-passed into `run-shell-tests`, which sets `PATH_HELPER_EXECUTABLE` for both the `--setup` call and the
-suite — `sudo` drops the environment, so the value is named inside each `sudo bash -c` string rather
-than exported around it.
+would silently test Ruby instead. CI installs the suite and the implementation under test in root's
+home — `~root/exe/path_helper` whatever the language, `/root` on Linux and `/var/root` on macOS —
+via `.github/actions/setup-test-env`, and that action's `executable` and `home` outputs are passed
+into `run-shell-tests`, which runs the suite as root with `HOME` and `PATH_HELPER_EXECUTABLE` set. Both
+actions are POSIX `sh` with no package manager, and use `sudo` only when not already root, so the same
+steps run on a hosted Ubuntu or macOS runner and in a root container job without sudo or bash (Alpine).
+`sudo` drops the environment, so the variables (and `PATH`, for the tool-cache Ruby) are handed over
+through `env(1)` rather than exported around it. The suite does its own `--setup`, so the actions don't.
 
 CI: `.github/workflows/test-ruby.yml` (Ruby matrix) and `test-crystal.yml`, both driving the two
 composite actions in `.github/actions/`. They run on `master` and `dev`.

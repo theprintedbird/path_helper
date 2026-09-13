@@ -48,6 +48,7 @@ jobs:
       uses: ./.github/actions/run-shell-tests
       with:
         executable: ${{ steps.setup-test-env.outputs.executable }}
+        home: ${{ steps.setup-test-env.outputs.home }}
         language-version: 'Ruby ${{ matrix.ruby-version }}'
 
     - name: Upload test results

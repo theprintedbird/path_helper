@@ -23,7 +23,7 @@ The goal is to support multiple language implementations (Ruby, Crystal, Go) whi
 - Provide unified reporting and status checks
 
 ### Dependencies
-- `bc` package required for tests (used by `spec/shell_spec.sh` timing)
+- `ruby` required for tests (used by the timing helper in `spec/lib/test_helpers.sh`)
 - Shell test framework in `spec/shell_spec.sh`
 - Test fixtures in `spec/fixtures/`
 - Docker setup in `docker/` directory
@@ -67,7 +67,6 @@ Language-Agnostic Infrastructure
 
 ###### Ready
 
-- Make `run-shell-tests`/`setup-test-env` work on macOS runners and in an Alpine container. They currently assume Ubuntu with sudo: `apt-get install bc`, everything under `/root` via `sudo bash -c` (so a Mac would test root's home, not `/Users/runner`), no `sudo`/`bash` in Alpine, `crystal-lang/install-crystal` has no Alpine support (use a `crystallang/crystal:*-alpine` image), and `/etc` is `/private/etc` on macOS. `ci.yml` is not a prerequisite: add an OS matrix axis to `test-ruby.yml`/`test-crystal.yml` now and fold them into `ci.yml` later <!-- id: card_01M2CH8809WEBW5WDVMC6D6J70, ready: 1789268873 -->
 - Run the suite in CI on ubuntu-latest, alpine and macOS-latest (was: Add tests for different OS environments (Ubuntu, Alpine, macOS)) <!-- backlog: 1763431283, depends_on: [card_01M2CH8809WEBW5WDVMC6D6J70], id: card_01M2CH881VFZB6Y03HGZ0RX4F5, ready: 1789267594 -->
 - Add a `macOS-latest` job to `test-ruby.yml` and `test-crystal.yml` (the only place the Darwin fixtures get checked, since the default search order comes from `RUBY_PLATFORM`/the compile target and can't be overridden) <!-- depends_on: [card_01M2CH8809WEBW5WDVMC6D6J70], id: card_01M2CH88W6TF6BFGHE9P7V29N9, ready: 1789268873 -->
 - Add an Alpine container job to CI so CI matches the local `ruby:*-alpine` images <!-- id: card_01M2CH88QHYWE5ECP7NG0K70RQ, ready: 1789268873 -->
@@ -95,6 +94,7 @@ Language-Agnostic Infrastructure
 
 
 ###### In Progress
+
 
 
 
@@ -166,3 +166,4 @@ Language-Agnostic Infrastructure
 - Create `spec/lib/test_helpers.sh` with common functions <!-- done: 1789112904, id: card_01M2CH883E3ZPDN8MXJFFM15EW, in_progress: 1789097066, ready: 1789096800 -->
 - Split tests into modular files under `spec/tests/` <!-- done: 1789112927, id: card_01M2CH8842DD3BFTPY8RFJFMGT, in_progress: 1789097066, ready: 1789096800 -->
 - Update the test runner to allow test names as arguments for single-test runs <!-- done: 1789112976, id: card_01M2CH88CQNN55QSWQ04DXR3NS, ready: 1789097636 -->
+- Make `run-shell-tests`/`setup-test-env` work on macOS runners and in an Alpine container. They currently assume Ubuntu with sudo: `apt-get install bc`, everything under `/root` via `sudo bash -c` (so a Mac would test root's home, not `/Users/runner`), no `sudo`/`bash` in Alpine, `crystal-lang/install-crystal` has no Alpine support (use a `crystallang/crystal:*-alpine` image), and `/etc` is `/private/etc` on macOS. `ci.yml` is not a prerequisite: add an OS matrix axis to `test-ruby.yml`/`test-crystal.yml` now and fold them into `ci.yml` later <!-- done: 1789277153, id: card_01M2CH8809WEBW5WDVMC6D6J70, in_progress: 1789274797, ready: 1789268873 -->
