@@ -39,16 +39,16 @@
 - Add test for non-existent paths in path files
 - Add test for Unicode characters in paths
 
-## Phase 4: Test Infrastructure
+## DONE Phase 4: Test Infrastructure
 
-- Create `spec/lib/test_helpers.sh` with common functions
-- Split tests into modular files under `spec/tests/`
-- Create `setup_test.sh` for setup functionality tests
-- Create `path_test.sh` for PATH generation tests
-- Create `exit_code_test.sh` for exit code tests
-- Create `error_test.sh` for error handling tests
-- Create `edge_case_test.sh` for edge cases
-- Update main runner to source and execute modular test files
+- DONE Create `spec/lib/test_helpers.sh` with common functions
+- DONE Split tests into modular files under `spec/tests/`
+- DONE Create `setup_test.sh` for setup functionality tests
+- DONE Create `path_test.sh` for PATH generation tests
+- DONE Create `exit_code_test.sh` for exit code tests
+- DONE Create `error_test.sh` for error handling tests
+- DONE Create `edge_case_test.sh` for edge cases
+- DONE Update main runner to source and execute modular test files
 - Add golden file generation mode via `GENERATE_GOLDEN` environment variable
 
 ## Phase 5: Platform Support
@@ -59,6 +59,29 @@
 - Create macOS-specific fixtures with Library paths
 - Add platform detection to test runner
 - Update fixture paths to use platform-specific directories
+
+### Running the suite on each OS
+
+- First: make `run-shell-tests`/`setup-test-env` work on macOS runners and in an Alpine container (no apt, sudo or `/root` assumptions). `ci.yml` is not a prerequisite
+- Run the suite in CI on ubuntu-latest, alpine and macos-latest
+- Add a `macos-latest` job to `test-ruby.yml` and `test-crystal.yml` (Darwin fixtures are only checkable on a real Mac)
+- Add an Alpine container job to CI so CI matches the local images
+
+### OS-specific tests
+
+- Default search order per OS, and `--lib`/`--config` defaults on each
+- `--no-lib` against a real `~/Library/Paths`
+- APFS case-insensitivity: `Paths`/`paths` style name clashes
+- Unicode filename normalisation (NFC/NFD) and its effect on `paths.d` sort order
+- `/etc` and `/tmp` as symlinks to `/private/...`: debug output and "does not exist" report
+- Home directory differences (`/Users/<name>`, `/home/runner`, `/root`): `{{HOME}}`, `--setup` output, `~` expansion
+- Harness under busybox `sh` (Alpine)
+- Harness on BSD userland (macOS): `mktemp`, and no GNU-only `sed -i`/`stat`/`readlink`/`date +%N`
+- Harness when `ruby` (timing helper) is missing; remove the apparently unused `bc` dependency
+- Crystal on musl vs glibc
+- arm64 vs x86_64
+- Old macOS system Ruby
+- Ordering survives Apple's `/usr/libexec/path_helper` in a macOS login shell (overlaps with shell integration tests)
 
 ## Phase 6: CI/CD and Documentation
 

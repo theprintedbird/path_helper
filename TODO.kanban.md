@@ -44,7 +44,6 @@ Language-Agnostic Infrastructure
 - Create template for adding new language implementations <!-- backlog: 1763431283 -->
 - Document multi-language testing strategy <!-- backlog: 1763431283 -->
 - Add shell integration tests (bash, zsh, sh) <!-- backlog: 1763431283 -->
-- Add tests for different OS environments (Ubuntu, Alpine, macOS) <!-- backlog: 1763431283 -->
 - Add edge case tests for path handling <!-- backlog: 1763431283 -->
 - Add validation tests for setup command <!-- backlog: 1763431283 -->
 - Implement `test-go.yml` workflow (when Go implementation exists) <!-- backlog: 1763431283 -->
@@ -63,8 +62,33 @@ Language-Agnostic Infrastructure
 - Add developer setup script <!-- backlog: 1763431283 -->
 - --no-lib coverage needs `~/Library/Paths` to be set up <!-- backlog: 1788768670 -->
 - Add automated changelog generation <!-- ready: 1788877330 -->
+- Add golden file generation mode via `GENERATE_GOLDEN` environment variable <!-- backlog: 1789267516 -->
 
 ###### Ready
+
+- Do first, before the macOS and Alpine CI jobs: make `run-shell-tests`/`setup-test-env` work on macOS runners and in an Alpine container. They currently assume Ubuntu with sudo: `apt-get install bc`, everything under `/root` via `sudo bash -c` (so a Mac would test root's home, not `/Users/runner`), no `sudo`/`bash` in Alpine, `crystal-lang/install-crystal` has no Alpine support (use a `crystallang/crystal:*-alpine` image), and `/etc` is `/private/etc` on macOS. `ci.yml` is not a prerequisite: add an OS matrix axis to `test-ruby.yml`/`test-crystal.yml` now and fold them into `ci.yml` later <!-- ready: 1789268873 -->
+- Run the suite in CI on ubuntu-latest, alpine and macOS-latest (was: Add tests for different OS environments (Ubuntu, Alpine, macOS)) <!-- backlog: 1763431283, ready: 1789267594 -->
+- Add a `macOS-latest` job to `test-ruby.yml` and `test-crystal.yml` (the only place the Darwin fixtures get checked, since the default search order comes from `RUBY_PLATFORM`/the compile target and can't be overridden) <!-- ready: 1789268873 -->
+- Add an Alpine container job to CI so CI matches the local `ruby:*-alpine` images <!-- ready: 1789268873 -->
+- Test the default search order per OS: macOS `[:lib, :config, :etc]` (config off unless `--config`), Linux `[:config, :lib, :etc]` (lib off unless `--lib`) <!-- ready: 1789268873 -->
+- Test `--lib`/`--config` enabling the second segment on each OS, and `--no-lib` against a real `~/Library/Paths` (covers the backlog item "--no-lib coverage needs `~/Library/Paths`") <!-- ready: 1789268873 -->
+- macOS file-system: test case-insensitive APFS name clashes (e.g. `Paths` vs `paths`, `paths.d` entries differing only by case) <!-- ready: 1789268873 -->
+- macOS file-system: check the Unicode path test and `paths.d` sort order survive Unicode normalisation of filenames (NFC vs NFD) <!-- ready: 1789268873 -->
+- macOS file-system: check `/etc` and `/tmp` being symlinks to `/private/...` doesn't change debug output or the "does not exist" report <!-- ready: 1789268873 -->
+- Home directory: verify `{{HOME}}` substitution, `--setup` output and `~` expansion with `/Users/<name>` (macOS), `/home/runner` (CI) and `/root` (Docker) <!-- ready: 1789268873 -->
+- Harness portability: make `spec/shell_spec.sh` and `spec/lib/test_helpers.sh` run under busybox `sh` on Alpine, or install bash in the image and document it <!-- ready: 1789268873 -->
+- Harness portability: check the suite on BSD userland (macOS) — `mktemp`/`mktemp -d` are used today; keep `sed -i`, `stat`, `readlink` and `date +%N` out <!-- ready: 1789268873 -->
+- Harness portability: check up front for the `ruby` the timing helper needs and `Bail out!` if missing; `bc` no longer appears in `spec/`, so drop it from `setup-test-env` and the Dependencies note if it's truly unused <!-- ready: 1789268873 -->
+- Runtime/arch: build and test Crystal against musl (Alpine) and glibc (Ubuntu) <!-- ready: 1789268873 -->
+- Runtime/arch: run the suite on arm64 as well as x86_64 (`macOS-latest` is arm64) <!-- ready: 1789268873 -->
+- Runtime/arch: test against the old system Ruby shipped with macOS, or document the minimum Ruby supported there <!-- ready: 1789268873 -->
+- macOS login shell: show the ordering from `path_helper` survives `/etc/zprofile` running Apple's `/usr/libexec/path_helper` after `.zshenv` (overlaps with the backlog item "Add shell integration tests (bash, zsh, sh)", which stays separate because it is about shells, not OSes) <!-- ready: 1789268873 -->
+- Create `spec/fixtures/linux/` directory structure <!-- backlog: 1789267643, ready: 1789267705 -->
+- Create `spec/fixtures/darwin/` directory structure <!-- backlog: 1789267653, ready: 1789267708 -->
+- Move current fixtures to linux subdirectory <!-- backlog: 1789267661, ready: 1789267711 -->
+- Create macOS-specific fixtures with Library paths <!-- backlog: 1789267671, ready: 1789267720 -->
+- Add platform detection to test runner <!-- backlog: 1789267681, ready: 1789267727 -->
+- Update fixture paths to use platform-specific directories <!-- backlog: 1789267692, ready: 1789267729 -->
 
 
 
