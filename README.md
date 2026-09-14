@@ -59,7 +59,7 @@ It's just a script with no dependencies other than Ruby.
 - Make sure it has the correct permissions (`chmod +x`)
 - Have a look at the help by running it with `-h`.
 - Run the `--setup` (take note of the `--lib` and `--config` and their `--no-` counterparts)
-- Copy and paste the bit setup tells you to, and put it in your `~/.zshenv` or `~/.bashenv`
+- Copy and paste the bit setup tells you to, and put it in your `~/.zprofile` or `~/.bash_profile`
 - Find your life is so much better now it's easy to manage your paths
 
 *It doesn't need to be in* `/usr/local/bin`, or any special place, just `chmod +x` it and call it by the full path and it'll plop out a string for you.
@@ -434,8 +434,8 @@ $ export PATH
 but you'll probably use the helpful instructions `--setup` provides at the end of setting up:
 
 ```shell
-# Put this in your ~/.bashrc or your ~/.zshenv
-if [ -x /Users/$USER/Projects/path_helper/exe/path_helper ]; then
+# Put this in your ~/.bash_profile or your ~/.zprofile
+if [ -x PATH_TO_THE_EXE/path_helper ]; then
   C_INCLUDE_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -c)
   DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fallback-fram)
   DYLD_FALLBACK_LIBRARY_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fallback-lib)
