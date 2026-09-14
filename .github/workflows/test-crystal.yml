@@ -26,7 +26,6 @@ jobs:
     # search order comes from the platform (the compile target) and can't be
     # overridden. Until spec/fixtures has Darwin results, the expected output is
     # Linux's, so the macOS leg is reported but doesn't fail the workflow.
-    continue-on-error: ${{ matrix.os == 'macos-latest' }}
     timeout-minutes: 30
     env:
       PATH_HELPER_DOCKER_INSTANCE: 'true'

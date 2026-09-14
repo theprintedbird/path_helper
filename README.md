@@ -644,6 +644,13 @@ and `path` on 2.7, 3.3 and 4.0.6.
 their usual order regardless of the order they are passed in.
 A name with no matches halts the run with `Bail out!` and exit status 1.
 
+**Which shell runs it:** the suite is plain `sh`, run by whatever `/bin/sh` is —
+busybox `ash` in the Alpine images (which have no bash), `dash` in the glibc
+Crystal image and on Ubuntu, bash-as-`sh` on macOS. The only thing it relies on
+beyond POSIX is `local`, which all of those support; a shell without it gets a
+`Bail out!`. Because some shells field-split the value in `local x=$(...)`, such
+assignments are written `local x="$(...)"`.
+
 **List available images:**
 
 ```shell

@@ -75,6 +75,10 @@ compile target.
 - `spec/lib/test_helpers.sh` — the TAP reporting, `cleanup`, and every assertion (`test_a_path`,
   `expect_failure`, ...). It only defines things; `spec/shell_spec.sh` sources it (located via `$0`),
   holds the guard, and then sources the test files.
+- The harness is plain `sh` run by whatever `/bin/sh` is — busybox ash in the Alpine images (no bash
+  there), dash in the glibc Crystal image, bash-as-sh on macOS. `local` is the one non-POSIX feature
+  used; `spec/shell_spec.sh` bails out on a shell without it. Write `local x="$(...)"`, quoted, since
+  `local` isn't an assignment to POSIX and some shells field-split its value.
 - `spec/tests/*_test.sh` — the tests, sourced (not executed, since the TAP counters are shell globals)
   in this order: `setup_test.sh` (`--setup`, and the symlinks, dangling link, subdirectory and fifo
   every later file relies on — so it must stay first), `path_test.sh` (each env var plain and

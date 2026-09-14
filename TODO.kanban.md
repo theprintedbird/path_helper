@@ -64,33 +64,25 @@ Language-Agnostic Infrastructure
 - --no-lib coverage needs `~/Library/Paths` to be set up <!-- backlog: 1788768670, id: card_01M2CH8870QGWRFJ4VHNA0D2KS -->
 - Add automated changelog generation <!-- id: card_01M2CH87XM5GEB37EGFC1Z945V, ready: 1788877330 -->
 - Add golden file generation mode via `GENERATE_GOLDEN` environment variable <!-- backlog: 1789267516, id: card_01M2CH884TEX2CZP8RM345J89Z -->
+- docker/install-ruby.sh still runs --setup --no-lib and copies fixtures into ~/.config/paths when the image is built. Remove redundant code. <!-- backlog: 1789455144, id: card_01M2HXD5ZVEAV13ASBJNXV2SG7 -->
 
 ###### Ready
 
-- Add an Alpine container job to CI so CI matches the local `ruby:*-alpine` images <!-- id: card_01M2CH88QHYWE5ECP7NG0K70RQ, ready: 1789268873 -->
-- Test `--lib`/`--config` enabling the second segment on each OS, and `--no-lib` against a real `~/Library/Paths` (covers the backlog item "--no-lib coverage needs `~/Library/Paths`") <!-- id: card_01M2CH88B8M17GETM9TZ5VHC10, ready: 1789268873 -->
 - macOS file-system: test case-insensitive APFS name clashes (e.g. `Paths` vs `paths`, `paths.d` entries differing only by case) <!-- id: card_01M2CH889WK0DNQW99H11YZYA7, ready: 1789268873 -->
-- macOS file-system: check the Unicode path test and `paths.d` sort order survive Unicode normalisation of filenames (NFC vs NFD) <!-- id: card_01M2CH88SFE3YTZVTKKXG331RG, ready: 1789268873 -->
-- macOS file-system: check `/etc` and `/tmp` being symlinks to `/private/...` doesn't change debug output or the "does not exist" report <!-- id: card_01M2CH882ZS1F9W6DAB8452976, ready: 1789268873 -->
-- Home directory: verify `{{HOME}}` substitution, `--setup` output and `~` expansion with `/Users/<name>` (macOS), `/home/runner` (CI) and `/root` (Docker) <!-- id: card_01M2CH88W08FP1P0TD81PHZ54Z, ready: 1789268873 -->
-- Harness portability: make `spec/shell_spec.sh` and `spec/lib/test_helpers.sh` run under busybox `sh` on Alpine, or install bash in the image and document it <!-- id: card_01M2CH88RNFB00Z6B0FFHAWZMQ, ready: 1789268873 -->
 - Harness portability: check the suite on BSD userland (macOS) — `mktemp`/`mktemp -d` are used today; keep `sed -i`, `stat`, `readlink` and `date +%N` out <!-- id: card_01M2CH88J3N85JJYVK4EYAFYFB, ready: 1789268873 -->
-- Harness portability: check up front for the `ruby` the timing helper needs and `Bail out!` if missing; `bc` no longer appears in `spec/`, so drop it from `setup-test-env` and the Dependencies note if it's truly unused <!-- id: card_01M2CH87XSSB7Q55VS049H5ATH, ready: 1789268873 -->
-- Runtime/arch: build and test Crystal against musl (Alpine) and glibc (Ubuntu) <!-- id: card_01M2CH88J9PYY3GFP6VG1CQPRE, ready: 1789268873 -->
 - Runtime/arch: run the suite on arm64 as well as x86_64 (`macOS-latest` is arm64) <!-- id: card_01M2CH88S8XTPFHA0M94SRY0T4, ready: 1789268873 -->
 - Runtime/arch: test against the old system Ruby shipped with macOS, or document the minimum Ruby supported there <!-- id: card_01M2CH88R4CMWBQ65KGX13PC38, ready: 1789268873 -->
 - macOS login shell: show the ordering from `path_helper` survives `/etc/zprofile` running Apple's `/usr/libexec/path_helper` after `.zshenv` (overlaps with the backlog item "Add shell integration tests (bash, zsh, sh)", which stays separate because it is about shells, not OSes) <!-- id: card_01M2CH889GJT186S6KRJEY9ZGD, ready: 1789268873 -->
-- Create `spec/fixtures/linux/` directory structure <!-- backlog: 1789267643, id: card_01M2CH880XFA4B8JBWCFD3VVH1, ready: 1789267705 -->
-- Move current fixtures to linux subdirectory <!-- backlog: 1789267661, id: card_01M2CH8854KA6470A5P2WZS37B, ready: 1789267711 -->
+- Harness portability: check up front for the `ruby` the timing helper needs and `Bail out!` if missing; `bc` no longer appears in `spec/`, so drop it from `setup-test-env` and the Dependencies note if it's truly unused <!-- id: card_01M2CH87XSSB7Q55VS049H5ATH, in_progress: 1789447331, ready: 1789455429 -->
+- Test `--lib`/`--config` enabling the second segment on each OS, and `--no-lib` against a real `~/Library/Paths` (covers the backlog item "--no-lib coverage needs `~/Library/Paths`") <!-- id: card_01M2CH88B8M17GETM9TZ5VHC10, in_progress: 1789454931, ready: 1789455435 -->
 
 
 
 
 ###### In Progress
 
-- Add a `macOS-latest` job to `test-ruby.yml` and `test-crystal.yml` (the only place the Darwin fixtures get checked, since the default search order comes from `RUBY_PLATFORM`/the compile target and can't be overridden) <!-- depends_on: [card_01M2CH8809WEBW5WDVMC6D6J70], id: card_01M2CH88W6TF6BFGHE9P7V29N9, in_progress: 1789277274, ready: 1789268873 -->
 - Run the suite in CI on ubuntu-latest, alpine and macOS-latest (was: Add tests for different OS environments (Ubuntu, Alpine, macOS)) <!-- backlog: 1763431283, depends_on: [card_01M2CH8809WEBW5WDVMC6D6J70], id: card_01M2CH881VFZB6Y03HGZ0RX4F5, in_progress: 1789277287, ready: 1789267594 -->
-- Test the default search order per OS: macOS `[:lib, :config, :etc]` (config off unless `--config`), Linux `[:config, :lib, :etc]` (lib off unless `--lib`) <!-- id: card_01M2CH88QEBJCFBBT4WEGH01WN, in_progress: 1789279254, ready: 1789268873 -->
+- Runtime/arch: build and test Crystal against musl (Alpine) and glibc (Ubuntu) <!-- id: card_01M2CH88J9PYY3GFP6VG1CQPRE, in_progress: 1789380873, ready: 1789268873 -->
 
 
 
@@ -98,6 +90,7 @@ Language-Agnostic Infrastructure
 
 ###### Done
 
+- Harness portability: make `spec/shell_spec.sh` and `spec/lib/test_helpers.sh` run under busybox `sh` on Alpine, or install bash in the image and document it <!-- done: 1789461968, id: card_01M2CH88RNFB00Z6B0FFHAWZMQ, in_progress: 1789380861, ready: 1789268873 -->
 - Add test for paths with special characters <!-- done: 1788943142, id: card_01M2CH8832TWQYBBCAG99M3DAA, in_progress: 1788937966, ready: 1788854437 -->
 - Add test for paths with spaces <!-- done: 1788937142, id: card_01M2CH88ACQXXNP4KP3VPDGQ8X, in_progress: 1788936901, ready: 1788854437 -->
 - Add test for Windows line endings (CRLF) <!-- done: 1788936567, id: card_01M2CH88BJ8THSJ9X5QE149TBW, in_progress: 1788936410, ready: 1788854437 -->
@@ -166,5 +159,12 @@ Language-Agnostic Infrastructure
 - Make `run-shell-tests`/`setup-test-env` work on macOS runners and in an Alpine container. They currently assume Ubuntu with sudo: `apt-get install bc`, everything under `/root` via `sudo bash -c` (so a Mac would test root's home, not `/Users/runner`), no `sudo`/`bash` in Alpine, `crystal-lang/install-crystal` has no Alpine support (use a `crystallang/crystal:*-alpine` image), and `/etc` is `/private/etc` on macOS. `ci.yml` is not a prerequisite: add an OS matrix axis to `test-ruby.yml`/`test-crystal.yml` now and fold them into `ci.yml` later <!-- done: 1789277153, id: card_01M2CH8809WEBW5WDVMC6D6J70, in_progress: 1789274797, ready: 1789268873 -->
 - Create `spec/fixtures/darwin/` directory structure <!-- backlog: 1789267653, done: 1789279506, id: card_01M2CH88DZABAN9WV2F6SP2QE3, in_progress: 1789279322, ready: 1789267708 -->
 - Add platform detection to test runner <!-- backlog: 1789267681, done: 1789279943, id: card_01M2CH88PH5DDPKSSMG4E3NYG0, ready: 1789267727 -->
-- Update fixture paths to use platform-specific directories <!-- backlog: 1789267692, done: 1789280382, id: card_01M2CH887AHC847CEJG31F71PK, ready: 1789267729 -->
 - Create macOS-specific fixtures with Library paths <!-- backlog: 1789267671, done: 1789297640, id: card_01M2CH88K67Q43ZZHX7NS1RP0Q, ready: 1789267720 -->
+- Add a `macOS-latest` job to `test-ruby.yml` and `test-crystal.yml` (the only place the Darwin fixtures get checked, since the default search order comes from `RUBY_PLATFORM`/the compile target and can't be overridden) <!-- depends_on: [card_01M2CH8809WEBW5WDVMC6D6J70], done: 1789380656, id: card_01M2CH88W6TF6BFGHE9P7V29N9, in_progress: 1789277274, ready: 1789268873 -->
+- Note: No longer needed, uses shared fixtures. Move current fixtures to linux subdirectory <!-- backlog: 1789267661, done: 1789380803, id: card_01M2CH8854KA6470A5P2WZS37B, ready: 1789267711 -->
+- macOS file-system: check `/etc` and `/tmp` being symlinks to `/private/...` doesn't change debug output or the "does not exist" report <!-- done: 1789380895, id: card_01M2CH882ZS1F9W6DAB8452976, ready: 1789268873 -->
+- macOS file-system: check the Unicode path test and `paths.d` sort order survive Unicode normalisation of filenames (NFC vs NFD) <!-- done: 1789380899, id: card_01M2CH88SFE3YTZVTKKXG331RG, ready: 1789268873 -->
+- Home directory: verify `{{HOME}}` substitution, `--setup` output and `~` expansion with `/Users/<name>` (macOS), `/home/runner` (CI) and `/root` (Docker) <!-- done: 1789380905, id: card_01M2CH88W08FP1P0TD81PHZ54Z, ready: 1789268873 -->
+- Note: No longer needed, uses shared fixtures - Create `spec/fixtures/linux/` directory structure <!-- backlog: 1789267643, done: 1789454747, id: card_01M2CH880XFA4B8JBWCFD3VVH1, in_progress: 1789449476, ready: 1789267705 -->
+- Note: no longer needed, covered by card_01M2CH88B8M17GETM9TZ5VHC10. Test the default search order per OS: macOS `[:lib, :config, :etc]` (config off unless `--config`), Linux `[:config, :lib, :etc]` (lib off unless `--lib`) <!-- done: 1789454992, id: card_01M2CH88QEBJCFBBT4WEGH01WN, in_progress: 1789449527, ready: 1789268873 -->
+- Update fixture paths to use platform-specific directories <!-- backlog: 1789267692, done: 1789455396, id: card_01M2CH887AHC847CEJG31F71PK, in_progress: 1789449543, ready: 1789267729 -->

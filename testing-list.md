@@ -9,7 +9,7 @@
 - Standardize debug output format to be language-agnostic (remove Ruby hash syntax)
 - Adopt TAP (Test Anything Protocol) output format for test results
 
-## DONE Phase 2: Core Test Coverage
+## *DONE* Phase 2: Core Test Coverage
 
 - Add exit code tests for all scenarios (success, failure, help, version)
 - Add `--version` output test
@@ -21,7 +21,7 @@
 - Add append mode tests (`-p $PATH`)
 - Add debug output tests for all 6 path types (currently only 2)
 
-## DONE Phase 3: Edge Case Coverage
+## *DONE* Phase 3: Edge Case Coverage
 
 - Add empty input file handling test
 - Add test for files with blank lines
@@ -39,7 +39,7 @@
 - Add test for non-existent paths in path files
 - Add test for Unicode characters in paths
 
-## DONE Phase 4: Test Infrastructure
+## *DONE* Phase 4: Test Infrastructure
 
 - DONE Create `spec/lib/test_helpers.sh` with common functions
 - DONE Split tests into modular files under `spec/tests/`
@@ -49,18 +49,17 @@
 - DONE Create `error_test.sh` for error handling tests
 - DONE Create `edge_case_test.sh` for edge cases
 - DONE Update main runner to source and execute modular test files
-- Add golden file generation mode via `GENERATE_GOLDEN` environment variable
 
 ## Phase 5: Platform Support
 
-- Create `spec/fixtures/linux/` directory structure
-- Create `spec/fixtures/darwin/` directory structure
-- Move current fixtures to linux subdirectory
-- Create macOS-specific fixtures with Library paths
-- Add platform detection to test runner
-- Update fixture paths to use platform-specific directories
+- DONE Create `spec/fixtures/linux/` directory structure
+- DONE Create `spec/fixtures/darwin/` directory structure
+- DONE Move current fixtures to linux subdirectory
+- DONE Create macOS-specific fixtures with Library paths
+- DONE Add platform detection to test runner
+- DONE Update fixture paths to use platform-specific directories
 
-### Running the suite on each OS
+### *DONE* Running the suite on each OS
 
 - First: make `run-shell-tests`/`setup-test-env` work on macOS runners and in an Alpine container (no apt, sudo or `/root` assumptions). `ci.yml` is not a prerequisite
 - Run the suite in CI on ubuntu-latest, alpine and macos-latest
@@ -72,10 +71,10 @@
 - Default search order per OS, and `--lib`/`--config` defaults on each
 - `--no-lib` against a real `~/Library/Paths`
 - APFS case-insensitivity: `Paths`/`paths` style name clashes
-- Unicode filename normalisation (NFC/NFD) and its effect on `paths.d` sort order
-- `/etc` and `/tmp` as symlinks to `/private/...`: debug output and "does not exist" report
-- Home directory differences (`/Users/<name>`, `/home/runner`, `/root`): `{{HOME}}`, `--setup` output, `~` expansion
-- Harness under busybox `sh` (Alpine)
+- DONE Unicode filename normalisation (NFC/NFD) and its effect on `paths.d` sort order
+- DONE `/etc` and `/tmp` as symlinks to `/private/...`: debug output and "does not exist" report
+- DONE Home directory differences (`/Users/<name>`, `/home/runner`, `/root`): `{{HOME}}`, `--setup` output, `~` expansion
+- DONE Harness under busybox `sh` (Alpine), and dash
 - Harness on BSD userland (macOS): `mktemp`, and no GNU-only `sed -i`/`stat`/`readlink`/`date +%N`
 - Harness when `ruby` (timing helper) is missing; remove the apparently unused `bc` dependency
 - Crystal on musl vs glibc

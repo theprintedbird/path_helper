@@ -39,6 +39,16 @@ SPEC_DIR=$(cd "$(dirname "$0")" && pwd)
 echo "TAP version 14"
 tap_comment "Platform: $PLATFORM"
 
+# The suite runs under whatever /bin/sh is: busybox ash on Alpine (there is no
+# bash in the images), dash on Debian and Ubuntu, bash-as-sh on macOS. The one
+# thing it needs beyond POSIX is `local`, which all of those have, so a shell
+# without it is refused here rather than left to leak each helper's variables
+# into the next.
+if ! (tap_local_check(){ local x=1; }; tap_local_check) 2>/dev/null; then
+	echo "Bail out! this shell has no 'local', which spec/lib/test_helpers.sh needs"
+	exit 1
+fi
+
 # --- Test files -------------------------------------------------------------
 
 # Every test file, in the order they run. The tests share the TAP counters, so

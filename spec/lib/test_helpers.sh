@@ -5,6 +5,10 @@
 # The functions expect EXECUTABLE to name the implementation under test, and
 # the fixtures should be relative to the working directory, so run the suite
 # from the project root.
+#
+# This is plain sh plus `local` (see the check in spec/shell_spec.sh), and runs
+# under busybox ash, dash and bash-as-sh. A `local x=$(...)` is quoted on the
+# right: `local` is not an assignment to POSIX, so a shell may field-split it.
 
 # --- TAP output -------------------------------------------------------------
 
@@ -201,18 +205,18 @@ test_a_path(){
 	local description="$1"
 	local output_file="$2"
 	shift 2
-	local actual=$(mktemp)
-	local expected=$(mktemp)
-	local difference=$(mktemp)
-	local noise=$(mktemp)
+	local actual="$(mktemp)"
+	local expected="$(mktemp)"
+	local difference="$(mktemp)"
+	local noise="$(mktemp)"
 
 	# Measured around the executable alone, not the comparison. Reported in
 	# milliseconds; this includes the startup time of the ruby process that
 	# takes the closing reading -- a constant offset of a few tens of
 	# milliseconds, uniform across runs and platforms.
-	local start=$(get_time_ns)
+	local start="$(get_time_ns)"
 	"$EXECUTABLE" "${@}" > "$actual" 2> "$noise"
-	local end=$(get_time_ns)
+	local end="$(get_time_ns)"
 
 	# A run can succeed and still output to STDERR
 	# For example, a line dropped for including a colon is
@@ -228,7 +232,7 @@ test_a_path(){
 	# are not tied to the user the tests happen to run as. Any literal $HOME in
 	# a fixture is left alone: that comes from the input files and is expected
 	# in the output verbatim.
-	local fixture=$(fixture_path "$output_file")
+	local fixture="$(fixture_path "$output_file")"
 	sed "s|{{HOME}}|$HOME|g" "$PWD/$fixture" > "$expected"
 
 	if cmp -s "$expected" "$actual"; then
@@ -262,11 +266,11 @@ test_a_path_with_stderr(){
 	local output_file="$2"
 	local error_file="$3"
 	shift 3
-	local actual=$(mktemp)
-	local actual_err=$(mktemp)
-	local expected=$(mktemp)
-	local expected_err=$(mktemp)
-	local difference=$(mktemp)
+	local actual="$(mktemp)"
+	local actual_err="$(mktemp)"
+	local expected="$(mktemp)"
+	local expected_err="$(mktemp)"
+	local difference="$(mktemp)"
 	local status
 
 	"$EXECUTABLE" "${@}" > "$actual" 2> "$actual_err"
@@ -282,9 +286,9 @@ test_a_path_with_stderr(){
 		tap_comment_file "stderr" "$actual_err"
 	fi
 
-	local fixture=$(fixture_path "$output_file")
+	local fixture="$(fixture_path "$output_file")"
 	sed "s|{{HOME}}|$HOME|g" "$PWD/$fixture" > "$expected"
-	local error_fixture=$(fixture_path "$error_file")
+	local error_fixture="$(fixture_path "$error_file")"
 	sed "s|{{HOME}}|$HOME|g" "$PWD/$error_fixture" > "$expected_err"
 
 	if cmp -s "$expected" "$actual"; then
@@ -371,12 +375,12 @@ expect_failure(){
 	local description="$1"
 	local output_file="$2"
 	shift 2
-	local expected=$(mktemp)
-	local difference=$(mktemp)
+	local expected="$(mktemp)"
+	local difference="$(mktemp)"
 
 	run_expecting_failure "$description" "${@}"
 
-	local fixture=$(fixture_path "$output_file")
+	local fixture="$(fixture_path "$output_file")"
 	sed "s|{{HOME}}|$HOME|g" "$PWD/$fixture" > "$expected"
 
 	if cmp -s "$expected" "$failure_stderr"; then
@@ -419,8 +423,8 @@ expect_failure_with_usage(){
 test_version(){
 	local description="$1"
 	shift
-	local out=$(mktemp)
-	local err=$(mktemp)
+	local out="$(mktemp)"
+	local err="$(mktemp)"
 	local status
 
 	"$EXECUTABLE" "${@}" > "$out" 2> "$err"
@@ -489,8 +493,8 @@ HELP_SWITCHES='--path
 test_help(){
 	local description="$1"
 	shift
-	local out=$(mktemp)
-	local err=$(mktemp)
+	local out="$(mktemp)"
+	local err="$(mktemp)"
 	local status
 
 	"$EXECUTABLE" "${@}" > "$out" 2> "$err"
@@ -600,11 +604,11 @@ test_unreadable_fragment(){
 	local description="$1"
 	local output_file="$2"
 	shift 2
-	local home=$(mktemp -d /tmp/path_helper.XXXXXX)
-	local actual=$(mktemp)
-	local expected=$(mktemp)
-	local difference=$(mktemp)
-	local noise=$(mktemp)
+	local home="$(mktemp -d /tmp/path_helper.XXXXXX)"
+	local actual="$(mktemp)"
+	local expected="$(mktemp)"
+	local difference="$(mktemp)"
+	local noise="$(mktemp)"
 
 	mkdir -p "$home/$USER_PATHS/paths.d"
 	printf '/opt/readable/bin\n' > "$home/$USER_PATHS/paths.d/01-readable"
@@ -619,7 +623,7 @@ test_unreadable_fragment(){
 		tap_comment_file "stderr" "$noise"
 	fi
 
-	local fixture=$(fixture_path "$output_file")
+	local fixture="$(fixture_path "$output_file")"
 	sed "s|{{HOME}}|$home|g" "$PWD/$fixture" > "$expected"
 
 	if cmp -s "$expected" "$actual"; then
