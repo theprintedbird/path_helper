@@ -16,6 +16,20 @@ ALPINE_4_0_6 := 3.24
 # Crystal versions to test (matching GitHub Actions matrix)
 CRYSTAL_VERSIONS := 1.10.1 1.11.2 1.14.0 latest
 
+# C library the Crystal images build against: musl (the crystallang/crystal
+# *-alpine images, the default) or gnu (the plain tags, which are Ubuntu and
+# glibc). gnu images are tagged with a -gnu suffix so the two sit side by side.
+CRYSTAL_LIBC ?= musl
+ifeq ($(CRYSTAL_LIBC),musl)
+CRYSTAL_BASE_SUFFIX := -alpine
+CRYSTAL_TAG_SUFFIX :=
+else ifeq ($(CRYSTAL_LIBC),gnu)
+CRYSTAL_BASE_SUFFIX :=
+CRYSTAL_TAG_SUFFIX := -gnu
+else
+$(error CRYSTAL_LIBC must be musl or gnu, not "$(CRYSTAL_LIBC)")
+endif
+
 # Version detection: use git info for dev, or explicit VERSION env var
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 
@@ -53,6 +67,7 @@ help:
 	@echo "  VERSION                   Version tag (default: git describe or 'dev')"
 	@echo "  RUBY_VERSIONS             Ruby versions to build (default: $(RUBY_VERSIONS))"
 	@echo "  CRYSTAL_VERSIONS          Crystal versions to build (default: $(CRYSTAL_VERSIONS))"
+	@echo "  CRYSTAL_LIBC              C library for the Crystal images: musl (Alpine, default) or gnu (Ubuntu)"
 	@echo "  CONTAINER_RUNTIME         Override container runtime (podman or docker)"
 	@echo "  TESTS                     Test files to run, e.g. 'path error' (default: all; setup always runs)"
 	@echo ""
@@ -62,6 +77,7 @@ help:
 	@echo "  make test RUBY_VER=3.3                  # Test specific Ruby version"
 	@echo "  make test RUBY_VER=3.3 TESTS=path       # Run one test file (after setup)"
 	@echo "  make test-crystal CRYSTAL_VER=latest    # Test latest Crystal"
+	@echo "  make test-crystal CRYSTAL_VER=1.14.0 CRYSTAL_LIBC=gnu  # Test against glibc"
 	@echo ""
 	@echo "Notes:"
 	@echo "  The test, shell and extract targets build the image they need first,"
@@ -172,14 +188,15 @@ list:
 
 .PHONY: build-crystal-all
 build-crystal-all:
-	@echo "Building all Crystal versions with version tag: $(VERSION)"
+	@echo "Building all Crystal versions ($(CRYSTAL_LIBC)) with version tag: $(VERSION)"
 	@for crystal in $(CRYSTAL_VERSIONS); do \
 		echo ""; \
-		echo "==> Building Crystal $$crystal..."; \
+		echo "==> Building Crystal $$crystal ($(CRYSTAL_LIBC))..."; \
 		$(CONTAINER_RUNTIME) build \
 			--build-arg CRYSTAL_VERSION=$$crystal \
-			--tag $(REPO):$(VERSION)-crystal$$crystal \
-			--tag $(REPO):latest-crystal$$crystal \
+			--build-arg CRYSTAL_BASE_SUFFIX=$(CRYSTAL_BASE_SUFFIX) \
+			--tag $(REPO):$(VERSION)-crystal$$crystal$(CRYSTAL_TAG_SUFFIX) \
+			--tag $(REPO):latest-crystal$$crystal$(CRYSTAL_TAG_SUFFIX) \
 			-f Dockerfile.crystal . || exit 1; \
 	done
 	@echo ""
@@ -195,11 +212,12 @@ ifndef CRYSTAL_VER
 	@echo "Usage: make build-crystal CRYSTAL_VER=1.14.0"
 	@exit 1
 endif
-	@echo "Building Crystal $(CRYSTAL_VER)..."
+	@echo "Building Crystal $(CRYSTAL_VER) ($(CRYSTAL_LIBC))..."
 	@$(CONTAINER_RUNTIME) build \
 		--build-arg CRYSTAL_VERSION=$(CRYSTAL_VER) \
-		--tag $(REPO):$(VERSION)-crystal$(CRYSTAL_VER) \
-		--tag $(REPO):latest-crystal$(CRYSTAL_VER) \
+		--build-arg CRYSTAL_BASE_SUFFIX=$(CRYSTAL_BASE_SUFFIX) \
+		--tag $(REPO):$(VERSION)-crystal$(CRYSTAL_VER)$(CRYSTAL_TAG_SUFFIX) \
+		--tag $(REPO):latest-crystal$(CRYSTAL_VER)$(CRYSTAL_TAG_SUFFIX) \
 		-f Dockerfile.crystal .
 
 .PHONY: test-crystal-all
@@ -209,8 +227,8 @@ test-crystal-all: build-crystal-all
 	@failed=0; \
 	for crystal in $(CRYSTAL_VERSIONS); do \
 		echo ""; \
-		echo "==> Testing Crystal $$crystal..."; \
-		if $(CONTAINER_RUNTIME) run --rm $(REPO):$(VERSION)-crystal$$crystal $(TESTS); then \
+		echo "==> Testing Crystal $$crystal ($(CRYSTAL_LIBC))..."; \
+		if $(CONTAINER_RUNTIME) run --rm $(REPO):$(VERSION)-crystal$$crystal$(CRYSTAL_TAG_SUFFIX) $(TESTS); then \
 			echo "✓ Crystal $$crystal tests passed"; \
 		else \
 			echo "✗ Crystal $$crystal tests failed"; \
@@ -233,8 +251,8 @@ ifndef CRYSTAL_VER
 	@exit 1
 endif
 	@$(MAKE) build-crystal CRYSTAL_VER=$(CRYSTAL_VER)
-	@echo "Running tests for Crystal $(CRYSTAL_VER)..."
-	@$(CONTAINER_RUNTIME) run --rm $(REPO):$(VERSION)-crystal$(CRYSTAL_VER) $(TESTS)
+	@echo "Running tests for Crystal $(CRYSTAL_VER) ($(CRYSTAL_LIBC))..."
+	@$(CONTAINER_RUNTIME) run --rm $(REPO):$(VERSION)-crystal$(CRYSTAL_VER)$(CRYSTAL_TAG_SUFFIX) $(TESTS)
 
 .PHONY: shell-crystal
 shell-crystal:
@@ -245,7 +263,7 @@ ifndef CRYSTAL_VER
 endif
 	@$(MAKE) build-crystal CRYSTAL_VER=$(CRYSTAL_VER)
 	@echo "Opening shell in Crystal $(CRYSTAL_VER) container..."
-	@$(CONTAINER_RUNTIME) run --rm -ti --entrypoint sh $(REPO):latest-crystal$(CRYSTAL_VER)
+	@$(CONTAINER_RUNTIME) run --rm -ti --entrypoint sh $(REPO):latest-crystal$(CRYSTAL_VER)$(CRYSTAL_TAG_SUFFIX)
 
 .PHONY: extract-crystal
 extract-crystal:
@@ -257,7 +275,7 @@ endif
 	@$(MAKE) build-crystal CRYSTAL_VER=$(CRYSTAL_VER)
 	@echo "Extracting Crystal $(CRYSTAL_VER) binary from container..."
 	@mkdir -p bin
-	@$(CONTAINER_RUNTIME) run --rm --entrypoint sh -v $(PWD):/output:Z $(REPO):latest-crystal$(CRYSTAL_VER) -c "cp /root/bin/path_helper /output/bin/path_helper"
+	@$(CONTAINER_RUNTIME) run --rm --entrypoint sh -v $(PWD):/output:Z $(REPO):latest-crystal$(CRYSTAL_VER)$(CRYSTAL_TAG_SUFFIX) -c "cp /root/bin/path_helper /output/bin/path_helper"
 	@echo "✓ Crystal binary extracted to: bin/path_helper"
 	@ls -lh bin/path_helper
 	@echo ""

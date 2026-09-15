@@ -77,7 +77,7 @@
 - DONE Harness under busybox `sh` (Alpine), and dash
 - Harness on BSD userland (macOS): `mktemp`, and no GNU-only `sed -i`/`stat`/`readlink`/`date +%N`
 - Harness when `ruby` (timing helper) is missing; remove the apparently unused `bc` dependency
-- Crystal on musl vs glibc
+- DONE Crystal on musl vs glibc
 - arm64 vs x86_64
 - Old macOS system Ruby
 - Ordering survives Apple's `/usr/libexec/path_helper` in a macOS login shell (overlaps with shell integration tests)

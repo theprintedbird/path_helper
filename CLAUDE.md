@@ -28,6 +28,7 @@ Never run `spec/shell_spec.sh` directly on the host with that variable set.
 ```shell
 make test RUBY_VER=3.3            # one Ruby version (2.7, 3.3, 4.0.6)
 make test-crystal CRYSTAL_VER=1.14.0   # one Crystal version (1.10.1, 1.11.2, 1.14.0, latest)
+make test-crystal CRYSTAL_VER=1.14.0 CRYSTAL_LIBC=gnu   # against glibc (Ubuntu base) not musl (Alpine)
 make test-all / make test-crystal-all
 make all                          # build + test both languages
 make shell RUBY_VER=3.3           # interactive container

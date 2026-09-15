@@ -582,7 +582,7 @@ make all
 make extract-crystal CRYSTAL_VER=latest
 ```
 
-This extracts the compiled Crystal binary to `bin/path_helper`. **Note:** The binary is compiled for Linux (Alpine) inside the container, so it won't run directly on macOS/other systems. It's useful for:
+This extracts the compiled Crystal binary to `bin/path_helper`. **Note:** The binary is compiled for Linux inside the container -- against musl (Alpine) by default, or glibc (Ubuntu) with `CRYSTAL_LIBC=gnu` -- so it won't run directly on macOS/other systems. It's useful for:
 - Deploying to Linux servers
 - Including in Linux-based containers
 - CI/CD artifacts
@@ -621,6 +621,18 @@ make test-crystal-all
 make test RUBY_VER=2.7
 make test-crystal CRYSTAL_VER=1.14.0
 ```
+
+**Test Crystal against glibc as well as musl:**
+
+```shell
+make test-crystal CRYSTAL_VER=1.14.0 CRYSTAL_LIBC=gnu
+make test-crystal-all CRYSTAL_LIBC=gnu
+```
+
+The Crystal images build on `crystallang/crystal:<version>-alpine` (musl) unless
+`CRYSTAL_LIBC=gnu` picks the plain tag, which is Ubuntu and glibc. The glibc images are
+tagged `crystal<version>-gnu`, so both kinds can be built side by side, and every Crystal
+target (`build-`, `test-`, `shell-`, `extract-crystal` and the `-all` ones) takes the switch.
 
 These build the image they need first, so there is no need to run a build
 target beforehand. That matters more than it sounds: the image tag includes
