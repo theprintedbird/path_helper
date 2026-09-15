@@ -23,8 +23,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     # macOS is the only place the Darwin fixtures can be checked: the default
     # search order comes from the platform (RUBY_PLATFORM) and can't be
-    # overridden. Until spec/fixtures has Darwin results, the expected output is
-    # Linux's, so the macOS leg is reported but doesn't fail the workflow.
+    # overridden.
     timeout-minutes: 30
     env:
       PATH_HELPER_DOCKER_INSTANCE: 'true'
@@ -62,5 +61,44 @@ jobs:
       if: always()
       with:
         name: test-results-ruby-${{ matrix.ruby-version }}-${{ matrix.os }}
+        path: test_output.log
+        retention-days: 7
+
+  # The local images are Alpine -- musl, busybox sh and no bash -- so this runs
+  # the suite that way in CI too. ruby/setup-ruby has no Alpine builds, so the
+  # Ruby comes from the official image, and the job is already root. The runner
+  # supplies a musl node for the JavaScript actions, on x86_64 only.
+  test-ruby-alpine:
+    runs-on: ubuntu-latest
+    container: ruby:${{ matrix.ruby-version }}-alpine
+    timeout-minutes: 30
+    env:
+      PATH_HELPER_DOCKER_INSTANCE: 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: ['2.7', '3.3', '4.0.6']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up test environment
+      id: setup-test-env
+      uses: ./.github/actions/setup-test-env
+      with:
+        exe-path: 'exe/path_helper'
+
+    - name: Run shell tests
+      uses: ./.github/actions/run-shell-tests
+      with:
+        executable: ${{ steps.setup-test-env.outputs.executable }}
+        home: ${{ steps.setup-test-env.outputs.home }}
+        language-version: 'Ruby ${{ matrix.ruby-version }} on alpine'
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-ruby-${{ matrix.ruby-version }}-alpine
         path: test_output.log
         retention-days: 7

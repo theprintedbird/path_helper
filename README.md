@@ -851,6 +851,7 @@ The project uses GitHub Actions for continuous integration. The workflow runs on
 ### Workflow Features
 
 - **Ruby Version Matrix**: Tests run against multiple Ruby versions (2.7, 3.3, 4.0.6)
+- **OS Matrix**: `ubuntu-latest` (glibc) and `macos-latest` (arm64), plus an Alpine container job (musl, busybox `sh`, no bash) in each workflow -- `ruby:<version>-alpine` for Ruby and `crystallang/crystal:<version>-alpine` for Crystal, the same images the Makefile builds on
 - **Manual Triggers**: Workflow can be manually triggered via `workflow_dispatch`
 - **Concurrency Control**: Duplicate runs are cancelled when new commits are pushed
 - **Test Summaries**: Results are displayed in the GitHub Actions UI
@@ -867,8 +868,10 @@ The main workflow file is located at `.github/workflows/test-ruby.yml`. It:
 5. Generates test summaries and uploads artifacts
 
 The two composite actions in `.github/actions/` are plain POSIX `sh` and only use `sudo` when
-they aren't already root, so they work on hosted Ubuntu and macOS runners and in an Alpine
-container job.
+they aren't already root, so they work on hosted Ubuntu and macOS runners and in the Alpine
+container jobs (`test-ruby-alpine`, `test-crystal-alpine`), which are root with no sudo or bash.
+The Alpine jobs take their Ruby or Crystal from the image, since `ruby/setup-ruby` and
+`crystal-lang/install-crystal` have no Alpine builds.
 
 ### Contributing to CI/CD
 
@@ -935,8 +938,8 @@ Tests automatically run on GitHub Actions when:
 
 | Aspect | Local (Docker) | CI (GitHub Actions) |
 |--------|----------------|---------------------|
-| Environment | Alpine Linux | Ubuntu |
-| Ruby setup | Pre-built in image | ruby/setup-ruby action |
+| Environment | Alpine Linux (musl), or Ubuntu for `CRYSTAL_LIBC=gnu` | Ubuntu, macOS and an Alpine container |
+| Ruby setup | Pre-built in image | ruby/setup-ruby action, or the image in the Alpine job |
 | Test output | TAP to the console | TAP, plus artifacts + summary |
 | Speed | Fast (cached image) | Depends on cache hits |
 

@@ -24,8 +24,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     # macOS is the only place the Darwin fixtures can be checked: the default
     # search order comes from the platform (the compile target) and can't be
-    # overridden. Until spec/fixtures has Darwin results, the expected output is
-    # Linux's, so the macOS leg is reported but doesn't fail the workflow.
+    # overridden.
     timeout-minutes: 30
     env:
       PATH_HELPER_DOCKER_INSTANCE: 'true'
@@ -71,6 +70,63 @@ jobs:
       if: always()
       with:
         name: test-results-crystal-${{ matrix.crystal-version }}-${{ matrix.os }}
+        path: test_output.log
+        retention-days: 7
+
+    - name: Run Crystal specs (if available)
+      if: hashFiles('spec/*_spec.cr') != ''
+      run: crystal spec
+
+  # test-crystal builds against glibc (ubuntu-latest) and macOS's libc; this
+  # builds against musl, in the image the local `make test-crystal` uses.
+  # crystal-lang/install-crystal has no Alpine support, hence the container.
+  # The job is already root and there is no bash, which the composite actions
+  # allow for. The runner supplies a musl node for the JavaScript actions, on
+  # x86_64 only.
+  test-crystal-alpine:
+    runs-on: ubuntu-latest
+    container: crystallang/crystal:${{ matrix.crystal-version }}-alpine
+    timeout-minutes: 30
+    env:
+      PATH_HELPER_DOCKER_INSTANCE: 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        crystal-version: ['1.10.1', '1.16.0', 'latest']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # The suite's timing helper shells out to ruby.
+    - name: Install Ruby
+      run: apk add --no-cache ruby
+
+    - name: Install shards dependencies
+      run: shards install
+
+    - name: Build Crystal executable
+      run: |
+        shards build --release --no-debug
+        ls -la bin/
+
+    - name: Set up test environment
+      id: setup-test-env
+      uses: ./.github/actions/setup-test-env
+      with:
+        exe-path: 'bin/path_helper'
+
+    - name: Run shell tests
+      uses: ./.github/actions/run-shell-tests
+      with:
+        executable: ${{ steps.setup-test-env.outputs.executable }}
+        home: ${{ steps.setup-test-env.outputs.home }}
+        language-version: 'Crystal ${{ matrix.crystal-version }} on alpine'
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-crystal-${{ matrix.crystal-version }}-alpine
         path: test_output.log
         retention-days: 7
 

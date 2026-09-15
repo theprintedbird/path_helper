@@ -123,7 +123,11 @@ steps run on a hosted Ubuntu or macOS runner and in a root container job without
 through `env(1)` rather than exported around it. The suite does its own `--setup`, so the actions don't.
 
 CI: `.github/workflows/test-ruby.yml` (Ruby matrix) and `test-crystal.yml`, both driving the two
-composite actions in `.github/actions/`. They run on `master` and `dev`.
+composite actions in `.github/actions/`. They run on `master` and `dev`. Each has an
+`ubuntu-latest`/`macos-latest` matrix job and an Alpine container job -- `test-ruby-alpine` in
+`ruby:<ver>-alpine`, `test-crystal-alpine` in `crystallang/crystal:<ver>-alpine` (which `apk add`s
+ruby) -- since `ruby/setup-ruby` and `crystal-lang/install-crystal` have no Alpine builds. So CI tests
+Crystal against glibc on Ubuntu and musl on Alpine, as `CRYSTAL_LIBC` does locally.
 
 ## Core logic (mirrored in both implementations)
 

@@ -62,9 +62,9 @@
 ### *DONE* Running the suite on each OS
 
 - First: make `run-shell-tests`/`setup-test-env` work on macOS runners and in an Alpine container (no apt, sudo or `/root` assumptions). `ci.yml` is not a prerequisite
-- Run the suite in CI on ubuntu-latest, alpine and macos-latest
+- DONE Run the suite in CI on ubuntu-latest, alpine and macos-latest
 - Add a `macos-latest` job to `test-ruby.yml` and `test-crystal.yml` (Darwin fixtures are only checkable on a real Mac)
-- Add an Alpine container job to CI so CI matches the local images
+- DONE Add an Alpine container job to CI so CI matches the local images
 
 ### OS-specific tests
 

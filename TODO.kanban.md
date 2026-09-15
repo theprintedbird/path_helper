@@ -81,7 +81,6 @@ Language-Agnostic Infrastructure
 
 ###### In Progress
 
-- Run the suite in CI on ubuntu-latest, alpine and macOS-latest (was: Add tests for different OS environments (Ubuntu, Alpine, macOS)) <!-- backlog: 1763431283, depends_on: [card_01M2CH8809WEBW5WDVMC6D6J70], id: card_01M2CH881VFZB6Y03HGZ0RX4F5, in_progress: 1789277287, ready: 1789267594 -->
 
 
 
@@ -89,6 +88,7 @@ Language-Agnostic Infrastructure
 
 ###### Done
 
+- Run the suite in CI on ubuntu-latest, alpine and macOS-latest (was: Add tests for different OS environments (Ubuntu, Alpine, macOS)) <!-- backlog: 1763431283, depends_on: [card_01M2CH8809WEBW5WDVMC6D6J70], done: 1789470571, id: card_01M2CH881VFZB6Y03HGZ0RX4F5, in_progress: 1789277287, ready: 1789267594 -->
 - Runtime/arch: build and test Crystal against musl (Alpine) and glibc (Ubuntu) <!-- done: 1789470328, id: card_01M2CH88J9PYY3GFP6VG1CQPRE, in_progress: 1789380873, ready: 1789268873 -->
 - Harness portability: make `spec/shell_spec.sh` and `spec/lib/test_helpers.sh` run under busybox `sh` on Alpine, or install bash in the image and document it <!-- done: 1789461968, id: card_01M2CH88RNFB00Z6B0FFHAWZMQ, in_progress: 1789380861, ready: 1789268873 -->
 - Add test for paths with special characters <!-- done: 1788943142, id: card_01M2CH8832TWQYBBCAG99M3DAA, in_progress: 1788937966, ready: 1788854437 -->
