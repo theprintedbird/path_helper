@@ -663,6 +663,11 @@ beyond POSIX is `local`, which all of those support; a shell without it gets a
 `Bail out!`. Because some shells field-split the value in `local x=$(...)`, such
 assignments are written `local x="$(...)"`.
 
+**What else it needs:** `ruby`, which the timing helper uses to read the clock
+(`date +%N` is GNU-only). It is needed whichever implementation is under test, so
+the Crystal images install it as well, and the suite `Bail out!`s if it is not on
+`PATH`.
+
 **List available images:**
 
 ```shell

@@ -99,6 +99,16 @@ fi
 
 # --- Run --------------------------------------------------------------------
 
+# The timing helper in spec/lib/test_helpers.sh takes its readings with `ruby`,
+# because `date +%N` is GNU-only. That holds whichever implementation is under
+# test, so the Crystal images install Ruby too; checked here rather than left to
+# surface as an empty reading in every timing comment. After the guard, so a
+# host without Ruby still skips quietly rather than failing.
+if ! command -v ruby >/dev/null 2>&1; then
+	echo "Bail out! 'ruby' is not on PATH; spec/lib/test_helpers.sh needs it to time each run"
+	exit 1
+fi
+
 TMPDIR=$(mktemp -d)
 cleanup
 

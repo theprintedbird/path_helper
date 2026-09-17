@@ -188,9 +188,9 @@ test_setup(){
 }
 
 # Function to get time in nanoseconds.
-# Ruby is a hard dependency of this suite (it runs exe/path_helper), so it is
-# present everywhere these tests run, unlike `date +%N` which is GNU-only --
-# BSD/macOS and musl/busybox emit a literal "N". CLOCK_MONOTONIC is system-wide,
+# Ruby is used rather than `date +%N`, which is GNU-only -- BSD/macOS and
+# musl/busybox emit a literal "N". spec/shell_spec.sh bails out up front if it
+# is missing. CLOCK_MONOTONIC is system-wide,
 # so readings from two separate processes are safe to subtract, and it cannot be
 # skewed by a clock adjustment mid-measurement.
 get_time_ns() {
