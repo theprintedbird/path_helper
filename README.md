@@ -810,6 +810,16 @@ Set up some paths using the test fixtures:
 cp -R spec/fixtures/moredirs/* ~/.config/paths
 ```
 
+The suite also fills the segment that is off by default (`~/Library/Paths` on
+Linux) from `spec/fixtures/otherdirs/`, for the tests that switch it on with
+`--lib` (`--config` on macOS):
+
+```shell
+./exe/path_helper --setup --lib --no-config --no-etc
+cp -R spec/fixtures/otherdirs/* ~/Library/Paths
+./exe/path_helper -p --lib --debug
+```
+
 Have a look at the output by running through the available paths:
 
 ```shell

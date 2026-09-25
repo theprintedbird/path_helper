@@ -25,11 +25,13 @@ EXECUTABLE="${PATH_HELPER_EXECUTABLE:-${PWD}/exe/path_helper}"
 case "$(uname -s)" in
 	Darwin)
 		PLATFORM=darwin
-		USER_SEGMENT=lib OTHER_SEGMENT=config USER_PATHS=Library/Paths
+		USER_SEGMENT=lib OTHER_SEGMENT=config
+		USER_PATHS=Library/Paths OTHER_PATHS=.config/paths
 		;;
 	*)
 		PLATFORM=linux
-		USER_SEGMENT=config OTHER_SEGMENT=lib USER_PATHS=.config/paths
+		USER_SEGMENT=config OTHER_SEGMENT=lib
+		USER_PATHS=.config/paths OTHER_PATHS=Library/Paths
 		;;
 esac
 

@@ -68,8 +68,8 @@
 
 ### OS-specific tests
 
-- Default search order per OS, and `--lib`/`--config` defaults on each
-- `--no-lib` against a real `~/Library/Paths`
+- DONE Default search order per OS, and `--lib`/`--config` defaults on each
+- DONE `--no-lib` against a real `~/Library/Paths`
 - APFS case-insensitivity: `Paths`/`paths` style name clashes
 - DONE Unicode filename normalisation (NFC/NFD) and its effect on `paths.d` sort order
 - DONE `/etc` and `/tmp` as symlinks to `/private/...`: debug output and "does not exist" report

@@ -1,0 +1,1 @@
+/opt/other/bin:{{HOME}}/other/bin:/opt/pkg/bin:/opt/other/sbin:/usr/local/bin:/opt/symlinked/bin:{{HOME}}/symlinked/sbin:/usr/local/bundle/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin
