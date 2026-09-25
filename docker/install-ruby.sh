@@ -10,6 +10,4 @@ mv /tmp/etc-paths /etc/paths
 chmod +x exe/path_helper
 chmod +x spec/shell_spec.sh
 
-ruby exe/path_helper --setup --no-lib --quiet
-
-cp -R spec/fixtures/moredirs/* ~/.config/paths
+# Note: The test script will run setup itself

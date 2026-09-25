@@ -14,6 +14,15 @@
   directly rather than a `ruby/setup-ruby`-installed version, to catch a
   future macOS Ruby bump for real.
 
+### dev_only: Dropped redundant setup from `docker/install-ruby.sh`
+
+- `docker/install-ruby.sh` no longer runs `--setup --no-lib` and copies the
+  fixtures into `~/.config/paths` at image build time. `spec/tests/setup_test.sh`
+  already does both -- for both home segments -- when the suite runs, and its
+  own cleanup `rm -rf`s the trees afterwards anyway, so the build-time copy was
+  dead weight. `docker/install-crystal.sh` already omitted this step;
+  `install-ruby.sh` now ends with the same closing note.
+
 ## Tuesday the 8th of September 2026 ##
 
 ### v5.0.0
