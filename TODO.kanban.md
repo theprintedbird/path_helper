@@ -71,7 +71,6 @@ Language-Agnostic Infrastructure
 - macOS file-system: test case-insensitive APFS name clashes (e.g. `Paths` vs `paths`, `paths.d` entries differing only by case) <!-- id: card_01M2CH889WK0DNQW99H11YZYA7, ready: 1789268873 -->
 - Harness portability: check the suite on BSD userland (macOS) — `mktemp`/`mktemp -d` are used today; keep `sed -i`, `stat`, `readlink` and `date +%N` out <!-- id: card_01M2CH88J3N85JJYVK4EYAFYFB, ready: 1789268873 -->
 - Runtime/arch: test against the old system Ruby shipped with macOS, or document the minimum Ruby supported there <!-- id: card_01M2CH88R4CMWBQ65KGX13PC38, ready: 1789268873 -->
-- macOS login shell: show the ordering from `path_helper` survives `/etc/zprofile` running Apple's `/usr/libexec/path_helper` after `.zshenv` (overlaps with the backlog item "Add shell integration tests (bash, zsh, sh)", which stays separate because it is about shells, not OSes) <!-- id: card_01M2CH889GJT186S6KRJEY9ZGD, ready: 1789268873 -->
 - Test `--lib`/`--config` enabling the second segment on each OS, and `--no-lib` against a real `~/Library/Paths` (covers the backlog item "--no-lib coverage needs `~/Library/Paths`") <!-- id: card_01M2CH88B8M17GETM9TZ5VHC10, in_progress: 1789454931, ready: 1789455435 -->
 
 

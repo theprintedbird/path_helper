@@ -80,7 +80,6 @@
 - DONE Crystal on musl vs glibc
 - arm64 vs x86_64
 - Old macOS system Ruby
-- Ordering survives Apple's `/usr/libexec/path_helper` in a macOS login shell (overlaps with shell integration tests)
 
 ## Phase 6: CI/CD and Documentation
 
