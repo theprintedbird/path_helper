@@ -51,7 +51,6 @@ Language-Agnostic Infrastructure
 - Add cross-language compatibility tests <!-- backlog: 1763431283, id: card_01M2CH88T3GY3PJ8JV9F1K9PSW -->
 - Add performance comparison between implementations <!-- backlog: 1763431283, id: card_01M2CH8809ACKC836KVWQM91AG -->
 - Add test result reporting with PR comments <!-- backlog: 1763431283, id: card_01M2CH88EHJRC4FXWBN7YA6MJG -->
-- Add code coverage tracking (per language) <!-- backlog: 1763431283, id: card_01M2CH882Z08M7FHEVZPTDVKG3 -->
 - Add performance benchmarking workflow <!-- backlog: 1763431283, id: card_01M2CH887P2B0TDX1TD7VSZXR1 -->
 - Add automated release creation on version tags <!-- backlog: 1763431283, id: card_01M2CH87XFQNCWZ62699QS1CAA -->
 - Add dependency vulnerability scanning <!-- backlog: 1763431283, id: card_01M2CH8832E559EMWVVRTHZ4SK -->
@@ -63,11 +62,15 @@ Language-Agnostic Infrastructure
 - Add developer setup script <!-- backlog: 1763431283, id: card_01M2CH88NS11S3SD2VRS29MAWV -->
 - Add automated changelog generation <!-- id: card_01M2CH87XM5GEB37EGFC1Z945V, ready: 1788877330 -->
 - Add golden file generation mode via `GENERATE_GOLDEN` environment variable <!-- backlog: 1789267516, id: card_01M2CH884TEX2CZP8RM345J89Z -->
-- docker/install-ruby.sh still runs --setup --no-lib and copies fixtures into ~/.config/paths when the image is built. Remove redundant code. <!-- backlog: 1789455144, id: card_01M2HXD5ZVEAV13ASBJNXV2SG7 -->
 - Decide: de-duplication compares lines as text, so on case-insensitive APFS `/opt/Foo/bin` and `/opt/foo/bin` (the same directory) both reach PATH. Leave as is (matches `/opt/x` vs `/opt/x/`), or compare case-insensitively where the file system is? <!-- backlog: 1790322957, id: card_01M3BS0QN2BEE4J9NCXXA5X0PV -->
 - Decide: `paths.d` fragments sort by byte, so any upper-case name runs before every lower-case one (`10-Zeta` before `10-alpha`). Keep byte order (pinned by spec/tests/case_test.sh), or sort case-insensitively like Finder? <!-- backlog: 1790322957, id: card_01M3BS0QJ769Z62N5M02998RA4 -->
+- Coverage threshold: print a non-blocking warning when line coverage drops below a minimum (e.g. 90%) in `make coverage`/`make coverage-crystal` and the CI coverage jobs; later turn it into a gate <!-- backlog: 1790332754, id: card_01M3C2BPC4C1QR07EEQP8SA7RY -->
+- Test the lines coverage shows as never run: the `DEBUG` env var, `--setup` permission errors, Crystal's separate `--etc` handler, and colour output under a TTY <!-- backlog: 1790332758, id: card_01M3C2BT7X9ER0AZSR778637SF -->
+- Cache the kcov build in the CI `coverage-crystal` job (it is built from source, adding ~1-2 minutes) <!-- backlog: 1790332761, id: card_01M3C2BXSKXZVVDFPCN3KVHE1E -->
+- Add a `coverage-all` make target (every Ruby and Crystal version), or fold the coverage targets into `make all` <!-- backlog: 1790332765, id: card_01M3C2C1FN2VCDEJQ9Z1SEN9ZQ -->
 
 ###### Ready
+
 
 
 
@@ -82,8 +85,11 @@ Language-Agnostic Infrastructure
 
 
 
+
 ###### Done
 
+- Add code coverage tracking (per language) <!-- backlog: 1763431283, done: 1790332458, id: card_01M2CH882Z08M7FHEVZPTDVKG3, in_progress: 1790327249, ready: 1790327129 -->
+- docker/install-ruby.sh still runs --setup --no-lib and copies fixtures into ~/.config/paths when the image is built. Remove redundant code. <!-- backlog: 1789455144, done: 1790327633, id: card_01M2HXD5ZVEAV13ASBJNXV2SG7, in_progress: 1790327249, ready: 1790327097 -->
 - Run the suite in CI on ubuntu-latest, alpine and macOS-latest (was: Add tests for different OS environments (Ubuntu, Alpine, macOS)) <!-- backlog: 1763431283, depends_on: [card_01M2CH8809WEBW5WDVMC6D6J70], done: 1789470571, id: card_01M2CH881VFZB6Y03HGZ0RX4F5, in_progress: 1789277287, ready: 1789267594 -->
 - Runtime/arch: build and test Crystal against musl (Alpine) and glibc (Ubuntu) <!-- done: 1789470328, id: card_01M2CH88J9PYY3GFP6VG1CQPRE, in_progress: 1789380873, ready: 1789268873 -->
 - Harness portability: make `spec/shell_spec.sh` and `spec/lib/test_helpers.sh` run under busybox `sh` on Alpine, or install bash in the image and document it <!-- done: 1789461968, id: card_01M2CH88RNFB00Z6B0FFHAWZMQ, in_progress: 1789380861, ready: 1789268873 -->
