@@ -10,7 +10,9 @@ caller does `export PATH=$(path_helper -p)`.
 
 There are two implementations of the same CLI:
 
-- `exe/path_helper` — Ruby, a single self-contained script (no `lib/`, no runtime deps, Ruby >= 2.7).
+- `exe/path_helper` — Ruby, a single self-contained script (no `lib/`, no runtime deps, Ruby >= 2.6 --
+  the minimum is macOS's own deprecated system Ruby, `/usr/bin/ruby`, since a shell profile runs
+  `path_helper` on that Ruby before any version manager has put a newer one on `PATH`).
   The gemspec `require_relative`s it to read `PathHelper::VERSION`.
 - `src/path_helper.cr` + `src/path_helper/*.cr` — Crystal port, built with `shards build`.
 
@@ -26,7 +28,7 @@ Everything runs in a container; the suite is destructive (it writes to and then 
 Never run `spec/shell_spec.sh` directly on the host with that variable set.
 
 ```shell
-make test RUBY_VER=3.3            # one Ruby version (2.7, 3.3, 4.0.6)
+make test RUBY_VER=3.3            # one Ruby version (2.7, 3.3, 4.0.6; also buildable on demand: 2.6, macOS's system Ruby)
 make test-crystal CRYSTAL_VER=1.14.0   # one Crystal version (1.10.1, 1.11.2, 1.14.0, latest)
 make test-crystal CRYSTAL_VER=1.14.0 CRYSTAL_LIBC=gnu   # against glibc (Ubuntu base) not musl (Alpine)
 make test-all / make test-crystal-all

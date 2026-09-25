@@ -64,6 +64,57 @@ jobs:
         path: test_output.log
         retention-days: 7
 
+  # Real coverage for the macOS system Ruby (/usr/bin/ruby, deprecated by
+  # Apple since Catalina but still what a shell profile finds before any
+  # version manager has put a newer Ruby on PATH -- see CLAUDE.md and
+  # README's "Do i need to be on Apple to use it?"). Deliberately does not
+  # use ruby/setup-ruby: the point is to exercise the exact interpreter a
+  # real user's ~/.zprofile would invoke via `#!/usr/bin/env ruby`.
+  test-ruby-macos-system:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    env:
+      PATH_HELPER_DOCKER_INSTANCE: 'true'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Verify macOS system Ruby is present
+      run: |
+        if [ ! -x /usr/bin/ruby ]; then
+          echo "::error::/usr/bin/ruby is missing on this runner image -- Apple has removed the" >&2
+          echo "::error::deprecated system Ruby. Update CLAUDE.md/README's minimum Ruby version and" >&2
+          echo "::error::remove or rework this job." >&2
+          exit 1
+        fi
+        /usr/bin/ruby -v
+
+    - name: Put /usr/bin first on PATH
+      # Makes sure exe/path_helper's `#!/usr/bin/env ruby` shebang resolves to
+      # the system Ruby rather than any toolcache Ruby also on this runner.
+      run: echo "/usr/bin" >> "$GITHUB_PATH"
+
+    - name: Set up test environment
+      id: setup-test-env
+      uses: ./.github/actions/setup-test-env
+      with:
+        exe-path: 'exe/path_helper'
+
+    - name: Run shell tests
+      uses: ./.github/actions/run-shell-tests
+      with:
+        executable: ${{ steps.setup-test-env.outputs.executable }}
+        home: ${{ steps.setup-test-env.outputs.home }}
+        language-version: 'Ruby (macOS system /usr/bin/ruby) on macos-latest'
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-ruby-macos-system
+        path: test_output.log
+        retention-days: 7
+
   # The local images are Alpine -- musl, busybox sh and no bash -- so this runs
   # the suite that way in CI too. ruby/setup-ruby has no Alpine builds, so the
   # Ruby comes from the official image, and the job is already root. The runner

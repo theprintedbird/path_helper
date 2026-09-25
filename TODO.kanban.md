@@ -70,13 +70,13 @@ Language-Agnostic Infrastructure
 
 - macOS file-system: test case-insensitive APFS name clashes (e.g. `Paths` vs `paths`, `paths.d` entries differing only by case) <!-- id: card_01M2CH889WK0DNQW99H11YZYA7, ready: 1789268873 -->
 - Harness portability: check the suite on BSD userland (macOS) — `mktemp`/`mktemp -d` are used today; keep `sed -i`, `stat`, `readlink` and `date +%N` out <!-- id: card_01M2CH88J3N85JJYVK4EYAFYFB, ready: 1789268873 -->
-- Runtime/arch: test against the old system Ruby shipped with macOS, or document the minimum Ruby supported there <!-- id: card_01M2CH88R4CMWBQ65KGX13PC38, ready: 1789268873 -->
 - Test `--lib`/`--config` enabling the second segment on each OS, and `--no-lib` against a real `~/Library/Paths` (covers the backlog item "--no-lib coverage needs `~/Library/Paths`") <!-- id: card_01M2CH88B8M17GETM9TZ5VHC10, in_progress: 1789454931, ready: 1789455435 -->
 
 
 
 
 ###### In Progress
+
 
 
 
@@ -168,3 +168,4 @@ Language-Agnostic Infrastructure
 - Update fixture paths to use platform-specific directories <!-- backlog: 1789267692, done: 1789455396, id: card_01M2CH887AHC847CEJG31F71PK, in_progress: 1789449543, ready: 1789267729 -->
 - Runtime/arch: run the suite on arm64 as well as x86_64 (`macOS-latest` is arm64) <!-- done: 1789525949, id: card_01M2CH88S8XTPFHA0M94SRY0T4, ready: 1789268873 -->
 - Harness portability: check up front for the `ruby` the timing helper needs and `Bail out!` if missing; `bc` no longer appears in `spec/`, so drop it from `setup-test-env` and the Dependencies note if it's truly unused <!-- done: 1789606098, id: card_01M2CH87XSSB7Q55VS049H5ATH, in_progress: 1789525983, ready: 1789455429 -->
+- Runtime/arch: test against the old system Ruby shipped with macOS, or document the minimum Ruby supported there <!-- done: 1790323465, id: card_01M2CH88R4CMWBQ65KGX13PC38, in_progress: 1790322048, ready: 1789268873 -->

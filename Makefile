@@ -9,6 +9,9 @@ endif
 RUBY_VERSIONS := 2.7 3.3 4.0.6
 
 # Alpine versions that match the Ruby versions
+# 2.6 is not in RUBY_VERSIONS (macOS's deprecated system Ruby, not officially
+# supported) but stays buildable on demand: make test RUBY_VER=2.6
+ALPINE_2_6 := 3.15
 ALPINE_2_7 := 3.16
 ALPINE_3_3 := 3.24
 ALPINE_4_0_6 := 3.24

@@ -141,7 +141,7 @@ Where the Apple `path_helper` falls down is:
 
 ## <a name="do-i-need-to-be-on-apple-to-use-it-">Do i need to be on Apple to use it?</a>
 
-No, it should work on any unix-like system. It has one dependency, and that is Ruby. It should work with any system running Ruby 2.7 or above. Anything beneath that, you take your chances (though it was tested against 2.3.7 for a long while).
+No, it should work on any unix-like system. It has one dependency, and that is Ruby. It should work with any system running Ruby 2.6 or above -- that floor is deliberately macOS's own deprecated system Ruby (`/usr/bin/ruby`), since `path_helper` typically runs from a shell profile before any Ruby version manager has put a newer Ruby on `PATH`; the full test suite passes unchanged against it. Anything beneath 2.6, you take your chances (though it was tested against 2.3.7 for a long while). If your system Ruby is older still, or you'd rather not depend on Ruby at all, use the Crystal build instead (`src/path_helper.cr`, `shards build`).
 
 ## <a name="how-does-path-helper-know-what-to-put-in-the-path-">How does path_helper know what to put in the path?</a>
 
@@ -619,6 +619,7 @@ make test-crystal-all
 
 ```shell
 make test RUBY_VER=2.7
+make test RUBY_VER=2.6             # macOS's system Ruby patch level; buildable on demand, not in the default matrix
 make test-crystal CRYSTAL_VER=1.14.0
 ```
 
@@ -650,7 +651,8 @@ The argument to `TESTS` is the name of a files in `spec/tests/`.
 
 For example, `path`, `path_test` and `path_test.sh` will run `spec/tests/path_test.sh`.
 This works with the `-all` targets too, so `make test-all TESTS=path` runs `setup`
-and `path` on 2.7, 3.3 and 4.0.6.
+and `path` on 2.7, 3.3 and 4.0.6 (2.6 is not in the default `RUBY_VERSIONS` list, but is
+buildable on demand with `make test RUBY_VER=2.6`).
 
 `setup` always runs first, as every other file relies on it, and the files run in
 their usual order regardless of the order they are passed in.
@@ -855,7 +857,10 @@ The project uses GitHub Actions for continuous integration. The workflow runs on
 
 ### Workflow Features
 
-- **Ruby Version Matrix**: Tests run against multiple Ruby versions (2.7, 3.3, 4.0.6)
+- **Ruby Version Matrix**: Tests run against multiple Ruby versions (2.7, 3.3, 4.0.6), plus a
+  dedicated `macos-latest` job that runs the suite against macOS's own system Ruby
+  (`/usr/bin/ruby`) rather than a `ruby/setup-ruby`-installed version, to catch a future macOS
+  Ruby bump for real
 - **OS Matrix**: `ubuntu-latest` (glibc) and `macos-latest` (arm64), plus an Alpine container job (musl, busybox `sh`, no bash) in each workflow -- `ruby:<version>-alpine` for Ruby and `crystallang/crystal:<version>-alpine` for Crystal, the same images the Makefile builds on
 - **Manual Triggers**: Workflow can be manually triggered via `workflow_dispatch`
 - **Concurrency Control**: Duplicate runs are cancelled when new commits are pushed

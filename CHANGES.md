@@ -1,5 +1,19 @@
 # CHANGES #
 
+## Friday the 25th of September 2026 ##
+
+### Ruby minimum lowered to 2.6
+
+- Tested against macOS's system Ruby (`/usr/bin/ruby`, 2.6.10p210, deprecated
+  by Apple but still what a shell profile finds before any Ruby version
+  manager has put a newer one on `PATH`). The full suite passes unchanged, so
+  `spec.required_ruby_version` is lowered from `>= 2.7` to `>= 2.6` and
+  `make test RUBY_VER=2.6` is a supported (if not default) target, built from
+  `ruby:2.6-alpine3.15` -- the same patch level as macOS ships. CI gained a
+  `macos-latest` Ruby job that runs the suite against `/usr/bin/ruby`
+  directly rather than a `ruby/setup-ruby`-installed version, to catch a
+  future macOS Ruby bump for real.
+
 ## Tuesday the 8th of September 2026 ##
 
 ### v5.0.0

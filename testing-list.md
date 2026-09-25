@@ -79,7 +79,7 @@
 - Harness when `ruby` (timing helper) is missing; remove the apparently unused `bc` dependency
 - DONE Crystal on musl vs glibc
 - arm64 vs x86_64
-- Old macOS system Ruby
+- DONE Old macOS system Ruby -- macOS system Ruby (2.6.10p210) matches ruby:2.6-alpine3.15 exactly; full suite passes, minimum lowered to 2.6, macOS CI job added
 
 ## Phase 6: CI/CD and Documentation
 
