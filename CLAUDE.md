@@ -80,6 +80,12 @@ compile target.
   there), dash in the glibc Crystal image, bash-as-sh on macOS. `local` is the one non-POSIX feature
   used; `spec/shell_spec.sh` bails out on a shell without it. Write `local x="$(...)"`, quoted, since
   `local` isn't an assignment to POSIX and some shells field-split its value.
+- macOS's bash-as-sh is also BSD userland: `sed -i`, `stat`, `readlink`, `realpath` and `date +%N` are
+  GNU-only and either error out or emit something different there. `mktemp`/`mktemp -d` are fine (BSD
+  has had both forms since 10.11). `make lint` (`spec/lint_portability.sh`, plain POSIX sh, no
+  `grep -P`) greps the harness files and the actions' `run:` blocks for these forms, skipping comment
+  lines since the harness's own comments deliberately mention some of them; it also runs as a CI step
+  in `.github/actions/run-shell-tests` before the suite, ahead of the macOS job.
 - `spec/tests/*_test.sh` — the tests, sourced (not executed, since the TAP counters are shell globals)
   in this order: `setup_test.sh` (`--setup`, and the symlinks, dangling link, subdirectory and fifo
   every later file relies on — so it must stay first), `path_test.sh` (each env var plain and

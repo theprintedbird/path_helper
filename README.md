@@ -668,6 +668,19 @@ assignments are written `local x="$(...)"`.
 the Crystal images install it as well, and the suite `Bail out!`s if it is not on
 `PATH`.
 
+**Keeping it portable:** bash-as-`sh` on macOS is still BSD userland, so `sed -i`,
+`stat`, `readlink`, `realpath` and `date +%N` are all off limits in the harness —
+they're either GNU-only or behave differently on BSD. `make lint` runs
+`spec/lint_portability.sh`, a POSIX `sh` script with no `grep -P`, over the harness
+files and the GitHub Actions `run:` blocks and fails on any of those forms:
+
+```shell
+make lint
+```
+
+It also runs as a step in `.github/actions/run-shell-tests`, ahead of the suite
+itself, so a GNU-only form is caught in CI before it can fail on the macOS runner.
+
 **List available images:**
 
 ```shell
@@ -869,7 +882,9 @@ The main workflow file is located at `.github/workflows/test-ruby.yml`. It:
 1. Checks out the code
 2. Sets up the specified Ruby version
 3. Installs the suite and the executable under test in root's home (`setup-test-env`)
-4. Runs the shell-based test suite as root (`run-shell-tests`)
+4. Lints the harness for GNU-only shell (`spec/lint_portability.sh`, see [Keeping it
+   portable](#to-run-the-specs) above), then runs the shell-based test suite as root
+   (`run-shell-tests`)
 5. Generates test summaries and uploads artifacts
 
 The two composite actions in `.github/actions/` are plain POSIX `sh` and only use `sudo` when
