@@ -137,14 +137,23 @@ jobs:
   # Line coverage of the Crystal sources as the suite exercises them, on one
   # Crystal rather than the whole matrix (spec/lib/coverage/run.sh; `make
   # coverage-crystal` locally). kcov does the measuring; nothing packages it
-  # for Ubuntu 24.04, so it is built from source. A report, not a gate: the
-  # job fails only if the suite does, and the summary goes to the job summary
-  # with the full report (kcov's HTML, Cobertura XML) as an artifact.
+  # for Ubuntu 24.04, so it is built from source -- but cached across runs
+  # (below), since the build itself takes 1-2 minutes. A report, not a gate:
+  # the job fails only if the suite does, and the summary goes to the job
+  # summary with the full report (kcov's HTML, Cobertura XML) as an artifact.
   coverage-crystal:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       PATH_HELPER_DOCKER_INSTANCE: 'true'
+      # The single place the kcov version is set, so the cache key
+      # (KCOV_VERSION below) and the build (passed as install-kcov.sh's
+      # argument) can't drift apart.
+      KCOV_VERSION: 'v43'
+      # Under $HOME rather than /usr/local so it can be restored without
+      # root: actions/cache runs as the job user, and install-kcov.sh only
+      # sudos `make install` when the prefix isn't writable by that user.
+      KCOV_PREFIX: '/home/runner/.local/kcov'
 
     steps:
     - uses: actions/checkout@v4
@@ -154,8 +163,24 @@ jobs:
       with:
         crystal: 'latest'
 
+    # Keyed on the kcov version, the runner's OS/arch and Ubuntu release
+    # (ImageOS: the ABI of the libraries kcov links against) and the install
+    # script itself, so a change to any of those rebuilds rather than restoring
+    # a stale or mismatched binary.
+    - name: Cache kcov
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.KCOV_PREFIX }}
+        key: kcov-${{ env.KCOV_VERSION }}-${{ runner.os }}-${{ runner.arch }}-${{ env.ImageOS }}-${{ hashFiles('docker/install-kcov.sh') }}
+
+    # A no-op build on a cache hit: install-kcov.sh installs kcov's runtime
+    # libraries either way (cheap) and only rebuilds if $KCOV_PREFIX/bin/kcov
+    # is missing or won't actually run.
     - name: Install kcov
-      run: sh docker/install-kcov.sh
+      run: sh docker/install-kcov.sh "$KCOV_VERSION"
+
+    - name: Add kcov to PATH
+      run: echo "$KCOV_PREFIX/bin" >> "$GITHUB_PATH"
 
     - name: Install shards dependencies
       run: shards install

@@ -66,7 +66,6 @@ Language-Agnostic Infrastructure
 - Decide: `paths.d` fragments sort by byte, so any upper-case name runs before every lower-case one (`10-Zeta` before `10-alpha`). Keep byte order (pinned by spec/tests/case_test.sh), or sort case-insensitively like Finder? <!-- backlog: 1790322957, id: card_01M3BS0QJ769Z62N5M02998RA4 -->
 - Coverage threshold: print a non-blocking warning when line coverage drops below a minimum (e.g. 90%) in `make coverage`/`make coverage-crystal` and the CI coverage jobs; later turn it into a gate <!-- backlog: 1790332754, id: card_01M3C2BPC4C1QR07EEQP8SA7RY -->
 - Test the lines coverage shows as never run: the `DEBUG` env var, `--setup` permission errors, Crystal's separate `--etc` handler, and colour output under a TTY <!-- backlog: 1790332758, id: card_01M3C2BT7X9ER0AZSR778637SF -->
-- Cache the kcov build in the CI `coverage-crystal` job (it is built from source, adding ~1-2 minutes) <!-- backlog: 1790332761, id: card_01M3C2BXSKXZVVDFPCN3KVHE1E -->
 - Add a `coverage-all` make target (every Ruby and Crystal version), or fold the coverage targets into `make all` <!-- backlog: 1790332765, id: card_01M3C2C1FN2VCDEJQ9Z1SEN9ZQ -->
 
 ###### Ready
@@ -76,7 +75,9 @@ Language-Agnostic Infrastructure
 
 
 
+
 ###### In Progress
+
 
 
 
@@ -177,3 +178,4 @@ Language-Agnostic Infrastructure
 - --no-lib coverage needs `~/Library/Paths` to be set up <!-- backlog: 1788768670, done: 1790323207, id: card_01M2CH8870QGWRFJ4VHNA0D2KS -->
 - Harness portability: check the suite on BSD userland (macOS) — `mktemp`/`mktemp -d` are used today; keep `sed -i`, `stat`, `readlink` and `date +%N` out <!-- done: 1790323360, id: card_01M2CH88J3N85JJYVK4EYAFYFB, in_progress: 1790322048, ready: 1789268873 -->
 - Runtime/arch: test against the old system Ruby shipped with macOS, or document the minimum Ruby supported there <!-- done: 1790323465, id: card_01M2CH88R4CMWBQ65KGX13PC38, in_progress: 1790322048, ready: 1789268873 -->
+- Cache the kcov build in the CI `coverage-crystal` job (it is built from source, adding ~1-2 minutes) <!-- backlog: 1790332761, done: 1790344419, id: card_01M3C2BXSKXZVVDFPCN3KVHE1E, in_progress: 1790343043, ready: 1790342917 -->

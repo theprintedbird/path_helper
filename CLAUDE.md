@@ -175,7 +175,12 @@ composite actions in `.github/actions/`. They run on `master` and `dev`. Each ha
 ruby) -- since `ruby/setup-ruby` and `crystal-lang/install-crystal` have no Alpine builds. So CI tests
 Crystal against glibc on Ubuntu and musl on Alpine, as `CRYSTAL_LIBC` does locally.
 Each workflow also has one coverage job on `ubuntu-latest` (`coverage-ruby`, Ruby 3.3;
-`coverage-crystal`, Crystal latest, which builds kcov first): `run-shell-tests` takes a `coverage:
+`coverage-crystal`, Crystal latest, which installs kcov first -- built from source into
+`KCOV_PREFIX` under `$HOME` and cached across runs by `actions/cache`, keyed on the kcov version
+(`KCOV_VERSION`, the job's one source of truth for it), the runner OS/arch/Ubuntu release and
+`docker/install-kcov.sh` itself; on a hit `install-kcov.sh` installs only kcov's runtime libraries, and
+rebuilds if the cached binary is missing or its `--version` doesn't actually run):
+`run-shell-tests` takes a `coverage:
 ruby|crystal` input that runs `spec/lib/coverage/run.sh` instead of the suite, appends `summary.md` to
 the job summary and exposes the report dir as the `coverage-dir` output for the artifact upload.
 

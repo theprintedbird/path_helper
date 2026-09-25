@@ -934,7 +934,10 @@ The project uses GitHub Actions for continuous integration. The workflow runs on
   Crystal latest, both on `ubuntu-latest`) runs the suite with line coverage on, as
   [`make coverage`](#to-run-the-specs) does locally. The summary goes to the job summary and the
   full report is uploaded as the `coverage-ruby`/`coverage-crystal` artifact. It is a report, not a
-  gate: the job only fails if the suite does
+  gate: the job only fails if the suite does. `coverage-crystal` builds kcov from source into a
+  prefix under `$HOME` and caches it with `actions/cache`, keyed on the kcov version, runner
+  OS/arch/Ubuntu release and `docker/install-kcov.sh`; a cache hit still installs kcov's runtime
+  libraries (cheap) and only rebuilds if the restored binary won't actually run
 - **Artifact Retention**: Test results are kept for 7 days, coverage reports for 14
 
 ### Workflow Structure
