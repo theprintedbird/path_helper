@@ -66,7 +66,80 @@ Language-Agnostic Infrastructure
 - Decide: `paths.d` fragments sort by byte, so any upper-case name runs before every lower-case one (`10-Zeta` before `10-alpha`). Keep byte order (pinned by spec/tests/case_test.sh), or sort case-insensitively like Finder? <!-- backlog: 1790322957, id: card_01M3BS0QJ769Z62N5M02998RA4 -->
 - Coverage threshold: print a non-blocking warning when line coverage drops below a minimum (e.g. 90%) in `make coverage`/`make coverage-crystal` and the CI coverage jobs; later turn it into a gate <!-- backlog: 1790332754, id: card_01M3C2BPC4C1QR07EEQP8SA7RY -->
 - Test the lines coverage shows as never run: the `DEBUG` env var, `--setup` permission errors, Crystal's separate `--etc` handler, and colour output under a TTY <!-- backlog: 1790332758, id: card_01M3C2BT7X9ER0AZSR778637SF -->
+  From the CI tests:
+  # Uncovered lines:
+  # 
+  # - `cr`: 132, 195
+  # - `src/path_helper/cli.cr`: 16
+  # - `src/path_helper/colors.cr`: 7, 11-14
+  # - `src/path_helper/setup.cr`: 30-31, 39-40, 56-57, 63, 65, 67, 77
 - Add a `coverage-all` make target (every Ruby and Crystal version), or fold the coverage targets into `make all` <!-- backlog: 1790332765, id: card_01M3C2C1FN2VCDEJQ9Z1SEN9ZQ -->
+- Suppress STDERR for tests that don't need it. <!-- backlog: 1790347708, id: card_01M3CGM1PGHFBR12DASJGDH4KS -->
+  This comes out on every test:
+	# --- stderr ---
+	# /root/.config/paths/paths.d/06-colons: ignoring '/opt/colons/bin:/opt/colons/sbin', a path cannot contain a colon
+	# /root/.config/paths/paths.d/06-colons: ignoring '~/colons:with:colons/bin', a path cannot contain a colon
+	# /root/.config/paths/paths.d/06-colons: ignoring '/usr/bin:/bin', a path cannot contain a colon
+- Fix "an unreadable fragment adds nothing" <!-- backlog: 1790347985, id: card_01M3CGWGGVDJHEMSP74T79ER1S -->
+  ```
+	not ok 131 - an unreadable fragment adds nothing
+	message: 'output did not match the fixture'
+	severity: fail
+	data:
+		fixture: 'spec/fixtures/results/unreadable_path.txt'
+		arguments: '-p --no-etc'
+		user: 'nobody'
+	...
+  # --- cmp ---
+  # cmp: EOF on /tmp/tmp.JNGm04E8Yz which is empty
+  # --- end cmp ---
+  # --- expected ---
+  # /opt/readable/bin
+  # --- end expected ---
+  # --- actual ---
+  # --- end actual ---
+  # --- stderr ---
+  # ./path_helper: 4: exec: /home/runner/.local/kcov/bin/kcov: Permission denied
+  # --- end stderr ---
+	```
+- Fix "an unreadable fragment is marked in the debug report" <!-- backlog: 1790348150, id: card_01M3CH1HRGX4GW76DE1GV94RDW -->
+	```
+	not ok 132 - an unreadable fragment is marked in the debug report
+    message: 'output did not match the fixture'
+    severity: fail
+    data:
+      fixture: 'spec/fixtures/results/debug_unreadable.txt'
+      arguments: '-p --no-etc --debug'
+      user: 'nobody'
+    ...
+  # --- cmp ---
+  # cmp: EOF on /tmp/tmp.huHLI4DTyj which is empty
+  # --- end cmp ---
+  # --- expected ---
+  # Name: PATH
+  # Options: {name: "PATH", current_path: nil, etc: false, debug: true, verbose: true}
+  # Search order: [:config]
+  # 	/tmp/path_helper.MVhqx4/.config/paths/paths.d
+  # 	/tmp/path_helper.MVhqx4/.config/paths/paths
+  # 
+  # Results: (duplicates marked by ✗, dropped lines by ⊘)
+  # 
+  # /tmp/path_helper.MVhqx4/.config/paths/paths.d/01-readable
+  #  └── /opt/readable/bin
+  # /tmp/path_helper.MVhqx4/.config/paths/paths.d/02-unreadable - is not readable!
+  # 
+  # Env var:
+  # /opt/readable/bin
+  # 
+  # --- end expected ---
+  # --- actual ---
+  # --- end actual ---
+  # --- stderr ---
+  # /root/.config/paths/paths.d/06-colons: ignoring '/opt/colons/bin:/opt/colons/sbin', a path cannot contain a colon
+  # /root/.config/paths/paths.d/06-colons: ignoring '~/colons:with:colons/bin', a path cannot contain a colon
+  # /root/.config/paths/paths.d/06-colons: ignoring '/usr/bin:/bin', a path cannot contain a colon
+  # --- end stderr ---
+	```
 
 ###### Ready
 
