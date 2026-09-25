@@ -218,15 +218,13 @@ test_a_path(){
 	"$EXECUTABLE" "${@}" > "$actual" 2> "$noise"
 	local end="$(get_time_ns)"
 
-	# A run can succeed and still output to STDERR
-	# For example, a line dropped for including a colon is
-	# reported on stderr while the test may be about about stdout,
-	# so anything on stderr is passed on as comments
-	# to avoid hitting the TAP stream.
-	# test_a_path_with_stderr does the assertion for that.
-	if [ -s "$noise" ]; then
-		tap_comment_file "stderr" "$noise"
-	fi
+	# A run can succeed and still output to STDERR. For example, a line dropped
+	# for including a colon is reported on stderr while the test may be about
+	# stdout, and that is not a failure. So the noise is only shown when the
+	# test point itself fails, alongside the other diagnostics -- a passing run
+	# discards it rather than adding it to the TAP stream.
+	# test_a_path_with_stderr does the assertion for cases where stderr itself
+	# is under test.
 
 	# Fixtures store the home directory as a {{HOME}} placeholder so that they
 	# are not tied to the user the tests happen to run as. Any literal $HOME in
@@ -246,6 +244,9 @@ test_a_path(){
 		tap_comment_file "cmp" "$difference"
 		tap_comment_file "expected" "$expected"
 		tap_comment_file "actual" "$actual"
+		if [ -s "$noise" ]; then
+			tap_comment_file "stderr" "$noise"
+		fi
 	fi
 
 	tap_comment "Performance: $description took $(( (end - start) / 1000000 ))ms"
@@ -619,10 +620,9 @@ test_unreadable_fragment(){
 
 	as_nobody "cd '$home' && HOME='$home' PATH='$PATH' ./path_helper $*" > "$actual" 2> "$noise"
 
-	if [ -s "$noise" ]; then
-		tap_comment_file "stderr" "$noise"
-	fi
-
+	# As in test_a_path, a permission warning on stderr is expected here and
+	# not a failure by itself, so it is only shown alongside the other
+	# diagnostics when the test point fails.
 	local fixture="$(fixture_path "$output_file")"
 	sed "s|{{HOME}}|$home|g" "$PWD/$fixture" > "$expected"
 
@@ -638,6 +638,9 @@ test_unreadable_fragment(){
 		tap_comment_file "cmp" "$difference"
 		tap_comment_file "expected" "$expected"
 		tap_comment_file "actual" "$actual"
+		if [ -s "$noise" ]; then
+			tap_comment_file "stderr" "$noise"
+		fi
 	fi
 
 	rm -rf "$home"
