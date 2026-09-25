@@ -65,10 +65,11 @@ Language-Agnostic Infrastructure
 - Add automated changelog generation <!-- id: card_01M2CH87XM5GEB37EGFC1Z945V, ready: 1788877330 -->
 - Add golden file generation mode via `GENERATE_GOLDEN` environment variable <!-- backlog: 1789267516, id: card_01M2CH884TEX2CZP8RM345J89Z -->
 - docker/install-ruby.sh still runs --setup --no-lib and copies fixtures into ~/.config/paths when the image is built. Remove redundant code. <!-- backlog: 1789455144, id: card_01M2HXD5ZVEAV13ASBJNXV2SG7 -->
+- Decide: de-duplication compares lines as text, so on case-insensitive APFS `/opt/Foo/bin` and `/opt/foo/bin` (the same directory) both reach PATH. Leave as is (matches `/opt/x` vs `/opt/x/`), or compare case-insensitively where the file system is? <!-- backlog: 1790322957, id: card_01M3BS0QN2BEE4J9NCXXA5X0PV -->
+- Decide: `paths.d` fragments sort by byte, so any upper-case name runs before every lower-case one (`10-Zeta` before `10-alpha`). Keep byte order (pinned by spec/tests/case_test.sh), or sort case-insensitively like Finder? <!-- backlog: 1790322957, id: card_01M3BS0QJ769Z62N5M02998RA4 -->
 
 ###### Ready
 
-- macOS file-system: test case-insensitive APFS name clashes (e.g. `Paths` vs `paths`, `paths.d` entries differing only by case) <!-- id: card_01M2CH889WK0DNQW99H11YZYA7, ready: 1789268873 -->
 - Harness portability: check the suite on BSD userland (macOS) — `mktemp`/`mktemp -d` are used today; keep `sed -i`, `stat`, `readlink` and `date +%N` out <!-- id: card_01M2CH88J3N85JJYVK4EYAFYFB, ready: 1789268873 -->
 - Runtime/arch: test against the old system Ruby shipped with macOS, or document the minimum Ruby supported there <!-- id: card_01M2CH88R4CMWBQ65KGX13PC38, ready: 1789268873 -->
 - Test `--lib`/`--config` enabling the second segment on each OS, and `--no-lib` against a real `~/Library/Paths` (covers the backlog item "--no-lib coverage needs `~/Library/Paths`") <!-- id: card_01M2CH88B8M17GETM9TZ5VHC10, in_progress: 1789454931, ready: 1789455435 -->
@@ -77,6 +78,7 @@ Language-Agnostic Infrastructure
 
 
 ###### In Progress
+
 
 
 
@@ -168,3 +170,4 @@ Language-Agnostic Infrastructure
 - Update fixture paths to use platform-specific directories <!-- backlog: 1789267692, done: 1789455396, id: card_01M2CH887AHC847CEJG31F71PK, in_progress: 1789449543, ready: 1789267729 -->
 - Runtime/arch: run the suite on arm64 as well as x86_64 (`macOS-latest` is arm64) <!-- done: 1789525949, id: card_01M2CH88S8XTPFHA0M94SRY0T4, ready: 1789268873 -->
 - Harness portability: check up front for the `ruby` the timing helper needs and `Bail out!` if missing; `bc` no longer appears in `spec/`, so drop it from `setup-test-env` and the Dependencies note if it's truly unused <!-- done: 1789606098, id: card_01M2CH87XSSB7Q55VS049H5ATH, in_progress: 1789525983, ready: 1789455429 -->
+- macOS file-system: test case-insensitive APFS name clashes (e.g. `Paths` vs `paths`, `paths.d` entries differing only by case) <!-- done: 1790322874, id: card_01M2CH889WK0DNQW99H11YZYA7, in_progress: 1790322047, ready: 1789268873 -->

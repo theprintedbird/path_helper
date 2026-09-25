@@ -84,10 +84,18 @@ compile target.
   in this order: `setup_test.sh` (`--setup`, and the symlinks, dangling link, subdirectory and fifo
   every later file relies on — so it must stay first), `path_test.sh` (each env var plain and
   `--debug`, the `--no-*` segment switches, append mode), `error_test.sh` (exit status and stream
-  contract: refusals, `--`, `--version`, `--help`), `edge_case_test.sh` (awkward input files).
-  Nothing after setup mutates shared state, so the last three can be reordered freely. The order is
+  contract: refusals, `--`, `--version`, `--help`), `edge_case_test.sh` (awkward input files),
+  `case_test.sh` (names differing only by case). Nothing after setup mutates shared state, so the
+  last four can be reordered freely. The order is
   `TEST_FILES` in `spec/shell_spec.sh`, which is also what named files are checked against, so a new
   test file has to be added there.
+- `case_test.sh` probes the file system (`is_case_insensitive`, a scratch file looked up in the other
+  case) rather than trusting `PLATFORM`, reports the result as `# File system:`, and expects whichever
+  outcome that file system should give — so its case-insensitive branch only runs on a Mac (macOS CI).
+  It works in a scratch `HOME` and compares strings built in the test (`test_path_under_home`,
+  `test_files_listed_under_home`), not fixtures. Being non-destructive, it can be run on a Mac host by
+  sourcing `spec/lib/test_helpers.sh` and the test file with `EXECUTABLE`, `PLATFORM=darwin` and
+  `USER_PATHS=Library/Paths` set — without the guard variable.
 - `spec/fixtures/moredirs/` — input path files, copied by the run into the platform's user segment:
   `~/.config/paths` on Linux, `~/Library/Paths` on macOS.
 - `spec/fixtures/results/*.txt` — expected stdout, byte-compared with `cmp`. The home directory is

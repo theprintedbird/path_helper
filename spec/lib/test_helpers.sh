@@ -643,3 +643,75 @@ test_unreadable_fragment(){
 	rm -rf "$home"
 	rm -f "$actual" "$expected" "$difference" "$noise"
 }
+
+# --- Case sensitivity -------------------------------------------------------
+
+# is_case_insensitive <directory>
+# Whether the file system holding <directory> ignores case in names, as the
+# default APFS volume on macOS does (it preserves case but does not match on
+# it). Probed rather than inferred from PLATFORM, since a Mac can have a
+# case-sensitive volume and Linux can mount a case-insensitive one. The probe
+# is made in the directory the test is about to use, so it answers for that
+# file system and not some other mount.
+is_case_insensitive(){
+	local probe="$1/case-probe"
+	local status=1
+	: > "$probe"
+	[ -e "$1/CASE-PROBE" ] && status=0
+	rm -f "$probe"
+	return $status
+}
+
+# run_under_home <home> <argument>...
+# The stdout of a run with HOME pointed at <home>, stderr discarded.
+run_under_home(){
+	local home="$1"
+	shift
+	HOME="$home" "$EXECUTABLE" "${@}" 2>/dev/null
+}
+
+# assert_same <description> <what> <expected> <actual> <arguments>
+# One test point comparing two strings built by the test itself, for runs whose
+# output depends on a scratch HOME or on the file system, which a fixture
+# cannot bake in.
+assert_same(){
+	if [ "$3" = "$4" ]; then
+		tap_ok "$1"
+	else
+		tap_not_ok "$1"
+		tap_yaml "$2 did not match" "arguments: '$5'"
+		tap_comment "--- expected ---"
+		printf '%s\n' "$3" | tap_comment_stream
+		tap_comment "--- actual ---"
+		printf '%s\n' "$4" | tap_comment_stream
+		tap_comment "--- end ---"
+	fi
+}
+
+# test_path_under_home <description> <home> <expected> <argument>...
+# Compares the path built under <home> with <expected>.
+test_path_under_home(){
+	local description="$1"
+	local home="$2"
+	local expected="$3"
+	shift 3
+	local actual="$(run_under_home "$home" "${@}")"
+	assert_same "$description" "the path" "$expected" "$actual" "$*"
+}
+
+# test_files_listed_under_home <description> <home> <expected> <argument>...
+# Compares the files named in the Results of the debug report (the lines that
+# start with <home>, one per file, including any "- does not exist!" note) with
+# <expected>, one per line. The search order lines are indented, so they are
+# not picked up, and the components the tests use are outside <home>. This is
+# what shows which spelling of a name the report uses.
+test_files_listed_under_home(){
+	local description="$1"
+	local home="$2"
+	local expected="$3"
+	shift 3
+	local actual="$(run_under_home "$home" "${@}" --debug |
+		awk -v h="$home/" 'index($0, h) == 1')"
+	assert_same "$description" "the files in the debug report" \
+		"$expected" "$actual" "$* --debug"
+}
