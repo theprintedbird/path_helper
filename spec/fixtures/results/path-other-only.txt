@@ -1,0 +1,1 @@
+/opt/other/bin:{{HOME}}/other/bin:/opt/pkg/bin:/opt/other/sbin:/usr/local/bin

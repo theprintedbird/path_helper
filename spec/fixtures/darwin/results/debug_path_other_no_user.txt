@@ -1,0 +1,32 @@
+Name: PATH
+Options: {name: "PATH", current_path: nil, config: true, lib: false, debug: true, verbose: true}
+Search order: [:config, :etc]
+	{{HOME}}/.config/paths/paths.d
+	{{HOME}}/.config/paths/paths
+	/etc/paths.d
+	/etc/paths
+
+Results: (duplicates marked by ✗, dropped lines by ⊘)
+
+{{HOME}}/.config/paths/paths.d/10-other
+ ├── /opt/other/bin
+ ├── ~/other/bin
+ └── /opt/pkg/bin
+{{HOME}}/.config/paths/paths
+ ├── /opt/other/sbin
+ └── /usr/local/bin
+/etc/paths.d/01-linked
+ ├── /opt/symlinked/bin
+ └── ~/symlinked/sbin
+/etc/paths
+ ├── /usr/local/bundle/bin
+ ├── /usr/local/sbin
+ ├── /usr/local/bin ✗
+ ├── /usr/sbin
+ ├── /usr/bin
+ ├── /sbin
+ └── /bin
+
+Env var:
+/opt/other/bin:{{HOME}}/other/bin:/opt/pkg/bin:/opt/other/sbin:/usr/local/bin:/opt/symlinked/bin:{{HOME}}/symlinked/sbin:/usr/local/bundle/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin
+

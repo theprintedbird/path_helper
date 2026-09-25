@@ -15,6 +15,8 @@
 # Previously, the fixtures had only the DYLD_LIBRARY_PATH 
 # while the CLI actually used DYLD_FALLBACK_LIBRARY_PATH.`-l` read nothing and the
 # expected output was an empty file. All now have their own input files.
+# The other segment (see OTHER_SEGMENT in spec/shell_spec.sh) is populated but
+# switched off by default, so none of its lines should appear in these.
 test_a_path "path_spec" "path.txt" "-p"
 test_a_path "debug_path_spec" "debug_path.txt" "-p" "--debug"
 test_a_path "manpath_spec" "manpath.txt" "-m"
@@ -44,13 +46,13 @@ test_a_path "debug_pkg_config_spec" "debug_pkg_config.txt" "--pc" "--debug"
 # - `config` (~/.config/paths) on Linux
 # - `lib` (~/Library/Paths) on macOS
 # See USER_SEGMENT in spec/shell_spec.sh.
-# Here, the suite sets up with --no-$OTHER_SEGMENT and it is off by default
-# anyway, so switching it off can only ever be a no-op here.
+# The other segment is populated by setup_test.sh but off by default, so
+# switching it off leaves the default output; switching it on is tested below.
 # The segments hold the same lines on every platform, so these plain fixtures
 # are shared; `path-no-user.txt` is the etc segment on its own.
 test_a_path "no-etc leaves the $USER_SEGMENT segment" "path-no-etc.txt" "-p" "--no-etc"
 test_a_path "no-$USER_SEGMENT leaves the etc segment" "path-no-user.txt" "-p" "--no-$USER_SEGMENT"
-test_a_path "no-$OTHER_SEGMENT changes nothing" "path.txt" "-p" "--no-$OTHER_SEGMENT"
+test_a_path "no-$OTHER_SEGMENT leaves the default, which already omits it" "path.txt" "-p" "--no-$OTHER_SEGMENT"
 test_a_path "no-etc and no-$USER_SEGMENT leave nothing" "path-no-segments.txt" "-p" "--no-etc" "--no-$USER_SEGMENT"
 test_a_path "no-etc and no-$OTHER_SEGMENT leave the $USER_SEGMENT segment" "path-no-etc.txt" "-p" "--no-etc" "--no-$OTHER_SEGMENT"
 test_a_path "no-$USER_SEGMENT and no-$OTHER_SEGMENT leave the etc segment" "path-no-user.txt" "-p" "--no-$USER_SEGMENT" "--no-$OTHER_SEGMENT"
@@ -62,6 +64,48 @@ test_a_path "all three leave nothing" "path-no-segments.txt" "-p" "--no-etc" "--
 # leaves nothing at all behind.
 test_a_path "no-etc leaves the $USER_SEGMENT segment for manpaths" "manpath.txt" "-m" "--no-etc"
 test_a_path "no-$USER_SEGMENT leaves nothing for manpaths" "path-no-segments.txt" "-m" "--no-$USER_SEGMENT"
+
+# The second segment of the default order, and the switch that enables it.
+# Each platform searches [user, other, etc] once --$OTHER_SEGMENT is given:
+# - Linux: [:config, :lib, :etc], so --lib adds ~/Library/Paths
+# - macOS: [:lib, :config, :etc], so --config adds ~/.config/paths
+# The other segment is always second, so the plain outputs are the same on
+# both and the fixtures are shared. Its lines land between the user segment's
+# and /etc's, and the two it shares with the user segment (/opt/pkg/bin and
+# /usr/local/bin) are dropped there, as the user segment got them first.
+# Naming the user segment, which is on anyway, changes nothing.
+test_a_path "$USER_SEGMENT, on by default, changes nothing" "path.txt" "-p" "--$USER_SEGMENT"
+test_a_path "$OTHER_SEGMENT adds the $OTHER_SEGMENT segment between $USER_SEGMENT and etc" \
+	"path-with-other.txt" "-p" "--$OTHER_SEGMENT"
+# The debug report names the directories, so it has a Darwin copy, in which
+# ~/Library/Paths is first and ~/.config/paths second.
+test_a_path "the debug report searches $USER_SEGMENT, $OTHER_SEGMENT, then etc" \
+	"debug_path_with_other.txt" "-p" "--$OTHER_SEGMENT" "--debug"
+test_a_path "$OTHER_SEGMENT adds the $OTHER_SEGMENT segment for manpaths" \
+	"manpath-with-other.txt" "-m" "--$OTHER_SEGMENT"
+
+# A switch and its negation: both parsers let the last one win.
+test_a_path "$OTHER_SEGMENT then no-$OTHER_SEGMENT leaves it off" "path.txt" "-p" "--$OTHER_SEGMENT" "--no-$OTHER_SEGMENT"
+test_a_path "no-$OTHER_SEGMENT then $OTHER_SEGMENT leaves it on" "path-with-other.txt" "-p" "--no-$OTHER_SEGMENT" "--$OTHER_SEGMENT"
+
+# The other segment without the user segment in front of it. Now it is the one
+# to get /opt/pkg/bin and /usr/local/bin first, and /etc/paths' /usr/local/bin
+# is the duplicate -- the other segment is still searched before etc.
+test_a_path "$OTHER_SEGMENT and no-$USER_SEGMENT leave $OTHER_SEGMENT then etc" \
+	"path-other-no-user.txt" "-p" "--$OTHER_SEGMENT" "--no-$USER_SEGMENT"
+test_a_path "the debug report marks the etc duplicate of a $OTHER_SEGMENT line" \
+	"debug_path_other_no_user.txt" "-p" "--$OTHER_SEGMENT" "--no-$USER_SEGMENT" "--debug"
+test_a_path "$OTHER_SEGMENT with no-$USER_SEGMENT and no-etc leaves only $OTHER_SEGMENT" \
+	"path-other-only.txt" "-p" "--$OTHER_SEGMENT" "--no-$USER_SEGMENT" "--no-etc"
+
+# `--no-lib` against a real ~/Library/Paths is covered on both platforms by the
+# tests above, through the segment variables:
+# - macOS: ~/Library/Paths is the user segment, so every --no-$USER_SEGMENT test
+#   is --no-lib removing its populated lines.
+# - Linux: ~/Library/Paths is the other segment. The default output has none of
+#   its lines anyway, so it is `--lib --no-lib` (the last-one-wins test) that
+#   shows --no-lib switching off a populated ~/Library/Paths, and
+#   `--no-lib --lib` that shows the same tree is otherwise there to be found.
 
 # Append mode.
 # The path switches take an optional argument that is appended to the generated path.

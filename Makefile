@@ -65,6 +65,7 @@ help:
 	@echo "    make all                    Build and test both Ruby and Crystal"
 	@echo "    make clean                  Remove all built images"
 	@echo "    make list                   Show all built images"
+	@echo "    make lint                   Check the test harness for GNU-only shell (breaks on macOS/BSD)"
 	@echo ""
 	@echo "Environment Variables:"
 	@echo "  VERSION                   Version tag (default: git describe or 'dev')"
@@ -184,6 +185,10 @@ clean:
 list:
 	@echo "Available path_helper images:"
 	@$(CONTAINER_RUNTIME) images $(REPO)
+
+.PHONY: lint
+lint:
+	@sh spec/lint_portability.sh
 
 # =============================================================================
 # Crystal Targets

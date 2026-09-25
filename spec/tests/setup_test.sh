@@ -1,6 +1,7 @@
 # Sourced by spec/shell_spec.sh:
 # - Tests what --setup creates,
-# - copies the input fixtures into place
+# - copies the input fixtures into place, in the user segment
+# - sets up the other segment and copies its own inputs there
 # - adds the symlinked search directory
 # - adds symlinked and dangling fragment files
 # - adds a subdirectory and named pipe that the path, error and edge case tests use.
@@ -29,6 +30,32 @@ if test_setup; then
 else
 	tap_not_ok "setup creates the path directories and files"
 	tap_yaml "--setup did not create the full path tree"
+fi
+
+# The other segment -- the one the platform does not search by default,
+# ~/.config/paths on macOS and ~/Library/Paths elsewhere -- gets a tree and
+# inputs of its own. Without them, switching it off (or on) could not change the
+# output, so the --no-$OTHER_SEGMENT tests in path_test.sh would pass whatever
+# the switch did. It is also what gives `--no-lib` a real ~/Library/Paths to act
+# on under Linux (on macOS that is the user segment, populated above).
+# Its inputs (spec/fixtures/otherdirs/) are few and distinct from the user
+# segment's, plus a line from each of the user and etc segments, so the output
+# shows where the segment falls in the search order.
+# It is laid out by --setup with only the other segment switched on, which
+# shows that the switch is what enables it and that the other two segments are
+# left alone.
+"$EXECUTABLE" --setup --$OTHER_SEGMENT --no-$USER_SEGMENT --no-etc --quiet
+cp -R spec/fixtures/otherdirs/* "$HOME/$OTHER_PATHS"
+
+if [ -d "$HOME/$OTHER_PATHS/c_include_paths.d" ] &&
+   [ -f "$HOME/$OTHER_PATHS/pkg_config_paths" ] &&
+   [ -f "$HOME/$OTHER_PATHS/paths" ] &&
+   [ -f "$HOME/$OTHER_PATHS/paths.d/10-other" ] &&
+   [ -f "$HOME/$OTHER_PATHS/manpaths" ]; then
+	tap_ok "setup creates the $OTHER_SEGMENT segment when it is switched on"
+else
+	tap_not_ok "setup creates the $OTHER_SEGMENT segment when it is switched on"
+	tap_yaml "--setup --$OTHER_SEGMENT did not create the $OTHER_SEGMENT tree at ~/$OTHER_PATHS"
 fi
 
 # A segment's directory may be a symlink. A dotfile repo that keeps its

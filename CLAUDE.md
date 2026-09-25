@@ -66,12 +66,17 @@ differs (the default search order), and the failure YAML's `fixture:` is the pat
 
 The same `case` sets the user segment the inputs go in — the one the platform searches by default, so no
 path test has to switch a segment on: `USER_SEGMENT=config`/`USER_PATHS=.config/paths` with
-`OTHER_SEGMENT=lib` on Linux, and `lib`/`Library/Paths` with `config` on macOS. Setup is
-`--setup --$USER_SEGMENT --no-$OTHER_SEGMENT`, and the segment-switch tests in `path_test.sh` are written
-in those variables. The lines found are the same either way, so the plain path fixtures are shared; only
-the fixtures that name the user segment's directory have copies in `spec/fixtures/darwin/results/` — the
-ten `debug_*` ones (which also print `Search order:`) and `colons_warning.txt` (the warning names the
-fragment file). A new fixture containing `{{HOME}}/.config/paths/` needs a Darwin copy.
+`OTHER_SEGMENT=lib` on Linux, and `lib`/`Library/Paths` with `config` on macOS (plus `OTHER_PATHS`, the
+other segment's directory). Setup is `--setup --$USER_SEGMENT --no-$OTHER_SEGMENT` for the user segment,
+then `--setup --$OTHER_SEGMENT --no-$USER_SEGMENT --no-etc` for the other one, which gets its own small
+inputs so the `--$OTHER_SEGMENT`/`--no-$OTHER_SEGMENT` tests (and `--no-lib` on Linux) act on a real tree.
+It is off by default, so no default-run fixture sees it. The segment-switch tests in `path_test.sh` are
+written in those variables; enabling the other segment gives `[user, other, etc]` on both platforms. The
+lines found are the same either way, so the plain path fixtures are shared; only the fixtures that name a
+home segment's directory have copies in `spec/fixtures/darwin/results/` — the twelve `debug_*` ones (which
+also print `Search order:`) and `colons_warning.txt` (the warning names the fragment file). A new fixture
+containing `{{HOME}}/.config/paths/` or `{{HOME}}/Library/Paths/` needs a Darwin copy with the two swapped
+(and `lib`/`config` swapped in `Options:` and `Search order:`).
 Those can only be checked for real on a Mac, because the order comes from `RUBY_PLATFORM` or the Crystal
 compile target.
 
@@ -82,16 +87,33 @@ compile target.
   there), dash in the glibc Crystal image, bash-as-sh on macOS. `local` is the one non-POSIX feature
   used; `spec/shell_spec.sh` bails out on a shell without it. Write `local x="$(...)"`, quoted, since
   `local` isn't an assignment to POSIX and some shells field-split its value.
+- macOS's bash-as-sh is also BSD userland: `sed -i`, `stat`, `readlink`, `realpath` and `date +%N` are
+  GNU-only and either error out or emit something different there. `mktemp`/`mktemp -d` are fine (BSD
+  has had both forms since 10.11). `make lint` (`spec/lint_portability.sh`, plain POSIX sh, no
+  `grep -P`) greps the harness files and the actions' `run:` blocks for these forms, skipping comment
+  lines since the harness's own comments deliberately mention some of them; it also runs as a CI step
+  in `.github/actions/run-shell-tests` before the suite, ahead of the macOS job.
 - `spec/tests/*_test.sh` — the tests, sourced (not executed, since the TAP counters are shell globals)
-  in this order: `setup_test.sh` (`--setup`, and the symlinks, dangling link, subdirectory and fifo
-  every later file relies on — so it must stay first), `path_test.sh` (each env var plain and
-  `--debug`, the `--no-*` segment switches, append mode), `error_test.sh` (exit status and stream
-  contract: refusals, `--`, `--version`, `--help`), `edge_case_test.sh` (awkward input files).
-  Nothing after setup mutates shared state, so the last three can be reordered freely. The order is
+  in this order: `setup_test.sh` (`--setup` of both home segments, and the symlinks, dangling link,
+  subdirectory and fifo every later file relies on — so it must stay first), `path_test.sh` (each env
+  var plain and `--debug`, the `--no-*` segment switches, enabling the other segment, append mode),
+  `error_test.sh` (exit status and stream contract: refusals, `--`, `--version`, `--help`),
+  `edge_case_test.sh` (awkward input files), `case_test.sh` (names differing only by case). Nothing
+  after setup mutates shared state, so the last four can be reordered freely. The order is
   `TEST_FILES` in `spec/shell_spec.sh`, which is also what named files are checked against, so a new
   test file has to be added there.
+- `case_test.sh` probes the file system (`is_case_insensitive`, a scratch file looked up in the other
+  case) rather than trusting `PLATFORM`, reports the result as `# File system:`, and expects whichever
+  outcome that file system should give — so its case-insensitive branch only runs on a Mac (macOS CI).
+  It works in a scratch `HOME` and compares strings built in the test (`test_path_under_home`,
+  `test_files_listed_under_home`), not fixtures. Being non-destructive, it can be run on a Mac host by
+  sourcing `spec/lib/test_helpers.sh` and the test file with `EXECUTABLE`, `PLATFORM=darwin` and
+  `USER_PATHS=Library/Paths` set — without the guard variable.
 - `spec/fixtures/moredirs/` — input path files, copied by the run into the platform's user segment:
   `~/.config/paths` on Linux, `~/Library/Paths` on macOS.
+- `spec/fixtures/otherdirs/` — the other segment's inputs (a `paths`, one `paths.d` fragment and a
+  `manpaths`), copied into `~/Library/Paths` on Linux and `~/.config/paths` on macOS. A few lines repeat
+  ones in the user and etc segments, to show where the segment falls in the search order.
 - `spec/fixtures/results/*.txt` — expected stdout, byte-compared with `cmp`. The home directory is
   stored as the placeholder `{{HOME}}`, substituted at compare time; a literal `$HOME` in a fixture is
   intentional — it comes from an input file and must survive to the output verbatim.

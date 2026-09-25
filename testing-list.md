@@ -68,15 +68,15 @@
 
 ### OS-specific tests
 
-- Default search order per OS, and `--lib`/`--config` defaults on each
-- `--no-lib` against a real `~/Library/Paths`
-- APFS case-insensitivity: `Paths`/`paths` style name clashes
+- DONE Default search order per OS, and `--lib`/`--config` defaults on each
+- DONE `--no-lib` against a real `~/Library/Paths`
+- DONE APFS case-insensitivity: `Paths`/`paths` style name clashes
 - DONE Unicode filename normalisation (NFC/NFD) and its effect on `paths.d` sort order
 - DONE `/etc` and `/tmp` as symlinks to `/private/...`: debug output and "does not exist" report
 - DONE Home directory differences (`/Users/<name>`, `/home/runner`, `/root`): `{{HOME}}`, `--setup` output, `~` expansion
 - DONE Harness under busybox `sh` (Alpine), and dash
-- Harness on BSD userland (macOS): `mktemp`, and no GNU-only `sed -i`/`stat`/`readlink`/`date +%N`
-- Harness when `ruby` (timing helper) is missing; remove the apparently unused `bc` dependency
+- DONE Harness on BSD userland (macOS): `mktemp`, and no GNU-only `sed -i`/`stat`/`readlink`/`date +%N` -- audited spec/shell_spec.sh, spec/lib/test_helpers.sh, spec/tests/*.sh and the actions' `run:` blocks by hand (all already portable) and added `make lint`/`spec/lint_portability.sh` to keep it that way, run in CI ahead of the suite
+- DONE Harness when `ruby` (timing helper) is missing; remove the apparently unused `bc` dependency -- `spec/shell_spec.sh` already `Bail out!`s if `ruby` is missing, and `bc` does not appear anywhere in spec/
 - DONE Crystal on musl vs glibc
 - arm64 vs x86_64
 - DONE Old macOS system Ruby -- macOS system Ruby (2.6.10p210) matches ruby:2.6-alpine3.15 exactly; full suite passes, minimum lowered to 2.6, macOS CI job added

@@ -25,11 +25,13 @@ EXECUTABLE="${PATH_HELPER_EXECUTABLE:-${PWD}/exe/path_helper}"
 case "$(uname -s)" in
 	Darwin)
 		PLATFORM=darwin
-		USER_SEGMENT=lib OTHER_SEGMENT=config USER_PATHS=Library/Paths
+		USER_SEGMENT=lib OTHER_SEGMENT=config
+		USER_PATHS=Library/Paths OTHER_PATHS=.config/paths
 		;;
 	*)
 		PLATFORM=linux
-		USER_SEGMENT=config OTHER_SEGMENT=lib USER_PATHS=.config/paths
+		USER_SEGMENT=config OTHER_SEGMENT=lib
+		USER_PATHS=.config/paths OTHER_PATHS=Library/Paths
 		;;
 esac
 
@@ -54,7 +56,7 @@ fi
 # Every test file, in the order they run. The tests share the TAP counters, so
 # the files are sourced rather than run. setup has to come first; the order of
 # the rest does not matter.
-TEST_FILES="setup path error edge_case"
+TEST_FILES="setup path error edge_case case"
 
 # The files named on the command line, reduced to the short names above. They
 # are checked before the guard so that a mistyped name is reported even where

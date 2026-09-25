@@ -24,6 +24,14 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    # Cheap, non-destructive: catches a GNU-only shell form (sed -i, stat,
+    # readlink, date +%N, ...) landing in the harness before it reaches a
+    # macOS runner and fails there instead. Kept to this one place so both
+    # test-ruby.yml and test-crystal.yml get it without duplicating the step.
+    - name: Lint the harness for GNU-only shell
+      shell: sh
+      run: sh spec/lint_portability.sh
+
     # The suite does its own --setup and copies its own fixtures after clearing
     # out any earlier run, so there is nothing to prepare beyond setup-test-env.
     - name: Run tests
