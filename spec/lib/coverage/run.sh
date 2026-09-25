@@ -35,7 +35,8 @@
 # Everything the executable touches lives in a world-readable work directory
 # (PATH_HELPER_COVERAGE_WORK, default /tmp/path_helper-coverage) rather than
 # under the project, because one edge case test copies the executable and runs
-# the copy as *nobody*, who cannot read root's home.
+# the copy as *nobody*, who cannot read root's home. For Crystal that includes
+# kcov itself, copied there from wherever it is installed.
 
 language="$1"
 report_dir="$2"
@@ -77,10 +78,18 @@ case "$language" in
 		title="Ruby $(RUBYOPT='' ruby -e 'print RUBY_VERSION')"
 		;;
 	crystal)
-		kcov=$(command -v kcov) || bail "kcov is not on PATH; see docker/install-kcov.sh"
+		installed_kcov=$(command -v kcov) || bail "kcov is not on PATH; see docker/install-kcov.sh"
 		src="${PATH_HELPER_COVERAGE_SRC:-$PWD}"
 		[ -f "$src/shard.yml" ] && [ -d "$src/src" ] || bail "no Crystal sources in $src"
 		mkdir -p "$WORK/build" "$WORK/bin"
+		# kcov is run from a copy in the work dir, not from where it was
+		# installed: the runs as *nobody* need to reach it, and an install
+		# under a home directory (CI caches it under the runner's) is not
+		# traversable by other users. The binary is self-contained -- it
+		# links only system libraries and writes out the helper libraries
+		# it embeds at run time -- so the copy runs as the original does.
+		kcov="$WORK/bin/kcov"
+		cp "$installed_kcov" "$kcov" || bail "cannot copy $installed_kcov to $kcov"
 		cp -R "$src/src" "$src/shard.yml" "$WORK/build/"
 		# A plain (non --release) build keeps the debug info and the line
 		# table kcov maps addresses back to source lines with.

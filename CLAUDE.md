@@ -68,7 +68,10 @@ printed as TAP comments after the plan). The exit status is the suite's; there i
   refuses).
 - Everything the executable touches is in a world-readable work dir (`/tmp/path_helper-coverage`,
   raw output dir mode 1777, kcov output per uid), because `test_unreadable_fragment` copies the
-  executable and runs the copy as *nobody*, who can't read `/root`.
+  executable and runs the copy as *nobody*, who can't read `/root`. That includes kcov: `run.sh`
+  runs a copy of it from `$WORK/bin/kcov`, not the installed one, since CI's lives under the runner's
+  home, which *nobody* can't traverse (it links only system libraries and writes out its embedded
+  helper libraries at run time, so the lone binary copies cleanly).
 - `.gitignore` has `/coverage/` anchored: unanchored, it would also ignore `spec/lib/coverage/`.
 
 ## Test suite shape
