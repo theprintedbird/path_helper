@@ -6,7 +6,7 @@ Interested? Then read on!
 
 - [What is it?](#what-is-it-)
 - [What does that do?](#what-does-that-do-)
-- [How do i get this wonderful joyful event maker into my life? A.K.A. install instructions](#how-do-i-get-this-wonderful-joyful-event-maker-into-my-life-)
+- [Install Instructions](#install-instructions)
 - [How does the Apple one work?](#how-does-the-apple-one-work-)
 - [Why replace it?](#why-replace-it-)
 - [More drawbacks to Apple's way](#more-drawbacks-to-apple-s-way)
@@ -49,9 +49,7 @@ and one more for luck
 
 4. It's got no side effects, you simply ask it for a path and it gives back a path, no eval or setting the `PATH` inside the script.
 
-## <a name="how-do-i-get-this-wonderful-joyful-event-maker-into-my-life-">How do i get this wonderful joyful event maker into my life?</a>
-
-### A.K.A. install instructions
+## <a name="install-instructions">Install Instructions</a>
 
 It's just a script with no dependencies other than Ruby.
 
@@ -141,7 +139,9 @@ Where the Apple `path_helper` falls down is:
 
 ## <a name="do-i-need-to-be-on-apple-to-use-it-">Do i need to be on Apple to use it?</a>
 
-No, it should work on any unix-like system. It has one dependency, and that is Ruby. It should work with any system running Ruby 2.6 or above -- that floor is deliberately macOS's own deprecated system Ruby (`/usr/bin/ruby`), since `path_helper` typically runs from a shell profile before any Ruby version manager has put a newer Ruby on `PATH`; the full test suite passes unchanged against it. Anything beneath 2.6, you take your chances (though it was tested against 2.3.7 for a long while). If your system Ruby is older still, or you'd rather not depend on Ruby at all, use the Crystal build instead (`src/path_helper.cr`, `shards build`).
+No, it should work on any unix-like system. The Ruby version is just a script and it has one dependency, Ruby. The Crystal version needs Crystal to build it, but the binary has no dependencies.
+
+For Ruby, it should work with any system running Ruby 2.6 or above. That version was macOS's deprecated system Ruby (`/usr/bin/ruby`), as `path_helper` typically runs from a shell profile before a newer Ruby is put on the `PATH`. Anything beneath 2.6, you take your chances (though it was tested against 2.3.7 for a long while and I don't see why it wouldn't still work). If your system Ruby is older still, or you'd rather not depend on Ruby at all, use the Crystal build instead (`src/path_helper.cr`, `shards build`).
 
 ## <a name="how-does-path-helper-know-what-to-put-in-the-path-">How does path_helper know what to put in the path?</a>
 
@@ -188,10 +188,15 @@ The `/etc/paths` file in Apple isn't set out fully or in the order I'd want so I
 
 This is the bit I like best.
 
-Apple's path\_helper doesn't help with paths that may only be applicable for a single user. This version will check the following per user directories for path info:
+Apple's path\_helper doesn't help with paths that may only be applicable for a single user. This version will check the following per user directories for path info.
+
+On macOS:
 
 - `~/Library/Paths/paths.d` and
 - `~/Library/Paths/paths`
+
+On Linux:
+
 - `~/.config/paths.d/` and
 - `~/.config/paths`
 
