@@ -52,6 +52,7 @@ help:
 	@echo "    make test-all               Run tests for all Ruby versions"
 	@echo "    make test RUBY_VER=2.7      Run tests for specific Ruby version"
 	@echo "    make shell RUBY_VER=2.7     Open interactive shell in container"
+	@echo "    make coverage RUBY_VER=3.3  Run tests with line coverage, report in coverage/ruby/"
 	@echo ""
 	@echo "  Crystal:"
 	@echo "    make build-crystal-all                  Build images for all Crystal versions"
@@ -60,6 +61,8 @@ help:
 	@echo "    make test-crystal CRYSTAL_VER=1.14.0    Run tests for specific Crystal version"
 	@echo "    make shell-crystal CRYSTAL_VER=latest   Open interactive shell in container"
 	@echo "    make extract-crystal CRYSTAL_VER=latest Extract binary from container to bin/"
+	@echo "    make coverage-crystal CRYSTAL_VER=1.14.0 Run tests with line coverage (kcov, glibc),"
+	@echo "                                            report in coverage/crystal/"
 	@echo ""
 	@echo "  General:"
 	@echo "    make all                    Build and test both Ruby and Crystal"
@@ -82,10 +85,14 @@ help:
 	@echo "  make test RUBY_VER=3.3 TESTS=path       # Run one test file (after setup)"
 	@echo "  make test-crystal CRYSTAL_VER=latest    # Test latest Crystal"
 	@echo "  make test-crystal CRYSTAL_VER=1.14.0 CRYSTAL_LIBC=gnu  # Test against glibc"
+	@echo "  make coverage RUBY_VER=3.3 TESTS=path   # Coverage of one test file (after setup)"
 	@echo ""
 	@echo "Notes:"
 	@echo "  The test, shell and extract targets build the image they need first,"
 	@echo "  so there is no need to run a build target by hand beforehand."
+	@echo "  Coverage is a report, not a gate: its exit status is the suite's. Crystal"
+	@echo "  coverage always uses its own glibc image (Dockerfile.crystal-coverage),"
+	@echo "  whatever CRYSTAL_LIBC is, as kcov does not build against musl."
 
 .PHONY: build-all
 build-all:
@@ -174,6 +181,24 @@ endif
 	@$(MAKE) build RUBY_VER=$(RUBY_VER)
 	@echo "Opening shell in Ruby $(RUBY_VER) container..."
 	@$(CONTAINER_RUNTIME) run --rm -ti --entrypoint sh $(REPO):latest-ruby$(RUBY_VER)
+
+# Line coverage of the Ruby implementation as the suite exercises it. Runs the
+# ordinary test image through spec/lib/coverage/run.sh instead of the suite
+# directly, so nothing extra is installed; the report lands in coverage/ruby/.
+.PHONY: coverage
+coverage:
+ifndef RUBY_VER
+	@echo "Error: RUBY_VER not specified"
+	@echo "Usage: make coverage RUBY_VER=3.3"
+	@exit 1
+endif
+	@$(MAKE) build RUBY_VER=$(RUBY_VER)
+	@rm -rf coverage/ruby && mkdir -p coverage/ruby
+	@echo "Running tests with coverage for Ruby $(RUBY_VER)..."
+	@$(CONTAINER_RUNTIME) run --rm -v "$(CURDIR)/coverage/ruby":/coverage:Z \
+		--entrypoint sh $(REPO):$(VERSION)-ruby$(RUBY_VER) \
+		spec/lib/coverage/run.sh ruby /coverage $(TESTS)
+	@echo "Coverage report: coverage/ruby/summary.md"
 
 .PHONY: clean
 clean:
@@ -288,6 +313,31 @@ endif
 	@ls -lh bin/path_helper
 	@echo ""
 	@echo "Test it with: ./bin/path_helper --version"
+
+# Line coverage of the Crystal implementation, measured with kcov against a
+# debug build. Uses its own image, Dockerfile.crystal-coverage, which is always
+# glibc (Ubuntu) whatever CRYSTAL_LIBC says: kcov is built there from source
+# and does not build against musl. kcov needs address randomisation off in the
+# process it traces, which the default seccomp profile refuses, hence
+# seccomp=unconfined. The report lands in coverage/crystal/.
+.PHONY: coverage-crystal
+coverage-crystal:
+ifndef CRYSTAL_VER
+	@echo "Error: CRYSTAL_VER not specified"
+	@echo "Usage: make coverage-crystal CRYSTAL_VER=1.14.0"
+	@exit 1
+endif
+	@echo "Building Crystal $(CRYSTAL_VER) coverage image (gnu)..."
+	@$(CONTAINER_RUNTIME) build \
+		--build-arg CRYSTAL_VERSION=$(CRYSTAL_VER) \
+		--tag $(REPO):$(VERSION)-crystal$(CRYSTAL_VER)-coverage \
+		-f Dockerfile.crystal-coverage .
+	@rm -rf coverage/crystal && mkdir -p coverage/crystal
+	@echo "Running tests with coverage for Crystal $(CRYSTAL_VER) (gnu)..."
+	@$(CONTAINER_RUNTIME) run --rm --security-opt seccomp=unconfined \
+		-v "$(CURDIR)/coverage/crystal":/coverage:Z \
+		$(REPO):$(VERSION)-crystal$(CRYSTAL_VER)-coverage $(TESTS)
+	@echo "Coverage report: coverage/crystal/summary.md (HTML: coverage/crystal/kcov/index.html)"
 
 # =============================================================================
 # Combined Targets

@@ -688,6 +688,43 @@ make lint
 It also runs as a step in `.github/actions/run-shell-tests`, ahead of the suite
 itself, so a GNU-only form is caught in CI before it can fail on the macOS runner.
 
+**Measure code coverage:**
+
+```shell
+make coverage RUBY_VER=3.3
+make coverage-crystal CRYSTAL_VER=1.14.0
+make coverage RUBY_VER=3.3 TESTS=path     # TESTS works here too
+```
+
+These run the same suite with line coverage switched on for the implementation
+under test, then print a summary (lines, percentage and the uncovered line numbers
+per file) as TAP comments after the plan. The report is copied out to
+`coverage/ruby/` or `coverage/crystal/` (git-ignored):
+
+- `summary.md` — the summary, in Markdown.
+- Ruby: `path_helper.txt`, the script with each line's hit count in the margin
+  (`#####` marks a line never run), and `.resultset.json` in SimpleCov's format.
+- Crystal: `kcov/`, kcov's HTML report (`kcov/index.html`) plus Cobertura, SonarQube
+  and codecov output under `kcov/kcov-merged/`.
+
+Every run of the executable is its own process, so coverage is collected per process
+and merged. `spec/lib/coverage/run.sh` does the work in either case:
+
+- **Ruby** needs nothing extra. `spec/lib/coverage/ruby_coverage.rb` is loaded into
+  every Ruby process through `RUBYOPT` and uses the standard library's `Coverage`,
+  so there is no gem and `exe/path_helper` is untouched.
+- **Crystal** has no coverage tool of its own, so a debug build (a release build has
+  no line table) is run under [kcov](https://github.com/SimonKagstrom/kcov). kcov isn't
+  packaged for Ubuntu 24.04 or Alpine, so `docker/install-kcov.sh` builds it from
+  source, and it doesn't build against musl, so `coverage-crystal` always uses its own
+  glibc image (`Dockerfile.crystal-coverage`), whatever `CRYSTAL_LIBC` says. kcov
+  turns off address randomisation in the process it traces, which the default seccomp
+  profile blocks, so that container runs with `--security-opt seccomp=unconfined`.
+
+Coverage doesn't change what the executable prints or its exit status, so the suite's
+results are the same as a plain run's. The exit status is the suite's, and there is no
+minimum coverage: it's a report, not a gate.
+
 **List available images:**
 
 ```shell
@@ -893,7 +930,12 @@ The project uses GitHub Actions for continuous integration. The workflow runs on
 - **Manual Triggers**: Workflow can be manually triggered via `workflow_dispatch`
 - **Concurrency Control**: Duplicate runs are cancelled when new commits are pushed
 - **Test Summaries**: Results are displayed in the GitHub Actions UI
-- **Artifact Retention**: Test results are kept for 7 days
+- **Code Coverage**: One job per language (`coverage-ruby` on Ruby 3.3, `coverage-crystal` on
+  Crystal latest, both on `ubuntu-latest`) runs the suite with line coverage on, as
+  [`make coverage`](#to-run-the-specs) does locally. The summary goes to the job summary and the
+  full report is uploaded as the `coverage-ruby`/`coverage-crystal` artifact. It is a report, not a
+  gate: the job only fails if the suite does
+- **Artifact Retention**: Test results are kept for 7 days, coverage reports for 14
 
 ### Workflow Structure
 
@@ -929,6 +971,8 @@ Key files:
 - `spec/lib/test_helpers.sh` - TAP reporting, cleanup and assertions, sourced by the suite
 - `spec/tests/` - The tests themselves (setup, path, error and edge case), sourced by the suite in that order
 - `spec/fixtures/` - Test fixtures and expected results
+- `spec/lib/coverage/` - Runs the suite with line coverage and writes the report (`run.sh`,
+  `ruby_coverage.rb`, `report.rb`)
 
 ### Running Tests Locally vs CI
 
@@ -945,6 +989,10 @@ make test RUBY_VER=3.3
 # Every supported Ruby version, then every Crystal version
 make test-all
 make test-crystal-all
+
+# Line coverage, report in coverage/ruby/ and coverage/crystal/
+make coverage RUBY_VER=3.3
+make coverage-crystal CRYSTAL_VER=1.14.0
 
 # Interactive shell for debugging
 make shell RUBY_VER=3.3

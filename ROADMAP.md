@@ -168,9 +168,15 @@ Main workflow that:
 - Track test trends over time
 
 #### 4.2 Add Code Coverage (when applicable)
-- Track coverage per implementation
-- Compare coverage across languages
-- Set minimum coverage thresholds
+- [x] Track coverage per implementation -- `make coverage` / `make coverage-crystal`
+  and the `coverage-ruby`/`coverage-crystal` CI jobs (`spec/lib/coverage/`). Line
+  coverage of each implementation as the shell suite exercises it: stdlib `Coverage`
+  for Ruby, kcov over a debug build for Crystal (glibc only).
+- [ ] Compare coverage across languages -- each report lists its uncovered lines, but
+  nothing lines the two up yet (the sources differ in shape, so by feature rather than
+  by line).
+- [ ] Set minimum coverage thresholds -- the reports are informational; nothing fails on
+  a low number yet.
 
 #### 4.3 Add Performance Benchmarks
 - Benchmark path generation speed

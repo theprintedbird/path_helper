@@ -15,11 +15,23 @@ inputs:
   home:
     description: 'Home directory to run the suite in (the `home` output of setup-test-env)'
     required: true
+  coverage:
+    description: >-
+      Measure line coverage of the implementation under test while the suite
+      runs: `ruby` or `crystal` (see spec/lib/coverage/run.sh). Empty, the
+      default, runs the suite plainly. The report goes to the `coverage-dir`
+      output and its summary to the job summary. It never fails the step on
+      its own account: the step's status is the suite's.
+    required: false
+    default: ''
 
 outputs:
   test-result:
     description: 'Test result (passed/failed)'
     value: ${{ steps.run-tests.outcome }}
+  coverage-dir:
+    description: 'Where the coverage report was written, when `coverage` was set'
+    value: ${{ steps.run-tests.outputs.coverage-dir }}
 
 runs:
   using: 'composite'
@@ -40,9 +52,19 @@ runs:
       env:
         EXECUTABLE: ${{ inputs.executable }}
         TEST_HOME: ${{ inputs.home }}
+        COVERAGE: ${{ inputs.coverage }}
       run: |
         as_root=""
         [ "$(id -u)" -eq 0 ] || as_root=sudo
+
+        # With coverage on, spec/lib/coverage/run.sh runs the suite instead,
+        # writing its report into the workspace for the upload step. For
+        # Crystal it builds its own debug binary from the checked-out sources.
+        coverage_dir=""
+        if [ -n "$COVERAGE" ]; then
+          coverage_dir="$GITHUB_WORKSPACE/coverage/$COVERAGE"
+          echo "coverage-dir=$coverage_dir" >> "$GITHUB_OUTPUT"
+        fi
 
         # sudo resets the environment, so what the suite needs is handed over
         # through env(1) rather than exported. That includes PATH, since sudo's
@@ -56,7 +78,13 @@ runs:
         {
           $as_root env HOME="$TEST_HOME" PATH="$PATH" \
             PATH_HELPER_DOCKER_INSTANCE=1 PATH_HELPER_EXECUTABLE="$EXECUTABLE" \
-            sh -c 'cd "$HOME" && exec ./spec/shell_spec.sh' 2>&1 \
+            COVERAGE="$COVERAGE" COVERAGE_DIR="$coverage_dir" \
+            PATH_HELPER_COVERAGE_SRC="$GITHUB_WORKSPACE" \
+            sh -c 'cd "$HOME" && if [ -n "$COVERAGE" ]; then
+                exec sh ./spec/lib/coverage/run.sh "$COVERAGE" "$COVERAGE_DIR"
+              else
+                exec ./spec/shell_spec.sh
+              fi' 2>&1 \
             && status=0 || status=$?
           echo "$status" > "$status_file"
         } | tee test_output.log
@@ -82,6 +110,21 @@ runs:
           echo ""
           echo "========================================"
         fi
+
+    # Informational only: there is no threshold, so low coverage never fails
+    # the job.
+    - name: Add the coverage summary
+      if: always() && inputs.coverage != ''
+      shell: sh
+      env:
+        COVERAGE_DIR: ${{ steps.run-tests.outputs.coverage-dir }}
+      run: |
+        if [ -f "$COVERAGE_DIR/summary.md" ]; then
+          cat "$COVERAGE_DIR/summary.md" >> "$GITHUB_STEP_SUMMARY"
+        else
+          echo ":warning: **No coverage report was made** - see the test output" >> "$GITHUB_STEP_SUMMARY"
+        fi
+        echo "" >> "$GITHUB_STEP_SUMMARY"
 
     - name: Generate test summary
       if: always()

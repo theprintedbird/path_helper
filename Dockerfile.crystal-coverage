@@ -1,0 +1,37 @@
+# An image that runs the suite with line coverage of the Crystal implementation
+# (spec/lib/coverage/run.sh). Separate from Dockerfile.crystal so the plain test
+# images stay as they are.
+#
+# glibc (Ubuntu) only: kcov, which does the measuring, is packaged by neither
+# Ubuntu 24.04 nor Alpine, and is built here from source with apt (see
+# docker/install-kcov.sh). That happens before the project is copied in, so it
+# is cached per Crystal version rather than redone on every change.
+#
+# Run it with `--security-opt seccomp=unconfined`: kcov disables address
+# randomisation in the process it traces, which the default profile refuses.
+ARG CRYSTAL_VERSION=latest
+FROM crystallang/crystal:${CRYSTAL_VERSION}
+
+# Ruby for the suite's timing helper and the report.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ruby && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY docker/install-kcov.sh /tmp/install-kcov.sh
+RUN sh /tmp/install-kcov.sh && \
+    rm -f /tmp/install-kcov.sh && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /root
+
+# No release build: run.sh builds the debug binary it measures from these.
+COPY shard.yml /root/shard.yml
+COPY src /root/src
+COPY spec /root/spec
+COPY docker/assets/etc-paths /etc/paths
+RUN chmod +x /root/spec/shell_spec.sh && mkdir -p /coverage
+
+ENV PATH_HELPER_DOCKER_INSTANCE=true
+ENV PATH_HELPER_COVERAGE_SRC=/root
+# The report is written to /coverage, which the Makefile mounts from the host.
+ENTRYPOINT ["sh", "spec/lib/coverage/run.sh", "crystal", "/coverage"]

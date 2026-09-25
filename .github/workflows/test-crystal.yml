@@ -133,3 +133,58 @@ jobs:
     - name: Run Crystal specs (if available)
       if: hashFiles('spec/*_spec.cr') != ''
       run: crystal spec
+
+  # Line coverage of the Crystal sources as the suite exercises them, on one
+  # Crystal rather than the whole matrix (spec/lib/coverage/run.sh; `make
+  # coverage-crystal` locally). kcov does the measuring; nothing packages it
+  # for Ubuntu 24.04, so it is built from source. A report, not a gate: the
+  # job fails only if the suite does, and the summary goes to the job summary
+  # with the full report (kcov's HTML, Cobertura XML) as an artifact.
+  coverage-crystal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PATH_HELPER_DOCKER_INSTANCE: 'true'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Crystal latest
+      uses: crystal-lang/install-crystal@v1
+      with:
+        crystal: 'latest'
+
+    - name: Install kcov
+      run: sh docker/install-kcov.sh
+
+    - name: Install shards dependencies
+      run: shards install
+
+    # Only so setup-test-env has an executable to install: the coverage run
+    # builds and measures its own debug binary from the checked-out sources.
+    - name: Build Crystal executable
+      run: shards build --release --no-debug
+
+    - name: Set up test environment
+      id: setup-test-env
+      uses: ./.github/actions/setup-test-env
+      with:
+        exe-path: 'bin/path_helper'
+
+    - name: Run shell tests with coverage
+      id: run-shell-tests
+      uses: ./.github/actions/run-shell-tests
+      with:
+        executable: ${{ steps.setup-test-env.outputs.executable }}
+        home: ${{ steps.setup-test-env.outputs.home }}
+        language-version: 'Crystal latest on ubuntu-latest, with coverage'
+        coverage: 'crystal'
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-crystal
+        path: ${{ steps.run-shell-tests.outputs.coverage-dir }}
+        if-no-files-found: warn
+        retention-days: 14

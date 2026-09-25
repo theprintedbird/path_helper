@@ -19,7 +19,7 @@ status=0
 # the composite actions' `run:` steps. docker/*.sh only ever runs inside the
 # Linux build images, so it is not held to this rule.
 files="spec/shell_spec.sh spec/lib/test_helpers.sh"
-for f in spec/tests/*.sh; do
+for f in spec/tests/*.sh spec/lib/coverage/*.sh; do
 	[ -f "$f" ] && files="$files $f"
 done
 for f in .github/actions/*/action.yml; do

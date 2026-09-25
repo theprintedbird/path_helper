@@ -6,3 +6,4 @@ Dockerfile*
 LICENCE
 README.md
 .travis.yml
+coverage/

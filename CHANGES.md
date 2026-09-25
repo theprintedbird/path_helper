@@ -2,6 +2,24 @@
 
 ## Friday the 25th of September 2026 ##
 
+### Code coverage (development only)
+
+- `make coverage RUBY_VER=<ver>` and `make coverage-crystal CRYSTAL_VER=<ver>`
+  run the shell suite with line coverage of the implementation under test and
+  write a report to `coverage/ruby/` or `coverage/crystal/`: a Markdown
+  summary (per-file percentage and the uncovered line numbers), plus a
+  SimpleCov-style `.resultset.json` and annotated source for Ruby, and kcov's
+  HTML and Cobertura output for Crystal. Ruby uses the standard library's
+  `Coverage` loaded through `RUBYOPT` (no gem, nothing in `exe/path_helper`,
+  works back to 2.6); Crystal runs a debug build under kcov, which is built
+  from source and so is glibc only. Nothing changes for a plain `make test`.
+- CI gained a `coverage-ruby` (Ruby 3.3) and a `coverage-crystal` (Crystal
+  latest) job on `ubuntu-latest`, which put the summary in the job summary and
+  upload the report as an artifact. There is no minimum yet, so coverage never
+  fails the build.
+- As of this change the suite covers 93.5% of the Ruby script's lines and
+  93.6% of the Crystal sources'.
+
 ### Ruby minimum lowered to 2.6
 
 - Tested against macOS's system Ruby (`/usr/bin/ruby`, 2.6.10p210, deprecated

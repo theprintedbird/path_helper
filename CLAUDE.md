@@ -34,6 +34,8 @@ make test-crystal CRYSTAL_VER=1.14.0 CRYSTAL_LIBC=gnu   # against glibc (Ubuntu 
 make test-all / make test-crystal-all
 make all                          # build + test both languages
 make shell RUBY_VER=3.3           # interactive container
+make coverage RUBY_VER=3.3        # suite with line coverage; report in coverage/ruby/
+make coverage-crystal CRYSTAL_VER=1.14.0   # same for Crystal (kcov, always glibc); coverage/crystal/
 make list / make clean
 ```
 
@@ -48,6 +50,26 @@ before the guard. A file is the finest grain — within one, each file is a flat
 run a single case comment out the others or invoke the executable by hand inside `make shell`.
 
 The Makefile picks podman or docker, whichever is on `PATH`.
+
+**Coverage** (`spec/lib/coverage/run.sh <ruby|crystal> <report dir> [test file]...`) wraps the suite
+rather than changing it: each run of the executable is its own process, so counts are collected per
+process and merged by `report.rb` into `summary.md` (per-file lines, %, uncovered line ranges; also
+printed as TAP comments after the plan). The exit status is the suite's; there is no threshold.
+- Ruby: `ruby_coverage.rb` goes in via `RUBYOPT=-r...` and uses stdlib `Coverage` -- no gem, the
+  executable untouched. For a process whose `$0` is `path_helper` it starts `Coverage` and `load`s the
+  script itself, since before Ruby 3 `Coverage` ignores the main program; the script's own `exit`
+  carries the status out. Everything else (the timing helper's `ruby -e`) is left alone. It must never
+  print, raise or change the status -- the suite compares both streams and the exit code.
+- Crystal: a `--debug` build (release builds have no line table) run under kcov via a generated wrapper
+  script set as `PATH_HELPER_EXECUTABLE`; kcov passes stdout/stderr/status through. kcov is built from
+  source by `docker/install-kcov.sh` (not packaged for Ubuntu 24.04 or Alpine; apt only, no musl), so
+  `coverage-crystal` uses its own glibc image, `Dockerfile.crystal-coverage`, run with
+  `--security-opt seccomp=unconfined` (kcov disables ASLR in the tracee, which the default profile
+  refuses).
+- Everything the executable touches is in a world-readable work dir (`/tmp/path_helper-coverage`,
+  raw output dir mode 1777, kcov output per uid), because `test_unreadable_fragment` copies the
+  executable and runs the copy as *nobody*, who can't read `/root`.
+- `.gitignore` has `/coverage/` anchored: unanchored, it would also ignore `spec/lib/coverage/`.
 
 ## Test suite shape
 
@@ -152,6 +174,10 @@ composite actions in `.github/actions/`. They run on `master` and `dev`. Each ha
 `ruby:<ver>-alpine`, `test-crystal-alpine` in `crystallang/crystal:<ver>-alpine` (which `apk add`s
 ruby) -- since `ruby/setup-ruby` and `crystal-lang/install-crystal` have no Alpine builds. So CI tests
 Crystal against glibc on Ubuntu and musl on Alpine, as `CRYSTAL_LIBC` does locally.
+Each workflow also has one coverage job on `ubuntu-latest` (`coverage-ruby`, Ruby 3.3;
+`coverage-crystal`, Crystal latest, which builds kcov first): `run-shell-tests` takes a `coverage:
+ruby|crystal` input that runs `spec/lib/coverage/run.sh` instead of the suite, appends `summary.md` to
+the job summary and exposes the report dir as the `coverage-dir` output for the artifact upload.
 
 ## Core logic (mirrored in both implementations)
 
