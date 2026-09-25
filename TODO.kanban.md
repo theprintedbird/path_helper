@@ -65,7 +65,13 @@ Language-Agnostic Infrastructure
 - Decide: de-duplication compares lines as text, so on case-insensitive APFS `/opt/Foo/bin` and `/opt/foo/bin` (the same directory) both reach PATH. Leave as is (matches `/opt/x` vs `/opt/x/`), or compare case-insensitively where the file system is? <!-- backlog: 1790322957, id: card_01M3BS0QN2BEE4J9NCXXA5X0PV -->
 - Decide: `paths.d` fragments sort by byte, so any upper-case name runs before every lower-case one (`10-Zeta` before `10-alpha`). Keep byte order (pinned by spec/tests/case_test.sh), or sort case-insensitively like Finder? <!-- backlog: 1790322957, id: card_01M3BS0QJ769Z62N5M02998RA4 -->
 - Coverage threshold: print a non-blocking warning when line coverage drops below a minimum (e.g. 90%) in `make coverage`/`make coverage-crystal` and the CI coverage jobs; later turn it into a gate <!-- backlog: 1790332754, id: card_01M3C2BPC4C1QR07EEQP8SA7RY -->
-- Test the lines coverage shows as never run: the `DEBUG` env var, `--setup` permission errors, Crystal's separate `--etc` handler, and colour output under a TTY <!-- backlog: 1790332758, id: card_01M3C2BT7X9ER0AZSR778637SF -->
+- Add a `coverage-all` make target (every Ruby and Crystal version), or fold the coverage targets into `make all` <!-- backlog: 1790332765, id: card_01M3C2C1FN2VCDEJQ9Z1SEN9ZQ -->
+- release.yml: replace the retired `macos-13` runner in the macos-x86_64 build (actionlint: unknown label) with `macos-15-intel` <!-- backlog: 1790349231, id: card_01M3CJ2HSSGNDY810E867V3W72, tags: [agent-haiku] -->
+- release.yml: bump `softprops/action-gh-release@v1` to `@v2` (actionlint: action runtime too old to run on GitHub Actions) <!-- backlog: 1790349231, id: card_01M3CJ2H1649AZR4F7VNABYM8M, tags: [agent-haiku] -->
+
+###### Ready
+
+- Test the lines coverage shows as never run: the `DEBUG` env var, `--setup` permission errors, Crystal's separate `--etc` handler, and colour output under a TTY <!-- backlog: 1790332758, id: card_01M3C2BT7X9ER0AZSR778637SF, ready: 1790348381 -->
   From the CI tests:
   # Uncovered lines:
   # 
@@ -73,14 +79,13 @@ Language-Agnostic Infrastructure
   # - `src/path_helper/cli.cr`: 16
   # - `src/path_helper/colors.cr`: 7, 11-14
   # - `src/path_helper/setup.cr`: 30-31, 39-40, 56-57, 63, 65, 67, 77
-- Add a `coverage-all` make target (every Ruby and Crystal version), or fold the coverage targets into `make all` <!-- backlog: 1790332765, id: card_01M3C2C1FN2VCDEJQ9Z1SEN9ZQ -->
-- Suppress STDERR for tests that don't need it. <!-- backlog: 1790347708, id: card_01M3CGM1PGHFBR12DASJGDH4KS -->
+- Suppress STDERR for tests that don't need it. <!-- backlog: 1790347708, id: card_01M3CGM1PGHFBR12DASJGDH4KS, ready: 1790348392 -->
   This comes out on every test:
 	# --- stderr ---
 	# /root/.config/paths/paths.d/06-colons: ignoring '/opt/colons/bin:/opt/colons/sbin', a path cannot contain a colon
 	# /root/.config/paths/paths.d/06-colons: ignoring '~/colons:with:colons/bin', a path cannot contain a colon
 	# /root/.config/paths/paths.d/06-colons: ignoring '/usr/bin:/bin', a path cannot contain a colon
-- Fix "an unreadable fragment adds nothing" <!-- backlog: 1790347985, id: card_01M3CGWGGVDJHEMSP74T79ER1S -->
+- Fix "an unreadable fragment adds nothing". Only happens during the Crystal kcov run in CI<!-- backlog: 1790347985, id: card_01M3CGWGGVDJHEMSP74T79ER1S, ready: 1790348395 -->
   ```
 	not ok 131 - an unreadable fragment adds nothing
 	message: 'output did not match the fixture'
@@ -102,7 +107,7 @@ Language-Agnostic Infrastructure
   # ./path_helper: 4: exec: /home/runner/.local/kcov/bin/kcov: Permission denied
   # --- end stderr ---
 	```
-- Fix "an unreadable fragment is marked in the debug report" <!-- backlog: 1790348150, id: card_01M3CH1HRGX4GW76DE1GV94RDW -->
+- Fix "an unreadable fragment is marked in the debug report". Only happens during the Crystal kcov run in CI <!-- backlog: 1790348150, id: card_01M3CH1HRGX4GW76DE1GV94RDW, ready: 1790348397 -->
 	```
 	not ok 132 - an unreadable fragment is marked in the debug report
     message: 'output did not match the fixture'
@@ -140,8 +145,6 @@ Language-Agnostic Infrastructure
   # /root/.config/paths/paths.d/06-colons: ignoring '/usr/bin:/bin', a path cannot contain a colon
   # --- end stderr ---
 	```
-
-###### Ready
 
 
 
