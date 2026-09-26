@@ -49,6 +49,14 @@ tap_not_ok(){
 	echo "not ok $tap_count - $1"
 }
 
+# tap_skip <description> <reason>
+# A test point that could not be run here, such as one that needs a tool the
+# platform lacks. TAP counts it as passed and reports the reason.
+tap_skip(){
+	tap_count=$((tap_count + 1))
+	echo "ok $tap_count - $1 # SKIP $2"
+}
+
 # tap_yaml <message> [key: value]...
 # Emits the YAML diagnostic block belonging to the test point just printed.
 # Keys are indented one level deeper than the block itself, so pass them
@@ -197,6 +205,10 @@ get_time_ns() {
 	ruby -e 'print Process.clock_gettime(Process::CLOCK_MONOTONIC, :nanosecond)'
 }
 
+# One NAME=value assignment added to the executable's environment by
+# test_a_path, or empty for none. Set only by test_a_path_with_env.
+path_env=""
+
 # test_a_path <description> <fixture> <argument>...
 # Runs the executable and compares its output with a fixture, emitting one test
 # point plus a timing comment. On failure the YAML block names the fixture and
@@ -215,7 +227,11 @@ test_a_path(){
 	# takes the closing reading -- a constant offset of a few tens of
 	# milliseconds, uniform across runs and platforms.
 	local start="$(get_time_ns)"
-	"$EXECUTABLE" "${@}" > "$actual" 2> "$noise"
+	if [ -n "$path_env" ]; then
+		env "$path_env" "$EXECUTABLE" "${@}" > "$actual" 2> "$noise"
+	else
+		"$EXECUTABLE" "${@}" > "$actual" 2> "$noise"
+	fi
 	local end="$(get_time_ns)"
 
 	# A run can succeed and still output to STDERR. For example, a line dropped
@@ -240,7 +256,8 @@ test_a_path(){
 		tap_not_ok "$description"
 		tap_yaml "output did not match the fixture" \
 			"fixture: '$fixture'" \
-			"arguments: '$*'"
+			"arguments: '$*'" \
+			"environment: '$path_env'"
 		tap_comment_file "cmp" "$difference"
 		tap_comment_file "expected" "$expected"
 		tap_comment_file "actual" "$actual"
@@ -252,6 +269,20 @@ test_a_path(){
 	tap_comment "Performance: $description took $(( (end - start) / 1000000 ))ms"
 
 	rm -f "$actual" "$expected" "$difference" "$noise"
+}
+
+# test_a_path_with_env <description> <fixture> <NAME=value> <argument>...
+# test_a_path with one variable added to the executable's environment, for a
+# setting that is read from the environment rather than the command line. It
+# goes through env(1) rather than a prefix assignment on the function call,
+# which POSIX leaves free to outlive the call.
+test_a_path_with_env(){
+	local description="$1"
+	local output_file="$2"
+	path_env="$3"
+	shift 3
+	test_a_path "$description" "$output_file" "${@}"
+	path_env=""
 }
 
 # test_a_path_with_stderr <description> <stdout fixture> <stderr fixture> <argument>...
@@ -645,6 +676,228 @@ test_unreadable_fragment(){
 
 	rm -rf "$home"
 	rm -f "$actual" "$expected" "$difference" "$noise"
+}
+
+# --- Setup -----------------------------------------------------------------
+
+# What --setup lays out in each segment, in the order it goes through them
+# (Setup::ENV_VARS in both implementations): the <name>.d directory, then the
+# <name> file.
+SETUP_NAMES='c_include_paths
+dyld_fallback_framework_paths
+dyld_fallback_library_paths
+dyld_framework_paths
+dyld_library_paths
+manpaths
+pkg_config_paths
+paths'
+
+# test_setup_dry_run <description>
+# --setup --dry-run in a scratch HOME with nothing laid out yet. Every
+# directory and file of the user segment is reported as created, in order, and
+# followed by the lines to put in a shell profile -- but nothing is created.
+# The profile lines name the executable, and the Ruby one runs it with `ruby`,
+# so only their heading is checked.
+test_setup_dry_run(){
+	local description="$1"
+	local home="$(mktemp -d /tmp/path_helper.XXXXXX)"
+	local root="$home/$USER_PATHS"
+	local out="$(mktemp)"
+	local err="$(mktemp)"
+	local status
+	local name
+	local expected=""
+
+	HOME="$home" "$EXECUTABLE" --setup --dry-run --no-etc > "$out" 2> "$err"
+	status=$?
+
+	if [ $status -eq 0 ]; then
+		tap_ok "$description exits successfully"
+	else
+		tap_not_ok "$description exits successfully"
+		tap_yaml "expected an exit status of 0" "status: $status"
+		tap_comment_file "stderr" "$err"
+	fi
+
+	for name in $SETUP_NAMES; do
+		expected="$expected${expected:+
+}Created $root/$name.d
+Created $root/$name"
+	done
+	assert_same "$description reports each directory and file it would create" \
+		"the Created lines" "$expected" "$(grep '^Created ' "$out")" \
+		"--setup --dry-run --no-etc"
+
+	if grep -q '^# Put this in your ~/.bashrc or your ~/.zshenv$' "$out"; then
+		tap_ok "$description prints the lines for a shell profile"
+	else
+		tap_not_ok "$description prints the lines for a shell profile"
+		tap_yaml "expected the shell profile snippet on stdout"
+		tap_comment_file "stdout" "$out"
+	fi
+
+	if [ -z "$(ls -A "$home")" ]; then
+		tap_ok "$description creates nothing"
+	else
+		tap_not_ok "$description creates nothing"
+		tap_yaml "a dry run left files behind in its HOME" "home: '$home'"
+		ls -AR "$home" | tap_comment_stream
+	fi
+
+	rm -rf "$home"
+	rm -f "$out" "$err"
+}
+
+# test_setup_without_permission <description> <existing|missing>
+# --setup of the user segment as *nobody* (see test_unreadable_fragment for
+# why), in a scratch HOME whose segment root belongs to root, so nothing can be
+# made in it. With `existing` the <name>.d directories are already there and
+# only the files are refused; with `missing` the directories are refused too.
+# Either way the run has to fail, create nothing, and list the files it could
+# not create under a heading on stderr.
+#
+# The report's advice is checked for its gist rather than byte for byte, and
+# the directories are neither expected in nor excluded from the list, because
+# the implementations differ there: Crystal indents the advice two spaces, and
+# Ruby makes the directories with mkdir(1), so a refusal is mkdir's own message
+# rather than one of its rescued errors, and is announced as created on stdout.
+# So stdout is only required to be empty when the directories exist.
+test_setup_without_permission(){
+	local description="$1"
+	local directories="$2"
+	local home="$(mktemp -d /tmp/path_helper.XXXXXX)"
+	local root="$home/$USER_PATHS"
+	local out="$(mktemp)"
+	local err="$(mktemp)"
+	local status
+	local name
+	local created=""
+	local unlisted=""
+
+	mkdir -p "$root"
+	if [ "$directories" = existing ]; then
+		for name in $SETUP_NAMES; do
+			mkdir "$root/$name.d"
+		done
+	fi
+	cp "$EXECUTABLE" "$home/path_helper"
+	chmod -R a+rX,go-w "$home"
+
+	as_nobody "cd '$home' && HOME='$home' PATH='$PATH' ./path_helper --setup --no-etc" \
+		> "$out" 2> "$err"
+	status=$?
+
+	if [ $status -ne 0 ]; then
+		tap_ok "$description exits with a non-zero status"
+	else
+		tap_not_ok "$description exits with a non-zero status"
+		tap_yaml "expected a non-zero exit status" "user: 'nobody'"
+		tap_comment_file "stderr" "$err"
+	fi
+
+	for name in $SETUP_NAMES; do
+		[ -e "$root/$name" ] && created="$created $name"
+		[ "$directories" = missing ] && [ -e "$root/$name.d" ] && created="$created $name.d"
+	done
+	if [ -z "$created" ]; then
+		tap_ok "$description creates nothing"
+	else
+		tap_not_ok "$description creates nothing"
+		tap_yaml "the run created what it had no permission to" \
+			"user: 'nobody'" \
+			"created: '${created# }'"
+	fi
+
+	for name in $SETUP_NAMES; do
+		grep -Fqx -- "- $root/$name" "$err" || unlisted="$unlisted $name"
+	done
+	if grep -Fqx "Your account does not have permissions for:" "$err" &&
+		 grep -Fq "use the --no-etc switch" "$err" &&
+		 [ -z "$unlisted" ]; then
+		tap_ok "$description lists what it could not create on stderr"
+	else
+		tap_not_ok "$description lists what it could not create on stderr"
+		tap_yaml "expected the permissions report naming every file" \
+			"user: 'nobody'" \
+			"unlisted: '${unlisted# }'"
+		tap_comment_file "stderr" "$err"
+	fi
+
+	if [ "$directories" = existing ]; then
+		if [ -s "$out" ]; then
+			tap_not_ok "$description writes nothing to stdout"
+			tap_yaml "nothing was created, so nothing should be reported as created" \
+				"user: 'nobody'"
+			tap_comment_file "stdout" "$out"
+		else
+			tap_ok "$description writes nothing to stdout"
+		fi
+	fi
+
+	rm -rf "$home"
+	rm -f "$out" "$err"
+}
+
+# --- Colour -----------------------------------------------------------------
+
+# pty_flavour
+# Which script(1) is available to put a command's output on a pseudo-terminal:
+# `c` for util-linux's and busybox's (`script -q -c <command> <file>`), `bsd`
+# for BSD's and macOS's (`script -q <file> <command>...`), or nothing. Probed
+# rather than inferred from PLATFORM: an Alpine image has either or neither.
+pty_flavour(){
+	command -v script >/dev/null 2>&1 || return 0
+	if script -q -c true /dev/null < /dev/null > /dev/null 2>&1; then
+		echo c
+	elif script -q /dev/null true < /dev/null > /dev/null 2>&1; then
+		echo bsd
+	fi
+}
+
+# run_on_pty <flavour> <command line>
+# The output of a shell command line run with stdout (and stderr) on a
+# pseudo-terminal, carriage returns removed -- the terminal turns each newline
+# into CRLF.
+run_on_pty(){
+	if [ "$1" = c ]; then
+		script -q -c "$2" /dev/null < /dev/null
+	else
+		script -q /dev/null sh -c "$2" < /dev/null
+	fi | tr -d '\r'
+}
+
+# test_colour_on_a_terminal <description>
+# Both implementations colour the debug report with tput(1) when stdout is a
+# terminal and tput is installed, and never otherwise (every other test pipes
+# stdout, so their fixtures are plain). The report's first line names the env
+# var in green, so the run under a pseudo-terminal is compared with that line
+# built from tput here. TERM is set, since the run inherits none worth having
+# from a container. Skipped where script(1) or tput is missing.
+test_colour_on_a_terminal(){
+	local description="$1"
+	local flavour="$(pty_flavour)"
+	local green
+	local normal
+	local actual
+
+	if [ -z "$flavour" ]; then
+		tap_skip "$description" "no script(1) to provide a terminal"
+		return
+	fi
+	if ! command -v tput >/dev/null 2>&1 ||
+		 ! green="$(TERM=xterm tput setaf 2)" ||
+		 ! normal="$(TERM=xterm tput sgr0)" ||
+		 [ -z "$green" ]; then
+		tap_skip "$description" "no tput(1) with an xterm entry to colour with"
+		return
+	fi
+
+	# The line is looked for rather than taken first: BSD's script(1) echoes the
+	# end of its empty stdin, ^D and two backspaces, ahead of the output.
+	actual="$(run_on_pty "$flavour" "TERM=xterm '$EXECUTABLE' -p --debug" |
+		awk 'i = index($0, "Name: ") { print substr($0, i); exit }')"
+	assert_same "$description" "the Name line of the debug report" \
+		"Name: ${green}PATH${normal}" "$actual" "-p --debug"
 }
 
 # --- Case sensitivity -------------------------------------------------------

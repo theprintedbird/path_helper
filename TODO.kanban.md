@@ -68,24 +68,21 @@ Language-Agnostic Infrastructure
 - Add a `coverage-all` make target (every Ruby and Crystal version), or fold the coverage targets into `make all` <!-- backlog: 1790332765, id: card_01M3C2C1FN2VCDEJQ9Z1SEN9ZQ -->
 - release.yml: replace the retired `macos-13` runner in the macos-x86_64 build (actionlint: unknown label) with `macos-15-intel` <!-- backlog: 1790349231, id: card_01M3CJ2HSSGNDY810E867V3W72, tags: [agent-haiku] -->
 - release.yml: bump `softprops/action-gh-release@v1` to `@v2` (actionlint: action runtime too old to run on GitHub Actions) <!-- backlog: 1790349231, id: card_01M3CJ2H1649AZR4F7VNABYM8M, tags: [agent-haiku] -->
+- Fix: Ruby --setup reports a directory it could not create as "Created" (system("mkdir","-p") in exe/path_helper never raises, so the EACCES rescue misses it and the directory is left out of the permissions list; Crystal's Dir.mkdir_p raises). Then tighten the permission tests in spec/tests/error_test.sh to require the directories in the list <!-- backlog: 1790381867, id: card_01M3DH6GXTGRXH7EKM19JT9SC7 -->
+- Fix: Crystal --setup indents the "Consider whether you need to install these..." advice by two spaces (the <<-WARNING heredoc in src/path_helper/setup.cr); Ruby's <<~ doesn't. Then compare the permission-error stderr byte for byte <!-- backlog: 1790381870, id: card_01M3DH6K1FH10Y96BRJP279FMN -->
 
 ###### Ready
 
-- Test the lines coverage shows as never run: the `DEBUG` env var, `--setup` permission errors, Crystal's separate `--etc` handler, and colour output under a TTY <!-- backlog: 1790332758, id: card_01M3C2BT7X9ER0AZSR778637SF, ready: 1790348381 -->
-  From the CI tests:
-  # Uncovered lines:
-  # 
-  # - `cr`: 132, 195
-  # - `src/path_helper/cli.cr`: 16
-  # - `src/path_helper/colors.cr`: 7, 11-14
-  # - `src/path_helper/setup.cr`: 30-31, 39-40, 56-57, 63, 65, 67, 77
-- Suppress STDERR for tests that don't need it. <!-- backlog: 1790347708, id: card_01M3CGM1PGHFBR12DASJGDH4KS, ready: 1790348392 -->
-  This comes out on every test:
-	# --- stderr ---
-	# /root/.config/paths/paths.d/06-colons: ignoring '/opt/colons/bin:/opt/colons/sbin', a path cannot contain a colon
-	# /root/.config/paths/paths.d/06-colons: ignoring '~/colons:with:colons/bin', a path cannot contain a colon
-	# /root/.config/paths/paths.d/06-colons: ignoring '/usr/bin:/bin', a path cannot contain a colon
-- Fix "an unreadable fragment adds nothing". Only happens during the Crystal kcov run in CI<!-- backlog: 1790347985, id: card_01M3CGWGGVDJHEMSP74T79ER1S, ready: 1790348395 -->
+
+
+
+
+
+
+
+###### In Progress
+
+- Fix "an unreadable fragment adds nothing". Only happens during the Crystal kcov run in CI <!-- backlog: 1790347985, id: card_01M3CGWGGVDJHEMSP74T79ER1S, in_progress: 1790349739, ready: 1790348395 -->
   ```
 	not ok 131 - an unreadable fragment adds nothing
 	message: 'output did not match the fixture'
@@ -107,7 +104,7 @@ Language-Agnostic Infrastructure
   # ./path_helper: 4: exec: /home/runner/.local/kcov/bin/kcov: Permission denied
   # --- end stderr ---
 	```
-- Fix "an unreadable fragment is marked in the debug report". Only happens during the Crystal kcov run in CI <!-- backlog: 1790348150, id: card_01M3CH1HRGX4GW76DE1GV94RDW, ready: 1790348397 -->
+- Fix "an unreadable fragment is marked in the debug report". Only happens during the Crystal kcov run in CI <!-- backlog: 1790348150, id: card_01M3CH1HRGX4GW76DE1GV94RDW, in_progress: 1790349739, ready: 1790348397 -->
 	```
 	not ok 132 - an unreadable fragment is marked in the debug report
     message: 'output did not match the fixture'
@@ -145,14 +142,6 @@ Language-Agnostic Infrastructure
   # /root/.config/paths/paths.d/06-colons: ignoring '/usr/bin:/bin', a path cannot contain a colon
   # --- end stderr ---
 	```
-
-
-
-
-
-
-
-###### In Progress
 
 
 
@@ -255,3 +244,5 @@ Language-Agnostic Infrastructure
 - Harness portability: check the suite on BSD userland (macOS) — `mktemp`/`mktemp -d` are used today; keep `sed -i`, `stat`, `readlink` and `date +%N` out <!-- done: 1790323360, id: card_01M2CH88J3N85JJYVK4EYAFYFB, in_progress: 1790322048, ready: 1789268873 -->
 - Runtime/arch: test against the old system Ruby shipped with macOS, or document the minimum Ruby supported there <!-- done: 1790323465, id: card_01M2CH88R4CMWBQ65KGX13PC38, in_progress: 1790322048, ready: 1789268873 -->
 - Cache the kcov build in the CI `coverage-crystal` job (it is built from source, adding ~1-2 minutes) <!-- backlog: 1790332761, done: 1790344419, id: card_01M3C2BXSKXZVVDFPCN3KVHE1E, in_progress: 1790343043, ready: 1790342917 -->
+- Suppress STDERR for tests that don't need it. <!-- backlog: 1790347708, done: 1790381446, id: card_01M3CGM1PGHFBR12DASJGDH4KS, in_progress: 1790349739, ready: 1790348392 -->
+- Test the lines coverage shows as never run: the `DEBUG` env var, `--setup` permission errors, Crystal's separate `--etc` handler, and colour output under a TTY <!-- backlog: 1790332758, done: 1790381862, id: card_01M3C2BT7X9ER0AZSR778637SF, in_progress: 1790349738, ready: 1790348381 -->

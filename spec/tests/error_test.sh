@@ -48,6 +48,14 @@ expect_failure "a path after --" "error_unexpected_argument.txt" "-p" "--" "/som
 # stopped -- see PathHelper.path_argument in src/path_helper.cr.
 test_a_path "-- after a path switch builds a fresh path" "path.txt" "-p" "--"
 
+# --setup refuses rather than half-succeeds when it may not write to a segment:
+# it carries on past each refusal, then lists them and exits non-zero. It runs
+# as *nobody* in a scratch HOME it cannot write to, since the suite's own root
+# can write anywhere and the real segments are laid out by now. First only the
+# files are missing, then the directories too.
+test_setup_without_permission "setup without permission for the files" existing
+test_setup_without_permission "setup without permission for the directories" missing
+
 test_version "--version" "--version"
 
 test_help "-h" "-h"

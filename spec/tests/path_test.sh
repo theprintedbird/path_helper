@@ -34,6 +34,15 @@ test_a_path "debug_dyld-lib_spec" "debug_dyld-lib.txt" "--dyld-lib" "--debug"
 test_a_path "pkg_config_spec" "pkg_config.txt" "--pc"
 test_a_path "debug_pkg_config_spec" "debug_pkg_config.txt" "--pc" "--debug"
 
+# The DEBUG env var turns on the debug report too, whatever its value, as if
+# --debug had followed the other switches -- so the options in the report are
+# the same, and so is the rest of it.
+test_a_path_with_env "DEBUG in the environment gives the debug report" \
+	"debug_path.txt" "DEBUG=1" "-p"
+
+# The debug report is coloured on a terminal, and only there.
+test_colour_on_a_terminal "the debug report is coloured on a terminal"
+
 # Each segment of the search order can be switched off independently, and the
 # three switches are independent, so all combinations are covered here.
 # The expected output is the concatenation of whichever segments remain, in
@@ -57,6 +66,12 @@ test_a_path "no-etc and no-$USER_SEGMENT leave nothing" "path-no-segments.txt" "
 test_a_path "no-etc and no-$OTHER_SEGMENT leave the $USER_SEGMENT segment" "path-no-etc.txt" "-p" "--no-etc" "--no-$OTHER_SEGMENT"
 test_a_path "no-$USER_SEGMENT and no-$OTHER_SEGMENT leave the etc segment" "path-no-user.txt" "-p" "--no-$USER_SEGMENT" "--no-$OTHER_SEGMENT"
 test_a_path "all three leave nothing" "path-no-segments.txt" "-p" "--no-etc" "--no-config" "--no-lib"
+
+# etc is searched by default, so naming it changes nothing, and it undoes an
+# earlier --no-etc as the other segments' switches do. Crystal's parser has a
+# handler of its own for --etc, where Ruby's has one --[no-]etc switch.
+test_a_path "etc, on by default, changes nothing" "path.txt" "-p" "--etc"
+test_a_path "no-etc then etc leaves it on" "path.txt" "-p" "--no-etc" "--etc"
 
 # The same switches on another env var, to show the segment logic is a property
 # of the search order and not of PATH.
