@@ -5,9 +5,11 @@ ARG CRYSTAL_BASE_SUFFIX=-alpine
 FROM crystallang/crystal:${CRYSTAL_VERSION}${CRYSTAL_BASE_SUFFIX}
 
 # Install Ruby, which the suite's timing helper shells out to. Neither base
-# image has it, and they differ in package manager.
+# image has it, and they differ in package manager. The Alpine base also lacks
+# script(1) and tput(1), which the test of colour on a terminal needs (Ubuntu
+# has both); without them that test is skipped.
 RUN if command -v apk >/dev/null; then \
-      apk add --no-cache ruby; \
+      apk add --no-cache ruby util-linux ncurses; \
     else \
       apt-get update && \
       apt-get install -y --no-install-recommends ruby && \

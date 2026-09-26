@@ -5,6 +5,7 @@
 # - adds the symlinked search directory
 # - adds symlinked and dangling fragment files
 # - adds a subdirectory and named pipe that the path, error and edge case tests use.
+# - does a dry run of --setup in a scratch HOME.
 
 # Nothing should have been set up yet, so finding something is a failure.
 if test_setup; then
@@ -108,3 +109,7 @@ else
 	tap_not_ok "paths.d holds a subdirectory and a named pipe"
 	tap_yaml "the test could not put a subdirectory and a pipe in the search graph"
 fi
+
+# A dry run says what --setup would create without creating it. It works in a
+# scratch HOME, as the real one is laid out by now and would only be skipped.
+test_setup_dry_run "a dry run of setup"

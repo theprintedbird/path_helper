@@ -120,13 +120,29 @@ compile target.
   in `.github/actions/run-shell-tests` before the suite, ahead of the macOS job.
 - `spec/tests/*_test.sh` — the tests, sourced (not executed, since the TAP counters are shell globals)
   in this order: `setup_test.sh` (`--setup` of both home segments, and the symlinks, dangling link,
-  subdirectory and fifo every later file relies on — so it must stay first), `path_test.sh` (each env
-  var plain and `--debug`, the `--no-*` segment switches, enabling the other segment, append mode),
-  `error_test.sh` (exit status and stream contract: refusals, `--`, `--version`, `--help`),
-  `edge_case_test.sh` (awkward input files), `case_test.sh` (names differing only by case). Nothing
-  after setup mutates shared state, so the last four can be reordered freely. The order is
+  subdirectory and fifo every later file relies on — so it must stay first — then a `--dry-run` in a
+  scratch `HOME`), `path_test.sh` (each env var plain and `--debug`, the `DEBUG` env var, colour on a
+  terminal, the `--etc`/`--no-*` segment switches, enabling the other segment, append mode),
+  `error_test.sh` (exit status and stream contract: refusals, `--setup` without permission, `--`,
+  `--version`, `--help`), `edge_case_test.sh` (awkward input files), `case_test.sh` (names differing
+  only by case). Nothing after setup mutates shared state (the dry run and the permission tests use
+  scratch `HOME`s), so the last four can be reordered freely. The order is
   `TEST_FILES` in `spec/shell_spec.sh`, which is also what named files are checked against, so a new
   test file has to be added there.
+- `--setup` without permission runs as *nobody* (`as_nobody`, like `test_unreadable_fragment`) in a
+  scratch `HOME` whose segment root is root's, once with the `.d` directories there and once without.
+  It asserts the shared contract only -- exit non-zero, nothing created, every file listed under
+  `Your account does not have permissions for:` -- because the two differ in the rest: Crystal indents
+  the closing advice two spaces (`<<-` heredoc), and Ruby makes directories with `mkdir(1)` via
+  `system`, so a refused directory gets mkdir's own message, a `Created` line on stdout, and no entry
+  in the list. Stdout is required empty only when the directories exist.
+- Colour: both implementations take their colours from `tput` only when stdout is a TTY, so every
+  fixture is plain. `test_colour_on_a_terminal` runs `-p --debug` on a pseudo-terminal via `script`
+  (`pty_flavour` probes for util-linux/busybox `-c` or BSD syntax) with `TERM=xterm` and compares the
+  `Name:` line with one built from `tput`; without `script` or `tput` it emits `ok ... # SKIP`
+  (`tap_skip`). The Alpine Dockerfiles `apk add util-linux ncurses` for it; CI's Alpine jobs skip.
+- `test_a_path_with_env` adds one `NAME=value` to the run's environment through `env(1)` (a prefix
+  assignment on a function call may outlive it in POSIX sh); the `DEBUG` test uses it.
 - `case_test.sh` probes the file system (`is_case_insensitive`, a scratch file looked up in the other
   case) rather than trusting `PLATFORM`, reports the result as `# File system:`, and expects whichever
   outcome that file system should give — so its case-insensitive branch only runs on a Mac (macOS CI).

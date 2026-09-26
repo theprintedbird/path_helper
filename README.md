@@ -675,6 +675,13 @@ assignments are written `local x="$(...)"`.
 the Crystal images install it as well, and the suite `Bail out!`s if it is not on
 `PATH`.
 
+Optionally, `script` and `tput`, for the one test of colour output: `script` puts
+the debug report on a pseudo-terminal (util-linux's, busybox's and BSD's are all
+handled) and `tput` supplies the colours to expect. Where either is missing that
+test point is reported as `ok ... # SKIP` with the reason rather than failing.
+Ubuntu and macOS have both; the Alpine images add them (`util-linux` and
+`ncurses`), but CI's Alpine jobs, which run in the stock images, skip it.
+
 **Keeping it portable:** bash-as-`sh` on macOS is still BSD userland, so `sed -i`,
 `stat`, `readlink`, `realpath` and `date +%N` are all off limits in the harness —
 they're either GNU-only or behave differently on BSD. `make lint` runs
@@ -889,10 +896,10 @@ Have a look at the output by running through the available paths:
 ./exe/path_helper -p --debug
 ```
 
-Add colour support to the terminal so you can see the prettiness:
+Colour support (`tput`, from `ncurses`) is already in the image, so the debug
+report is coloured in the interactive shell:
 
 ```shell
-apk add ncurses
 ./exe/path_helper -p --debug
 ```
 
