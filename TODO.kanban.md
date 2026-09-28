@@ -83,7 +83,10 @@ Language-Agnostic Infrastructure
 
 ###### In Progress
 
-- Fix "an unreadable fragment adds nothing". Only happens during the Crystal kcov run in CI <!-- backlog: 1790347985, id: card_01M3CGWGGVDJHEMSP74T79ER1S, in_progress: 1790349739, ready: 1790348395 -->
+
+###### Done
+
+- Fix "an unreadable fragment adds nothing". Only happens during the Crystal kcov run in CI <!-- backlog: 1790347985, done: 1790577268, id: card_01M3CGWGGVDJHEMSP74T79ER1S, in_progress: 1790349739, ready: 1790348395 -->
   ```
 	not ok 131 - an unreadable fragment adds nothing
 	message: 'output did not match the fixture'
@@ -105,7 +108,7 @@ Language-Agnostic Infrastructure
   # ./path_helper: 4: exec: /home/runner/.local/kcov/bin/kcov: Permission denied
   # --- end stderr ---
 	```
-- Fix "an unreadable fragment is marked in the debug report". Only happens during the Crystal kcov run in CI <!-- backlog: 1790348150, id: card_01M3CH1HRGX4GW76DE1GV94RDW, in_progress: 1790349739, ready: 1790348397 -->
+- Fix "an unreadable fragment is marked in the debug report". Only happens during the Crystal kcov run in CI <!-- backlog: 1790348150, done: 1790577268, id: card_01M3CH1HRGX4GW76DE1GV94RDW, in_progress: 1790349739, ready: 1790348397 -->
 	```
 	not ok 132 - an unreadable fragment is marked in the debug report
     message: 'output did not match the fixture'
@@ -143,17 +146,6 @@ Language-Agnostic Infrastructure
   # /root/.config/paths/paths.d/06-colons: ignoring '/usr/bin:/bin', a path cannot contain a colon
   # --- end stderr ---
 	```
-
-
-
-
-
-
-
-
-
-
-###### Done
 
 - Add code coverage tracking (per language) <!-- backlog: 1763431283, done: 1790332458, id: card_01M2CH882Z08M7FHEVZPTDVKG3, in_progress: 1790327249, ready: 1790327129 -->
 - docker/install-ruby.sh still runs --setup --no-lib and copies fixtures into ~/.config/paths when the image is built. Remove redundant code. <!-- backlog: 1789455144, done: 1790327633, id: card_01M2HXD5ZVEAV13ASBJNXV2SG7, in_progress: 1790327249, ready: 1790327097 -->
