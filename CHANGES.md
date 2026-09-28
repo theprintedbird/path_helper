@@ -14,6 +14,16 @@
   tightened to check for this: with directories missing, each `<name>.d` is
   now also required in the permissions list, and stdout is required empty in
   both cases.
+- Crystal's `--setup` indented the closing advice ("Consider whether you need
+  to install these." and the two lines after it) by two spaces: the
+  `<<-WARNING` heredoc in `src/path_helper/setup.cr` had its body indented
+  further than the closing `WARNING`, and Crystal's `<<-` only strips the
+  closing delimiter's own indentation, unlike Ruby's `<<~`. The body is now
+  flush with the closing delimiter, so the two implementations' advice is
+  byte for byte identical. `test_setup_without_permission` in
+  `spec/lib/test_helpers.sh` now compares the whole permissions report byte
+  for byte, built in the test rather than checked by grep, so a regression
+  like this one would be caught directly.
 
 ## Friday the 25th of September 2026 ##
 

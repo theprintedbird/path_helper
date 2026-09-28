@@ -131,10 +131,11 @@ compile target.
   test file has to be added there.
 - `--setup` without permission runs as *nobody* (`as_nobody`, like `test_unreadable_fragment`) in a
   scratch `HOME` whose segment root is root's, once with the `.d` directories there and once without.
-  It asserts the shared contract -- exit non-zero, nothing created (directories included, when they
-  were the ones missing), every file (and, when missing, every directory) listed under `Your account
-  does not have permissions for:`, stdout empty -- checking the closing advice only for its gist, since
-  Crystal indents it two spaces (`<<-` heredoc).
+  It compares the whole permissions report byte for byte, built in the test from `$root` and
+  `$SETUP_NAMES` (Setup::ENV_VARS order, directory then file per var) rather than a fixture, since a
+  fixture naming the user segment's path would need a Darwin copy (`USER_PATHS` differs by platform).
+  It also asserts exit non-zero, nothing created (directories included, when they were the ones
+  missing), and stdout empty.
 - Colour: both implementations take their colours from `tput` only when stdout is a TTY, so every
   fixture is plain. `test_colour_on_a_terminal` runs `-p --debug` on a pseudo-terminal via `script`
   (`pty_flavour` probes for util-linux/busybox `-c` or BSD syntax) with `TERM=xterm` and compares the

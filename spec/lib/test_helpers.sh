@@ -620,12 +620,19 @@ test_expansion_under_home(){
 # as_nobody <command line>
 # Runs a shell command line as *nobody*. Due to different versions of `su`,
 # with different switches, this function works out which.
+# It runs from / because BSD `su -m` keeps the caller's working directory, the
+# checkout under root's home, which *nobody* can't traverse: macOS's
+# bash-as-sh then prints `shell-init: ... getcwd` noise on stderr before the
+# command line even runs, breaking any test that compares stderr.
 as_nobody(){
-	if su -s /bin/sh nobody -c true >/dev/null 2>&1; then
-		su -s /bin/sh nobody -c "$1"
-	else
-		su -m nobody -c "$1"
-	fi
+	(
+		cd / || exit
+		if su -s /bin/sh nobody -c true >/dev/null 2>&1; then
+			su -s /bin/sh nobody -c "$1"
+		else
+			su -m nobody -c "$1"
+		fi
+	)
 }
 
 # test_unreadable_fragment <description> <fixture> <argument>...
@@ -756,10 +763,41 @@ Created $root/$name"
 # Either way the run has to fail, create nothing, and list the files it could
 # not create under a heading on stderr.
 #
-# The report's advice is checked for its gist rather than byte for byte, since
-# the implementations differ there: Crystal indents the advice two spaces.
-# With `missing`, the <name>.d directories must also appear in the list, since
-# nothing gets created either way; stdout must be empty in both cases.
+# The report is compared byte for byte, built in the test from $root and
+# $SETUP_NAMES rather than a fixture, since a fixture naming the user segment's
+# path would need a Darwin copy (USER_PATHS differs by platform) -- building it
+# avoids that, the same way case_test.sh's test_path_under_home and
+# test_files_listed_under_home build strings rather than using fixtures.
+# Stdout isn't a TTY here, so both implementations' colour codes are empty and
+# the advice lines carry no colour or indentation (see the Crystal <<-WARNING
+# fix in setup.cr).  For each var, in Setup::ENV_VARS order, the directory is
+# tried before the file: with `existing` the directory is already there and
+# only skipped with a notice, so only the file is refused and listed; with
+# `missing` both are refused and both are listed, directory then file. Nothing
+# is created either way, and stdout must be empty in both cases.
+build_setup_permission_stderr(){
+	local directories="$1"
+	local root="$2"
+	local name
+
+	for name in $SETUP_NAMES; do
+		if [ "$directories" = missing ]; then
+			printf '%s\n' "Rescuing permission errors for $root/$name.d"
+		else
+			printf '%s\n' "$root/$name.d already exists, skipping"
+		fi
+		printf '%s\n' "Rescuing permission errors for $root/$name"
+	done
+	printf '%s\n' "Your account does not have permissions for:"
+	for name in $SETUP_NAMES; do
+		[ "$directories" = missing ] && printf '%s\n' "- $root/$name.d"
+		printf '%s\n' "- $root/$name"
+	done
+	printf '%s\n' "Consider whether you need to install these."
+	printf '%s\n' "For example are they needed system wide? If not, use the --no-etc switch."
+	printf '%s\n' "Otherwise, try again with sudo or another account."
+}
+
 test_setup_without_permission(){
 	local description="$1"
 	local directories="$2"
@@ -767,10 +805,11 @@ test_setup_without_permission(){
 	local root="$home/$USER_PATHS"
 	local out="$(mktemp)"
 	local err="$(mktemp)"
+	local expected="$(mktemp)"
+	local difference="$(mktemp)"
 	local status
 	local name
 	local created=""
-	local unlisted=""
 
 	mkdir -p "$root"
 	if [ "$directories" = existing ]; then
@@ -806,21 +845,18 @@ test_setup_without_permission(){
 			"created: '${created# }'"
 	fi
 
-	for name in $SETUP_NAMES; do
-		grep -Fqx -- "- $root/$name" "$err" || unlisted="$unlisted $name"
-		[ "$directories" = missing ] &&
-			{ grep -Fqx -- "- $root/$name.d" "$err" || unlisted="$unlisted $name.d"; }
-	done
-	if grep -Fqx "Your account does not have permissions for:" "$err" &&
-		 grep -Fq "use the --no-etc switch" "$err" &&
-		 [ -z "$unlisted" ]; then
+	build_setup_permission_stderr "$directories" "$root" > "$expected"
+	if cmp -s "$expected" "$err"; then
 		tap_ok "$description lists what it could not create on stderr"
 	else
+		cmp "$expected" "$err" > "$difference" 2>&1
 		tap_not_ok "$description lists what it could not create on stderr"
-		tap_yaml "expected the permissions report naming every file" \
+		tap_yaml "the permissions report did not match" \
 			"user: 'nobody'" \
-			"unlisted: '${unlisted# }'"
-		tap_comment_file "stderr" "$err"
+			"directories: '$directories'"
+		tap_comment_file "cmp" "$difference"
+		tap_comment_file "expected" "$expected"
+		tap_comment_file "actual" "$err"
 	fi
 
 	if [ -s "$out" ]; then
@@ -833,7 +869,7 @@ test_setup_without_permission(){
 	fi
 
 	rm -rf "$home"
-	rm -f "$out" "$err"
+	rm -f "$out" "$err" "$expected" "$difference"
 }
 
 # --- Colour -----------------------------------------------------------------

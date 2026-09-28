@@ -65,9 +65,9 @@ module PathHelper
           STDERR.puts "- #{path}"
         end
         STDERR.puts <<-WARNING
-          Consider whether you need to install these.
-          For example are they needed system wide? If not, use the --no-etc switch.
-          Otherwise, try again with sudo or another account.
+        Consider whether you need to install these.
+        For example are they needed system wide? If not, use the --no-etc switch.
+        Otherwise, try again with sudo or another account.
         WARNING
         return false
       end
