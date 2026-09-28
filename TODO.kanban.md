@@ -70,7 +70,6 @@ Language-Agnostic Infrastructure
 
 ###### Ready
 
-- Fix: Ruby --setup reports a directory it could not create as "Created" (system("mkdir","-p") in exe/path_helper never raises, so the EACCES rescue misses it and the directory is left out of the permissions list; Crystal's Dir.mkdir_p raises). Then tighten the permission tests in spec/tests/error_test.sh to require the directories in the list <!-- backlog: 1790381867, id: card_01M3DH6GXTGRXH7EKM19JT9SC7, ready: 1790579150 -->
 - Fix: Crystal --setup indents the "Consider whether you need to install these..." advice by two spaces (the <<-WARNING heredoc in src/path_helper/setup.cr); Ruby's <<~ doesn't. Then compare the permission-error stderr byte for byte <!-- backlog: 1790381870, id: card_01M3DH6K1FH10Y96BRJP279FMN, ready: 1790579162 -->
 
 
@@ -81,6 +80,7 @@ Language-Agnostic Infrastructure
 
 
 ###### In Progress
+
 
 
 
@@ -241,3 +241,4 @@ Language-Agnostic Infrastructure
 - Test the lines coverage shows as never run: the `DEBUG` env var, `--setup` permission errors, Crystal's separate `--etc` handler, and colour output under a TTY <!-- backlog: 1790332758, done: 1790381862, id: card_01M3C2BT7X9ER0AZSR778637SF, in_progress: 1790349738, ready: 1790348381 -->
 - release.yml: bump `softprops/action-gh-release@v1` to `@v2` (actionlint: action runtime too old to run on GitHub Actions) <!-- backlog: 1790349231, done: 1790579346, id: card_01M3CJ2H1649AZR4F7VNABYM8M, in_progress: 1790579296, ready: 1790579172, tags: [agent-haiku] -->
 - release.yml: replace the retired `macos-13` runner in the macos-x86_64 build (actionlint: unknown label) with `macos-15-intel` <!-- backlog: 1790349231, done: 1790579396, id: card_01M3CJ2HSSGNDY810E867V3W72, in_progress: 1790579354, ready: 1790579180, tags: [agent-haiku] -->
+- Fix: Ruby --setup reports a directory it could not create as "Created" (system("mkdir","-p") in exe/path_helper never raises, so the EACCES rescue misses it and the directory is left out of the permissions list; Crystal's Dir.mkdir_p raises). Then tighten the permission tests in spec/tests/error_test.sh to require the directories in the list <!-- backlog: 1790381867, done: 1790579679, id: card_01M3DH6GXTGRXH7EKM19JT9SC7, in_progress: 1790579404, ready: 1790579150 -->

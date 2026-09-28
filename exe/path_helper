@@ -7,6 +7,7 @@ module PathHelper
 end
 
 require 'optparse'
+require 'fileutils'
 
 options = {}
 begin
@@ -416,7 +417,7 @@ module PathHelper
               end
               begin
                 unless options[:dry_run]
-                  key == :directories ? system("mkdir","-p",path) : File.new(path, "w").close
+                  key == :directories ? FileUtils.mkdir_p(path) : File.new(path, "w").close
                 end
                 puts "#{Colours::Green}Created #{path}#{Colours::Normal}" unless options[:quiet]
               rescue Errno::EACCES

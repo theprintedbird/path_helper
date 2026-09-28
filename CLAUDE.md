@@ -131,11 +131,10 @@ compile target.
   test file has to be added there.
 - `--setup` without permission runs as *nobody* (`as_nobody`, like `test_unreadable_fragment`) in a
   scratch `HOME` whose segment root is root's, once with the `.d` directories there and once without.
-  It asserts the shared contract only -- exit non-zero, nothing created, every file listed under
-  `Your account does not have permissions for:` -- because the two differ in the rest: Crystal indents
-  the closing advice two spaces (`<<-` heredoc), and Ruby makes directories with `mkdir(1)` via
-  `system`, so a refused directory gets mkdir's own message, a `Created` line on stdout, and no entry
-  in the list. Stdout is required empty only when the directories exist.
+  It asserts the shared contract -- exit non-zero, nothing created (directories included, when they
+  were the ones missing), every file (and, when missing, every directory) listed under `Your account
+  does not have permissions for:`, stdout empty -- checking the closing advice only for its gist, since
+  Crystal indents it two spaces (`<<-` heredoc).
 - Colour: both implementations take their colours from `tput` only when stdout is a TTY, so every
   fixture is plain. `test_colour_on_a_terminal` runs `-p --debug` on a pseudo-terminal via `script`
   (`pty_flavour` probes for util-linux/busybox `-c` or BSD syntax) with `TERM=xterm` and compares the

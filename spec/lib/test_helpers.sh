@@ -756,12 +756,10 @@ Created $root/$name"
 # Either way the run has to fail, create nothing, and list the files it could
 # not create under a heading on stderr.
 #
-# The report's advice is checked for its gist rather than byte for byte, and
-# the directories are neither expected in nor excluded from the list, because
-# the implementations differ there: Crystal indents the advice two spaces, and
-# Ruby makes the directories with mkdir(1), so a refusal is mkdir's own message
-# rather than one of its rescued errors, and is announced as created on stdout.
-# So stdout is only required to be empty when the directories exist.
+# The report's advice is checked for its gist rather than byte for byte, since
+# the implementations differ there: Crystal indents the advice two spaces.
+# With `missing`, the <name>.d directories must also appear in the list, since
+# nothing gets created either way; stdout must be empty in both cases.
 test_setup_without_permission(){
 	local description="$1"
 	local directories="$2"
@@ -810,6 +808,8 @@ test_setup_without_permission(){
 
 	for name in $SETUP_NAMES; do
 		grep -Fqx -- "- $root/$name" "$err" || unlisted="$unlisted $name"
+		[ "$directories" = missing ] &&
+			{ grep -Fqx -- "- $root/$name.d" "$err" || unlisted="$unlisted $name.d"; }
 	done
 	if grep -Fqx "Your account does not have permissions for:" "$err" &&
 		 grep -Fq "use the --no-etc switch" "$err" &&
@@ -823,15 +823,13 @@ test_setup_without_permission(){
 		tap_comment_file "stderr" "$err"
 	fi
 
-	if [ "$directories" = existing ]; then
-		if [ -s "$out" ]; then
-			tap_not_ok "$description writes nothing to stdout"
-			tap_yaml "nothing was created, so nothing should be reported as created" \
-				"user: 'nobody'"
-			tap_comment_file "stdout" "$out"
-		else
-			tap_ok "$description writes nothing to stdout"
-		fi
+	if [ -s "$out" ]; then
+		tap_not_ok "$description writes nothing to stdout"
+		tap_yaml "nothing was created, so nothing should be reported as created" \
+			"user: 'nobody'"
+		tap_comment_file "stdout" "$out"
+	else
+		tap_ok "$description writes nothing to stdout"
 	fi
 
 	rm -rf "$home"

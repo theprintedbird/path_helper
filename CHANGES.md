@@ -1,5 +1,20 @@
 # CHANGES #
 
+## Monday the 28th of September 2026 ##
+
+### Fixes
+
+- `--setup` in the Ruby implementation made a directory with
+  `system("mkdir", "-p", path)`, which never raises: a refused directory got
+  mkdir's own message on stderr, a `Created <dir>` line on stdout, and no
+  entry under `Your account does not have permissions for:`. It now uses
+  `FileUtils.mkdir_p`, so a permission failure is caught the same way the
+  Crystal implementation (`Dir.mkdir_p`, which raises `File::AccessDeniedError`)
+  already caught it. The permission tests in `spec/lib/test_helpers.sh` were
+  tightened to check for this: with directories missing, each `<name>.d` is
+  now also required in the permissions list, and stdout is required empty in
+  both cases.
+
 ## Friday the 25th of September 2026 ##
 
 ### Code coverage (development only)
