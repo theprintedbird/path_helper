@@ -66,13 +66,14 @@ Language-Agnostic Infrastructure
 - Decide: `paths.d` fragments sort by byte, so any upper-case name runs before every lower-case one (`10-Zeta` before `10-alpha`). Keep byte order (pinned by spec/tests/case_test.sh), or sort case-insensitively like Finder? <!-- backlog: 1790322957, id: card_01M3BS0QJ769Z62N5M02998RA4 -->
 - Coverage threshold: print a non-blocking warning when line coverage drops below a minimum (e.g. 90%) in `make coverage`/`make coverage-crystal` and the CI coverage jobs; later turn it into a gate <!-- backlog: 1790332754, id: card_01M3C2BPC4C1QR07EEQP8SA7RY -->
 - Add a `coverage-all` make target (every Ruby and Crystal version), or fold the coverage targets into `make all` <!-- backlog: 1790332765, id: card_01M3C2C1FN2VCDEJQ9Z1SEN9ZQ -->
-- release.yml: replace the retired `macos-13` runner in the macos-x86_64 build (actionlint: unknown label) with `macos-15-intel` <!-- backlog: 1790349231, id: card_01M3CJ2HSSGNDY810E867V3W72, tags: [agent-haiku] -->
-- release.yml: bump `softprops/action-gh-release@v1` to `@v2` (actionlint: action runtime too old to run on GitHub Actions) <!-- backlog: 1790349231, id: card_01M3CJ2H1649AZR4F7VNABYM8M, tags: [agent-haiku] -->
-- Fix: Ruby --setup reports a directory it could not create as "Created" (system("mkdir","-p") in exe/path_helper never raises, so the EACCES rescue misses it and the directory is left out of the permissions list; Crystal's Dir.mkdir_p raises). Then tighten the permission tests in spec/tests/error_test.sh to require the directories in the list <!-- backlog: 1790381867, id: card_01M3DH6GXTGRXH7EKM19JT9SC7 -->
-- Fix: Crystal --setup indents the "Consider whether you need to install these..." advice by two spaces (the <<-WARNING heredoc in src/path_helper/setup.cr); Ruby's <<~ doesn't. Then compare the permission-error stderr byte for byte <!-- backlog: 1790381870, id: card_01M3DH6K1FH10Y96BRJP279FMN -->
 - Check the docs to see whether an empty path after -p is acceptable. <!-- backlog: 1790384726, id: card_01M3DKXR9FSMD4EZJ0XJQNM9N4 -->
 
 ###### Ready
+
+- Fix: Ruby --setup reports a directory it could not create as "Created" (system("mkdir","-p") in exe/path_helper never raises, so the EACCES rescue misses it and the directory is left out of the permissions list; Crystal's Dir.mkdir_p raises). Then tighten the permission tests in spec/tests/error_test.sh to require the directories in the list <!-- backlog: 1790381867, id: card_01M3DH6GXTGRXH7EKM19JT9SC7, ready: 1790579150 -->
+- Fix: Crystal --setup indents the "Consider whether you need to install these..." advice by two spaces (the <<-WARNING heredoc in src/path_helper/setup.cr); Ruby's <<~ doesn't. Then compare the permission-error stderr byte for byte <!-- backlog: 1790381870, id: card_01M3DH6K1FH10Y96BRJP279FMN, ready: 1790579162 -->
+- release.yml: bump `softprops/action-gh-release@v1` to `@v2` (actionlint: action runtime too old to run on GitHub Actions) <!-- backlog: 1790349231, id: card_01M3CJ2H1649AZR4F7VNABYM8M, ready: 1790579172, tags: [agent-haiku] -->
+- release.yml: replace the retired `macos-13` runner in the macos-x86_64 build (actionlint: unknown label) with `macos-15-intel` <!-- backlog: 1790349231, id: card_01M3CJ2HSSGNDY810E867V3W72, ready: 1790579180, tags: [agent-haiku] -->
 
 
 
@@ -146,7 +147,6 @@ Language-Agnostic Infrastructure
   # /root/.config/paths/paths.d/06-colons: ignoring '/usr/bin:/bin', a path cannot contain a colon
   # --- end stderr ---
 	```
-
 - Add code coverage tracking (per language) <!-- backlog: 1763431283, done: 1790332458, id: card_01M2CH882Z08M7FHEVZPTDVKG3, in_progress: 1790327249, ready: 1790327129 -->
 - docker/install-ruby.sh still runs --setup --no-lib and copies fixtures into ~/.config/paths when the image is built. Remove redundant code. <!-- backlog: 1789455144, done: 1790327633, id: card_01M2HXD5ZVEAV13ASBJNXV2SG7, in_progress: 1790327249, ready: 1790327097 -->
 - Run the suite in CI on ubuntu-latest, alpine and macOS-latest (was: Add tests for different OS environments (Ubuntu, Alpine, macOS)) <!-- backlog: 1763431283, depends_on: [card_01M2CH8809WEBW5WDVMC6D6J70], done: 1789470571, id: card_01M2CH881VFZB6Y03HGZ0RX4F5, in_progress: 1789277287, ready: 1789267594 -->
@@ -239,3 +239,4 @@ Language-Agnostic Infrastructure
 - Cache the kcov build in the CI `coverage-crystal` job (it is built from source, adding ~1-2 minutes) <!-- backlog: 1790332761, done: 1790344419, id: card_01M3C2BXSKXZVVDFPCN3KVHE1E, in_progress: 1790343043, ready: 1790342917 -->
 - Suppress STDERR for tests that don't need it. <!-- backlog: 1790347708, done: 1790381446, id: card_01M3CGM1PGHFBR12DASJGDH4KS, in_progress: 1790349739, ready: 1790348392 -->
 - Test the lines coverage shows as never run: the `DEBUG` env var, `--setup` permission errors, Crystal's separate `--etc` handler, and colour output under a TTY <!-- backlog: 1790332758, done: 1790381862, id: card_01M3C2BT7X9ER0AZSR778637SF, in_progress: 1790349738, ready: 1790348381 -->
+
