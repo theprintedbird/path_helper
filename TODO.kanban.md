@@ -70,6 +70,7 @@ Language-Agnostic Infrastructure
 - release.yml: bump `softprops/action-gh-release@v1` to `@v2` (actionlint: action runtime too old to run on GitHub Actions) <!-- backlog: 1790349231, id: card_01M3CJ2H1649AZR4F7VNABYM8M, tags: [agent-haiku] -->
 - Fix: Ruby --setup reports a directory it could not create as "Created" (system("mkdir","-p") in exe/path_helper never raises, so the EACCES rescue misses it and the directory is left out of the permissions list; Crystal's Dir.mkdir_p raises). Then tighten the permission tests in spec/tests/error_test.sh to require the directories in the list <!-- backlog: 1790381867, id: card_01M3DH6GXTGRXH7EKM19JT9SC7 -->
 - Fix: Crystal --setup indents the "Consider whether you need to install these..." advice by two spaces (the <<-WARNING heredoc in src/path_helper/setup.cr); Ruby's <<~ doesn't. Then compare the permission-error stderr byte for byte <!-- backlog: 1790381870, id: card_01M3DH6K1FH10Y96BRJP279FMN -->
+- Check the docs to see whether an empty path after -p is acceptable. <!-- backlog: 1790384726, id: card_01M3DKXR9FSMD4EZJ0XJQNM9N4 -->
 
 ###### Ready
 
