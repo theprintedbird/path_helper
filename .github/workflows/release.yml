@@ -30,7 +30,7 @@ jobs:
             artifact_name: path_helper-linux-x86_64
             build_flags: --static
           - os: macos-x86_64
-            runner: macos-13
+            runner: macos-15-intel
             crystal: latest
             artifact_name: path_helper-macos-x86_64
             build_flags: ""
