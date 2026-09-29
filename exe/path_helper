@@ -10,10 +10,23 @@ require 'optparse'
 require 'fileutils'
 
 options = {}
+# Shared with the leftover-argument guard at the bottom: both implementations
+# refuse a lone "-" as a path switch's argument (Ruby's optparse disagrees
+# with itself across versions about whether it even reaches here -- see
+# CLAUDE.md's Invalid switches paragraph -- and a "-" PATH entry is nonsense
+# either way), and this keeps the wording in one place.
+unexpected_argument = ->(value) {
+  warn "Unexpected argument: #{value}"
+  warn "See --help for available options."
+  exit 1
+}
 # Shared by all eight path switches: an absent or empty argument means "no
 # current path was given", not "the current path is the empty string", so
 # both implementations should store nil rather than "" -- see debug_path.txt.
-normalize_path = ->(path) { path.nil? || path.empty? ? nil : path }
+normalize_path = ->(path) {
+  unexpected_argument.call(path) if path == "-"
+  path.nil? || path.empty? ? nil : path
+}
 begin
   OptionParser.new do |opts|
     opts.banner = "Usage: path_helper.rb [options]"
@@ -99,9 +112,7 @@ begin
   # so in `-p --no-etc /some/path` the path is left over,
   # and thus ignored. This guards against left overs.
   unless ARGV.empty?
-    warn "Unexpected argument: #{ARGV.first}"
-    warn "See --help for available options."
-    exit 1
+    unexpected_argument.call(ARGV.first)
   end
 rescue OptionParser::InvalidOption => ex
   # Worded by hand rather than taken from ex.message so that it matches the

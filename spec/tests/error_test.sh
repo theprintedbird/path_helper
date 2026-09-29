@@ -42,6 +42,13 @@ expect_failure "a second path after the argument" "error_unexpected_argument.txt
 expect_failure "a path after --setup" "error_unexpected_argument.txt" "--setup" "--dry-run" "/some/path"
 expect_failure "a path after --" "error_unexpected_argument.txt" "-p" "--" "/some/path"
 
+# a lone "-" as a path switch's argument is refused in both implementations --
+# Ruby's optparse disagrees with itself across versions about whether it's
+# even offered as the argument, and a "-" PATH entry is nonsense either way.
+expect_failure "a lone dash after --path" "error_unexpected_dash.txt" "-p" "-"
+expect_failure "a lone dash after the long form" "error_unexpected_dash.txt" "--path" "-"
+expect_failure "a lone dash after --man" "error_unexpected_dash.txt" "-m" "-"
+
 # `--` straight after a path switch ends the options rather than becoming the
 # argument, so on its own it leaves nothing over and builds a fresh path. Ruby's
 # parser does that itself; Crystal's takes `--` as the value and has to be

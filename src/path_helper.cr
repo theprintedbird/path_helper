@@ -8,24 +8,27 @@ require "./path_helper/debug"
 require "./path_helper/setup"
 
 module PathHelper
+  # Raised by path_argument for a lone "-", and reported like a leftover
+  # argument.
+  class UnexpectedArgument < Exception
+    getter value : String
+
+    def initialize(@value : String)
+      super(@value)
+    end
+  end
+
   # Crystal's OptionParser gives an optional argument the next token on the
   # command line unless that token is a registered flag, so `-p -z` would take
   # "-z" as the path to append. Ruby's OptionParser refuses any token beginning
   # with a dash, and the two implementations have to agree, so an argument that
   # looks like a switch is rejected the same way an unknown switch is.
   #
-  # A lone "-" is left alone here, but whether Ruby's own parser agrees
-  # depends on which Ruby: under 2.6/2.7/3.0/3.1 (checked against system Ruby
-  # and containers of each) it is refused -- left in ARGV and caught by the
-  # leftover-argument guard below as "Unexpected argument: -" -- while 3.2,
-  # 3.3 and 4.0 take it as the argument, same as Crystal here. Since two of
-  # the three regularly-tested Ruby versions (3.3, 4.0.6; only 2.7 disagrees)
-  # already match this, and optparse's own dash-detection isn't something
-  # PathHelper.path_argument can intercept before Ruby has already decided,
-  # this is left as ordinary input rather than special-cased -- doing so
-  # would only trade a Ruby/Crystal mismatch for a Ruby-version-vs-itself one
-  # that a single fixture can't express. See CLAUDE.md's Invalid switches
-  # paragraph.
+  # A lone "-" is refused too, in both implementations: Ruby's optparse
+  # disagrees with itself across versions about whether it's even offered as
+  # the argument (2.6/2.7/3.0/3.1 leave it in ARGV, 3.2+ take it), and a "-"
+  # PATH entry is nonsense either way, so it's rejected the same way a
+  # leftover argument is -- see CLAUDE.md's Invalid switches paragraph.
   #
   # "--" is the exception: Ruby does not take it as the argument either, but
   # ends option parsing there instead, so `-p -- /some/path` leaves the path
@@ -38,7 +41,10 @@ module PathHelper
       parser.stop
       return nil
     end
-    if value.starts_with?("-") && value != "-"
+    if value == "-"
+      raise UnexpectedArgument.new(value)
+    end
+    if value.starts_with?("-")
       raise OptionParser::InvalidOption.new(value)
     end
     value.empty? ? nil : value
@@ -182,6 +188,11 @@ module PathHelper
 
     begin
       parser.parse
+    rescue ex : UnexpectedArgument
+      # Shares its wording with the leftover-argument guard below.
+      STDERR.puts "Unexpected argument: #{ex.value}"
+      STDERR.puts "See --help for available options."
+      exit 1
     rescue ex : OptionParser::InvalidOption
       # ex.message already reads "Invalid option: --foo"; the Ruby
       # implementation spells the same line out by hand so that the two agree

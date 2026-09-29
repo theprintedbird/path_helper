@@ -11,6 +11,12 @@
 - Removed the dead `ENV[name]`/`ENV[name]?` fallback in both `CLI#initialize`s:
   every path switch always sets `:current_path`, so the fallback could never
   be reached from the CLI in either implementation.
+- A lone `-` given as a path switch's argument (`-p -`, `--path -`, `-m -`,
+  etc.) is now refused as `Unexpected argument: -` in both implementations,
+  rather than being accepted as the path on Ruby >= 3.2 and in Crystal while
+  Ruby <= 3.1 already refused it. Ruby's `normalize_path` and Crystal's
+  `path_argument` both now raise the same error the leftover-argument guard
+  uses, so all three agree.
 
 ### Docs
 

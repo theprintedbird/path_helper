@@ -231,14 +231,14 @@ the job summary and exposes the report dir as the `coverage-dir` output for the 
   Ruby spells the first line out by hand rather than using `ex.message` (`invalid option:`, lowercase).
   The two stdlib parsers also disagree about the *optional* argument the path switches take: Ruby's
   refuses any `-`-prefixed token, Crystal's swallows one unless it is a registered flag, so
-  `PathHelper.path_argument` rejects it to keep `-p -z` an error in both. A lone `-` is deliberately
-  *not* special-cased the same way: Ruby's own optparse disagrees with itself about it across the
-  versions this project tests -- 2.6/2.7/3.0/3.1 refuse it (left in ARGV, caught by the
-  leftover-argument guard as `Unexpected argument: -`), 3.2/3.3/4.0 take it as the argument, same as
-  Crystal already does. Since two of the three regularly-tested Ruby versions (3.3, 4.0.6) already
-  agree with Crystal, and which behaviour "matching Ruby" would even mean depends on which Ruby, this
-  is left alone rather than forced to agree with the older versions -- see the comment above
-  `PathHelper.path_argument` in `src/path_helper.cr`.
+  `PathHelper.path_argument` rejects it to keep `-p -z` an error in both. A lone `-` is refused too, in
+  both implementations, with the same `Unexpected argument: -` wording as the leftover-argument guard:
+  Ruby's own optparse disagrees with itself about it across the versions this project tests --
+  2.6/2.7/3.0/3.1 leave it in ARGV, caught by the leftover-argument guard, while 3.2/3.3/4.0 offer it as
+  the argument, so Ruby's `normalize_path` raises the same `Unexpected argument` error there, sharing
+  its wording with the guard via the `unexpected_argument` proc. Crystal's `path_argument` raises a
+  dedicated `UnexpectedArgument` exception for it, rescued alongside `InvalidOption` in `run` and
+  printing the same message. See the comment above `PathHelper.path_argument` in `src/path_helper.cr`.
 
 ## Docs and planning
 
