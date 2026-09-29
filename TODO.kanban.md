@@ -43,15 +43,12 @@ Language-Agnostic Infrastructure
 - Create `ci.yml` main workflow (orchestrator) <!-- backlog: 1763431283, id: card_01M2CH88BK8P0N1F94FVJM60KR -->
 - Design workflow structure for Go implementation <!-- backlog: 1763431283, id: card_01M2CH87XDQS1TEBK3KMJEW430 -->
 - Create template for adding new language implementations <!-- backlog: 1763431283, id: card_01M2CH88402BTT1FQ104Q58W2G -->
-- README CI/CD section is Ruby-only: "Workflow Structure" calls `test-ruby.yml` the main workflow and "Key files" lists only it, with no mention of `test-crystal.yml` or `release.yml`; describe both test workflows and the composite actions they share (`executable`/`home` outputs). "Key files" also lists the test files as "setup, path, error and edge case", missing `case_test.sh` <!-- backlog: 1790666993, id: card_01M3P13W8HK2P28FD5FPVMZKM1 -->
 - Add shell integration tests (bash, zsh, sh) <!-- backlog: 1763431283, id: card_01M2CH88R1KG5HKTC38PM972ZY -->
 - Implement `test-go.yml` workflow (when Go implementation exists) <!-- backlog: 1763431283, id: card_01M2CH87Y7YD0YB6R6775QFA1Q -->
 - Add test result reporting with PR comments <!-- backlog: 1763431283, id: card_01M2CH88EHJRC4FXWBN7YA6MJG -->
-- Performance: compare Ruby and Crystal and catch regressions. Every test point already prints a `# Performance:` timing comment; collect them per implementation (a make target and/or a CI job), compare the two, and flag a run that is slower than a baseline (merges "Add performance comparison between implementations"; see also "performance regression tests with timing bounds" in testing-list.md) <!-- backlog: 1763431283, id: card_01M2CH887P2B0TDX1TD7VSZXR1 -->
+- Performance: compare Ruby and Crystal and catch regressions. Every test point already prints a `# Performance:` timing comment; collect them per implementation (a make target and/or a CI job), compare the two, and flag a run that is slower than baseline (merges "Add performance comparison between implementations"; see also "performance regression tests with timing bounds" in testing-list.md) <!-- backlog: 1763431283, id: card_01M2CH887P2B0TDX1TD7VSZXR1 -->
 - Add SAST (static analysis security testing) <!-- backlog: 1763431283, id: card_01M2CH87ZJEYVC2FYFV6WY084Y -->
-- Workflow security: run actionlint as a CI step (so far only run by hand, which found the two release.yml problems) and consider pinning third-party actions to commit SHAs. Permissions, timeouts and concurrency are already set <!-- backlog: 1763431283, id: card_01M2CH88T8BY7W1N6F3YTETFZN -->
 - Add automated dependency updates (Dependabot) <!-- backlog: 1763431283, id: card_01M2CH88150PJWM0KRN0QF0Z3T -->
-- Pre-commit check that runs `make lint` and actionlint. jj doesn't run git hooks, so this likely wants a `make check` target (or jj config) rather than `.git/hooks/pre-commit` <!-- backlog: 1763431283, id: card_01M2CH8815F0KQKJZ13PVMBNRW -->
 - Decide: generate the changelog automatically (e.g. from the `fix:`/`docs:` commit prefixes) or keep `CHANGES.md` hand-written, and drop this card if the latter <!-- id: card_01M2CH87XM5GEB37EGFC1Z945V, ready: 1788877330 -->
 - Add golden file generation mode via `GENERATE_GOLDEN` environment variable <!-- backlog: 1789267516, id: card_01M2CH884TEX2CZP8RM345J89Z -->
 - Coverage threshold: print a non-blocking warning when line coverage drops below a minimum (e.g. 90%) in `make coverage`/`make coverage-crystal` and the CI coverage jobs; later turn it into a gate <!-- backlog: 1790332754, id: card_01M3C2BPC4C1QR07EEQP8SA7RY -->
@@ -59,87 +56,19 @@ Language-Agnostic Infrastructure
 
 ###### Ready
 
-
-
-
-
-
-
-
+- README CI/CD section is Ruby-only: "Workflow Structure" calls `test-ruby.yml` the main workflow and "Key files" lists only it, with no mention of `test-crystal.yml` or `release.yml`; describe both test workflows and the composite actions they share (`executable`/`home` outputs). "Key files" also lists the test files as "setup, path, error and edge case", missing `case_test.sh` <!-- backlog: 1790666993, id: card_01M3P13W8HK2P28FD5FPVMZKM1, ready: 1790667266 -->
+- Workflow security: run actionlint as a CI step (so far only run by hand, which found the two release.yml problems) and consider pinning third-party actions to commit SHAs. Permissions, timeouts and concurrency are already set <!-- backlog: 1763431283, id: card_01M2CH88T8BY7W1N6F3YTETFZN, ready: 1790667427 -->
+- Pre-commit check that runs `make lint` and actionlint. jj doesn't run git hooks, so this likely wants a `make check` target (or jj config) rather than `.git/hooks/pre-commit` <!-- backlog: 1763431283, id: card_01M2CH8815F0KQKJZ13PVMBNRW, ready: 1790667445 -->
 
 
 
 ###### In Progress
 
 
-
-
-
-
-
-
 ###### Done
 
 - Fix "an unreadable fragment adds nothing". Only happens during the Crystal kcov run in CI <!-- backlog: 1790347985, done: 1790577268, id: card_01M3CGWGGVDJHEMSP74T79ER1S, in_progress: 1790349739, ready: 1790348395 -->
-  ```
-	not ok 131 - an unreadable fragment adds nothing
-	message: 'output did not match the fixture'
-	severity: fail
-	data:
-		fixture: 'spec/fixtures/results/unreadable_path.txt'
-		arguments: '-p --no-etc'
-		user: 'nobody'
-	...
-  # --- cmp ---
-  # cmp: EOF on /tmp/tmp.JNGm04E8Yz which is empty
-  # --- end cmp ---
-  # --- expected ---
-  # /opt/readable/bin
-  # --- end expected ---
-  # --- actual ---
-  # --- end actual ---
-  # --- stderr ---
-  # ./path_helper: 4: exec: /home/runner/.local/kcov/bin/kcov: Permission denied
-  # --- end stderr ---
-	```
 - Fix "an unreadable fragment is marked in the debug report". Only happens during the Crystal kcov run in CI <!-- backlog: 1790348150, done: 1790577268, id: card_01M3CH1HRGX4GW76DE1GV94RDW, in_progress: 1790349739, ready: 1790348397 -->
-	```
-	not ok 132 - an unreadable fragment is marked in the debug report
-    message: 'output did not match the fixture'
-    severity: fail
-    data:
-      fixture: 'spec/fixtures/results/debug_unreadable.txt'
-      arguments: '-p --no-etc --debug'
-      user: 'nobody'
-    ...
-  # --- cmp ---
-  # cmp: EOF on /tmp/tmp.huHLI4DTyj which is empty
-  # --- end cmp ---
-  # --- expected ---
-  # Name: PATH
-  # Options: {name: "PATH", current_path: nil, etc: false, debug: true, verbose: true}
-  # Search order: [:config]
-  # 	/tmp/path_helper.MVhqx4/.config/paths/paths.d
-  # 	/tmp/path_helper.MVhqx4/.config/paths/paths
-  # 
-  # Results: (duplicates marked by ✗, dropped lines by ⊘)
-  # 
-  # /tmp/path_helper.MVhqx4/.config/paths/paths.d/01-readable
-  #  └── /opt/readable/bin
-  # /tmp/path_helper.MVhqx4/.config/paths/paths.d/02-unreadable - is not readable!
-  # 
-  # Env var:
-  # /opt/readable/bin
-  # 
-  # --- end expected ---
-  # --- actual ---
-  # --- end actual ---
-  # --- stderr ---
-  # /root/.config/paths/paths.d/06-colons: ignoring '/opt/colons/bin:/opt/colons/sbin', a path cannot contain a colon
-  # /root/.config/paths/paths.d/06-colons: ignoring '~/colons:with:colons/bin', a path cannot contain a colon
-  # /root/.config/paths/paths.d/06-colons: ignoring '/usr/bin:/bin', a path cannot contain a colon
-  # --- end stderr ---
-	```
 - Add code coverage tracking (per language) <!-- backlog: 1763431283, done: 1790332458, id: card_01M2CH882Z08M7FHEVZPTDVKG3, in_progress: 1790327249, ready: 1790327129 -->
 - docker/install-ruby.sh still runs --setup --no-lib and copies fixtures into ~/.config/paths when the image is built. Remove redundant code. <!-- backlog: 1789455144, done: 1790327633, id: card_01M2HXD5ZVEAV13ASBJNXV2SG7, in_progress: 1790327249, ready: 1790327097 -->
 - Run the suite in CI on ubuntu-latest, alpine and macOS-latest (was: Add tests for different OS environments (Ubuntu, Alpine, macOS)) <!-- backlog: 1763431283, depends_on: [card_01M2CH8809WEBW5WDVMC6D6J70], done: 1789470571, id: card_01M2CH881VFZB6Y03HGZ0RX4F5, in_progress: 1789277287, ready: 1789267594 -->
