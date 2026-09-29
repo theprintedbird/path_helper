@@ -9,12 +9,7 @@ module PathHelper
       end
 
       name = @options[:name].as(String)
-      # Use current_path if provided, otherwise fall back to ENV
-      @current_path = if @options.has_key?(:current_path)
-                        @options[:current_path].as(String?)
-                      else
-                        ENV[name]?
-                      end
+      @current_path = @options[:current_path].as(String?)
       @section = Helpers.create_section(name)
       @search_order = [] of Segment
     end

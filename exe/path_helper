@@ -10,48 +10,52 @@ require 'optparse'
 require 'fileutils'
 
 options = {}
+# Shared by all eight path switches: an absent or empty argument means "no
+# current path was given", not "the current path is the empty string", so
+# both implementations should store nil rather than "" -- see debug_path.txt.
+normalize_path = ->(path) { path.nil? || path.empty? ? nil : path }
 begin
   OptionParser.new do |opts|
     opts.banner = "Usage: path_helper.rb [options]"
     opts.on("-p", "--path [PATH]", "To get a completely fresh PATH pass an empty string or nothing at all (the default).","  To append something to the generated path pass the current path, or a path you wish appended."
     ) do |path|
       options[:name] = "PATH"
-      options[:current_path] = path
+      options[:current_path] = normalize_path.call(path)
     end
     opts.on("-m", "--man [MANPATH]", 'Run for man pages but perhaps read `man manpages` first', '  See `path\' instructions for argument options.'
     ) do |path|
       options[:name] = "MANPATH"
-      options[:current_path] = path
+      options[:current_path] = normalize_path.call(path)
     end
     opts.on("-f", "--dyld-fallback-fram [DYLD]", 'DYLD_FALLBACK_FRAMEWORK_PATH env var', '  See `path\' instructions for argument options.'
     ) do |path|
       options[:name] = "DYLD_FALLBACK_FRAMEWORK_PATH"
-      options[:current_path] = path
+      options[:current_path] = normalize_path.call(path)
     end
     opts.on("-l", "--dyld-fallback-lib [DYLD]", "DYLD_FALLBACK_LIBRARY_PATH env var", '  See `path\' instructions for argument options.'
     ) do |path|
       options[:name] = "DYLD_FALLBACK_LIBRARY_PATH"
-      options[:current_path] = path
+      options[:current_path] = normalize_path.call(path)
     end
     opts.on("--dyld-fram [DYLD]", 'DYLD_FRAMEWORK_PATH env var', '  Searched *before* a framework\'s linked install path, so it overrides', '  rather than backstops. See `path\' instructions for argument options.'
     ) do |path|
       options[:name] = "DYLD_FRAMEWORK_PATH"
-      options[:current_path] = path
+      options[:current_path] = normalize_path.call(path)
     end
     opts.on("--dyld-lib [DYLD]", 'DYLD_LIBRARY_PATH env var', '  Searched *before* a library\'s linked install path, so it overrides', '  rather than backstops. See `path\' instructions for argument options.'
     ) do |path|
       options[:name] = "DYLD_LIBRARY_PATH"
-      options[:current_path] = path
+      options[:current_path] = normalize_path.call(path)
     end
     opts.on("-c", "--c-include [C_INCLUDE]", 'C_INCLUDE_PATH env var', '  See `path\' instructions for argument options.'
     ) do |path|
       options[:name] = "C_INCLUDE_PATH"
-      options[:current_path] = path
+      options[:current_path] = normalize_path.call(path)
     end
     opts.on("--pc [PKG_CONFIG_PATH]", 'PKG_CONFIG_PATH env var', '  See `path\' instructions for argument options.'
     ) do |path|
       options[:name] = "PKG_CONFIG_PATH"
-      options[:current_path] = path
+      options[:current_path] = normalize_path.call(path)
     end
     opts.on("-q", "--quiet", "Quiet, no output") do |v|
       options[:quiet] = true
@@ -175,7 +179,7 @@ module PathHelper
     def initialize options
 			fail Error, "You must declare the kind of path you wish to build e.g. --manpath or -m if you want MANPATH built" unless options.has_key? :name
       @options = options
-      @current_path = options.fetch(:current_path, ENV[@options[:name]])
+      @current_path = options[:current_path]
     end
 
     attr_reader :section, :options

@@ -220,16 +220,25 @@ the job summary and exposes the report dir as the `coverage-dir` output for the 
   of the project: user paths land *before* the system ones.
 - **Current path**: the argument to `-p` etc. is appended after the generated segments, de-duplicated
   against them and `~`-expanded like any other line, so `export PATH=$(path_helper -p "$PATH")` keeps
-  the old path behind the new one. With no argument -- or an empty one -- nothing is appended: the
-  switch always sets `:current_path`, so the `ENV[name]` fallback in both `CLI#initialize`s is
-  unreachable from the CLI. `path-appended.txt`/`manpath-appended.txt` cover this.
+  the old path behind the new one. With no argument -- or an empty one -- nothing is appended: every
+  path switch always sets `:current_path` (to `nil` when its argument is absent or empty, in both
+  implementations), so `CLI#initialize` reads `options[:current_path]` directly and there is no `ENV`
+  fallback to fall back to. `path-appended.txt`/`manpath-appended.txt` cover appending;
+  `debug_path.txt` covers `nil` (an empty argument prints identically to no argument at all).
 - `~` in a path line is expanded to `HOME` only at the final join step.
 - **Invalid switches**: both parsers are wrapped so an unknown switch prints `Invalid option: <switch>`
   and `See --help for available options.` on stderr and exits 1. The wording is fixture-compared, so
   Ruby spells the first line out by hand rather than using `ex.message` (`invalid option:`, lowercase).
   The two stdlib parsers also disagree about the *optional* argument the path switches take: Ruby's
   refuses any `-`-prefixed token, Crystal's swallows one unless it is a registered flag, so
-  `PathHelper.path_argument` rejects it to keep `-p -z` an error in both.
+  `PathHelper.path_argument` rejects it to keep `-p -z` an error in both. A lone `-` is deliberately
+  *not* special-cased the same way: Ruby's own optparse disagrees with itself about it across the
+  versions this project tests -- 2.6/2.7/3.0/3.1 refuse it (left in ARGV, caught by the
+  leftover-argument guard as `Unexpected argument: -`), 3.2/3.3/4.0 take it as the argument, same as
+  Crystal already does. Since two of the three regularly-tested Ruby versions (3.3, 4.0.6) already
+  agree with Crystal, and which behaviour "matching Ruby" would even mean depends on which Ruby, this
+  is left alone rather than forced to agree with the older versions -- see the comment above
+  `PathHelper.path_argument` in `src/path_helper.cr`.
 
 ## Docs and planning
 

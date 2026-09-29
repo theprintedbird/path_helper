@@ -2,6 +2,16 @@
 
 ## Tuesday the 29th of September 2026 ##
 
+### Fixes
+
+- Ruby stored an empty `-p`/`-m`/etc. argument as `""` rather than `nil`, so
+  `-p '' --debug` showed `current_path: ""` where Crystal (and a bare `-p
+  --debug`) showed `nil`. All eight path switches now normalise an absent or
+  empty argument to `nil` through one shared lambda, matching Crystal.
+- Removed the dead `ENV[name]`/`ENV[name]?` fallback in both `CLI#initialize`s:
+  every path switch always sets `:current_path`, so the fallback could never
+  be reached from the CLI in either implementation.
+
 ### Docs
 
 - README now explains that duplicate path lines are dropped by comparing

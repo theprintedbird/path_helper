@@ -132,9 +132,24 @@ test_a_path "$OTHER_SEGMENT with no-$USER_SEGMENT and no-etc leaves only $OTHER_
 # components retain the order they were given, are appended to search components,
 # and are de-duplicated against it (first occurrence wins).
 test_a_path "an empty argument builds a fresh path" "path.txt" "-p" ""
+# `--switch=` is the long form's own way of writing an empty argument, and
+# both option parsers treat it the same as no argument at all. The short
+# form does not have an equivalent: `-p=` attaches "=" itself as the
+# argument (the same way `-pFOO` attaches "FOO"), so it is a literal
+# one-character path, not an empty one -- it is covered as an appended
+# argument below, not here.
+test_a_path "an empty long-form argument builds a fresh path" "path.txt" "--path="
+# A switch straight after `-p` is not swallowed as the path -- it is parsed
+# as the next switch, and `-p` builds a fresh path with nothing appended.
+# `debug_path_spec` above and the `--no-etc`/segment tests below already
+# cover this for every switch that follows; `--debug` immediately after `-p`,
+# with no argument at all, is the same fresh path either with or without an
+# empty string first, hence the fixture reuse just below.
+test_a_path "an empty argument under --debug matches no argument at all" "debug_path.txt" "-p" "" "--debug"
 test_a_path "an argument is appended" "path-appended.txt" "-p" "/opt/appended/bin:~/appended:/usr/bin"
 test_a_path "an argument of duplicates changes nothing" "path.txt" "-p" "/usr/bin:/bin"
 test_a_path "an argument is appended for manpaths" "manpath-appended.txt" "-m" "/opt/appended/man:/opt/pkg/share/man"
+test_a_path "a literal = attaches as the short-form argument" "path-appended-equals.txt" "-p="
 
 test_a_path "the debug report lists( an argument's components after the search" \
 	"debug_path_appended.txt" "-p" "/opt/appended/bin:~/appended:/usr/bin" "--debug"

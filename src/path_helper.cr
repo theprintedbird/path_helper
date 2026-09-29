@@ -12,9 +12,20 @@ module PathHelper
   # command line unless that token is a registered flag, so `-p -z` would take
   # "-z" as the path to append. Ruby's OptionParser refuses any token beginning
   # with a dash, and the two implementations have to agree, so an argument that
-  # looks like a switch is rejected the same way an unknown switch is. A lone
-  # "-" is left alone: Ruby treats it as an ordinary argument rather than a
-  # switch.
+  # looks like a switch is rejected the same way an unknown switch is.
+  #
+  # A lone "-" is left alone here, but whether Ruby's own parser agrees
+  # depends on which Ruby: under 2.6/2.7/3.0/3.1 (checked against system Ruby
+  # and containers of each) it is refused -- left in ARGV and caught by the
+  # leftover-argument guard below as "Unexpected argument: -" -- while 3.2,
+  # 3.3 and 4.0 take it as the argument, same as Crystal here. Since two of
+  # the three regularly-tested Ruby versions (3.3, 4.0.6; only 2.7 disagrees)
+  # already match this, and optparse's own dash-detection isn't something
+  # PathHelper.path_argument can intercept before Ruby has already decided,
+  # this is left as ordinary input rather than special-cased -- doing so
+  # would only trade a Ruby/Crystal mismatch for a Ruby-version-vs-itself one
+  # that a single fixture can't express. See CLAUDE.md's Invalid switches
+  # paragraph.
   #
   # "--" is the exception: Ruby does not take it as the argument either, but
   # ends option parsing there instead, so `-p -- /some/path` leaves the path
