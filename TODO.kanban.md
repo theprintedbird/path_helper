@@ -43,24 +43,16 @@ Language-Agnostic Infrastructure
 - Create `ci.yml` main workflow (orchestrator) <!-- backlog: 1763431283, id: card_01M2CH88BK8P0N1F94FVJM60KR -->
 - Design workflow structure for Go implementation <!-- backlog: 1763431283, id: card_01M2CH87XDQS1TEBK3KMJEW430 -->
 - Create template for adding new language implementations <!-- backlog: 1763431283, id: card_01M2CH88402BTT1FQ104Q58W2G -->
-- Document multi-language testing strategy <!-- backlog: 1763431283, id: card_01M2CH88QSMR810X034C596ZRA -->
+- README CI/CD section is Ruby-only: "Workflow Structure" calls `test-ruby.yml` the main workflow and "Key files" lists only it, with no mention of `test-crystal.yml` or `release.yml`; describe both test workflows and the composite actions they share (`executable`/`home` outputs). "Key files" also lists the test files as "setup, path, error and edge case", missing `case_test.sh` <!-- backlog: 1790666993, id: card_01M3P13W8HK2P28FD5FPVMZKM1 -->
 - Add shell integration tests (bash, zsh, sh) <!-- backlog: 1763431283, id: card_01M2CH88R1KG5HKTC38PM972ZY -->
-- Add edge case tests for path handling <!-- backlog: 1763431283, id: card_01M2CH87X5K13N2NP5YXCXEY0A -->
-- Add validation tests for setup command <!-- backlog: 1763431283, id: card_01M2CH88116ECZ55A7HQBC6ANT -->
 - Implement `test-go.yml` workflow (when Go implementation exists) <!-- backlog: 1763431283, id: card_01M2CH87Y7YD0YB6R6775QFA1Q -->
-- Add cross-language compatibility tests <!-- backlog: 1763431283, id: card_01M2CH88T3GY3PJ8JV9F1K9PSW -->
-- Add performance comparison between implementations <!-- backlog: 1763431283, id: card_01M2CH8809ACKC836KVWQM91AG -->
 - Add test result reporting with PR comments <!-- backlog: 1763431283, id: card_01M2CH88EHJRC4FXWBN7YA6MJG -->
-- Add performance benchmarking workflow <!-- backlog: 1763431283, id: card_01M2CH887P2B0TDX1TD7VSZXR1 -->
-- Add automated release creation on version tags <!-- backlog: 1763431283, id: card_01M2CH87XFQNCWZ62699QS1CAA -->
-- Add dependency vulnerability scanning <!-- backlog: 1763431283, id: card_01M2CH8832E559EMWVVRTHZ4SK -->
+- Performance: compare Ruby and Crystal and catch regressions. Every test point already prints a `# Performance:` timing comment; collect them per implementation (a make target and/or a CI job), compare the two, and flag a run that is slower than a baseline (merges "Add performance comparison between implementations"; see also "performance regression tests with timing bounds" in testing-list.md) <!-- backlog: 1763431283, id: card_01M2CH887P2B0TDX1TD7VSZXR1 -->
 - Add SAST (static analysis security testing) <!-- backlog: 1763431283, id: card_01M2CH87ZJEYVC2FYFV6WY084Y -->
-- Add workflow security best practices audit <!-- backlog: 1763431283, id: card_01M2CH88T8BY7W1N6F3YTETFZN -->
+- Workflow security: run actionlint as a CI step (so far only run by hand, which found the two release.yml problems) and consider pinning third-party actions to commit SHAs. Permissions, timeouts and concurrency are already set <!-- backlog: 1763431283, id: card_01M2CH88T8BY7W1N6F3YTETFZN -->
 - Add automated dependency updates (Dependabot) <!-- backlog: 1763431283, id: card_01M2CH88150PJWM0KRN0QF0Z3T -->
-- Add local GitHub Actions testing setup (act) <!-- backlog: 1763431283, id: card_01M2CH88Q5F2B115JG0M64TCVQ -->
-- Add pre-commit hooks for common issues <!-- backlog: 1763431283, id: card_01M2CH8815F0KQKJZ13PVMBNRW -->
-- Add developer setup script <!-- backlog: 1763431283, id: card_01M2CH88NS11S3SD2VRS29MAWV -->
-- Add automated changelog generation <!-- id: card_01M2CH87XM5GEB37EGFC1Z945V, ready: 1788877330 -->
+- Pre-commit check that runs `make lint` and actionlint. jj doesn't run git hooks, so this likely wants a `make check` target (or jj config) rather than `.git/hooks/pre-commit` <!-- backlog: 1763431283, id: card_01M2CH8815F0KQKJZ13PVMBNRW -->
+- Decide: generate the changelog automatically (e.g. from the `fix:`/`docs:` commit prefixes) or keep `CHANGES.md` hand-written, and drop this card if the latter <!-- id: card_01M2CH87XM5GEB37EGFC1Z945V, ready: 1788877330 -->
 - Add golden file generation mode via `GENERATE_GOLDEN` environment variable <!-- backlog: 1789267516, id: card_01M2CH884TEX2CZP8RM345J89Z -->
 - Coverage threshold: print a non-blocking warning when line coverage drops below a minimum (e.g. 90%) in `make coverage`/`make coverage-crystal` and the CI coverage jobs; later turn it into a gate <!-- backlog: 1790332754, id: card_01M3C2BPC4C1QR07EEQP8SA7RY -->
 - Add a `coverage-all` make target (every Ruby and Crystal version), or fold the coverage targets into `make all` <!-- backlog: 1790332765, id: card_01M3C2C1FN2VCDEJQ9Z1SEN9ZQ -->
@@ -248,3 +240,12 @@ Language-Agnostic Infrastructure
 - `paths.d` fragments sort by byte, document it in the README ("C/byte order; use lower-case names"). <!-- backlog: 1790322957, done: 1790650706, id: card_01M3BS0QJ769Z62N5M02998RA4, in_progress: 1790650622, ready: 1790646874 -->
 - Check the docs to see whether an empty path after -p is acceptable. <!-- backlog: 1790384726, done: 1790662955, id: card_01M3DKXR9FSMD4EZJ0XJQNM9N4, in_progress: 1790660624, ready: 1790660008 -->
 - Refuse a lone `-` after a path switch (`-p -`, `-m -`, ...) with `Unexpected argument: -` in both implementations: Ruby >= 3.2's optparse takes it as the argument, Ruby <= 3.1 leaves it over, Crystal takes it <!-- done: 1790664544, id: card_01M3NY1SZ79PAA58C4KSWB4JKJ, in_progress: 1790663686 -->
+- Note: No longer needed, release.yml already runs on `v*.*.*` tags. Add automated release creation on version tags <!-- backlog: 1763431283, done: 1790666993, id: card_01M2CH87XFQNCWZ62699QS1CAA -->
+- Note: No longer needed, `.actrc` exists and the README's CI/CD section documents act. Add local GitHub Actions testing setup (act) <!-- backlog: 1763431283, done: 1790666993, id: card_01M2CH88Q5F2B115JG0M64TCVQ -->
+- Note: No longer needed, covered by `spec/tests/edge_case_test.sh` and the edge-case cards above. Add edge case tests for path handling <!-- backlog: 1763431283, done: 1790666993, id: card_01M2CH87X5K13N2NP5YXCXEY0A -->
+- Note: No longer needed, covered by `setup_test.sh` (tree, other segment, dry run) and the permission tests in `error_test.sh`. Add validation tests for setup command <!-- backlog: 1763431283, done: 1790666993, id: card_01M2CH88116ECZ55A7HQBC6ANT -->
+- Note: No longer needed, the one shell suite byte-compares both implementations against the same fixtures. Add cross-language compatibility tests <!-- backlog: 1763431283, done: 1790666993, id: card_01M2CH88T3GY3PJ8JV9F1K9PSW -->
+- Note: No longer needed, there are no runtime dependencies (gemspec, shard.yml); the Actions are covered by the Dependabot card. Add dependency vulnerability scanning <!-- backlog: 1763431283, done: 1790666993, id: card_01M2CH8832E559EMWVVRTHZ4SK -->
+- Note: No longer needed, covered by the README and CLAUDE.md; the remaining README gap is card_01M3P13W8HK2P28FD5FPVMZKM1. Document multi-language testing strategy <!-- backlog: 1763431283, done: 1790666993, id: card_01M2CH88QSMR810X034C596ZRA -->
+- Note: No longer needed, everything builds and tests in containers via the Makefile (`make all`). Add developer setup script <!-- backlog: 1763431283, done: 1790666993, id: card_01M2CH88NS11S3SD2VRS29MAWV -->
+- Note: No longer needed, merged into card_01M2CH887P2B0TDX1TD7VSZXR1. Add performance comparison between implementations <!-- backlog: 1763431283, done: 1790666993, id: card_01M2CH8809ACKC836KVWQM91AG -->
