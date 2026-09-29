@@ -69,6 +69,8 @@ help:
 	@echo "    make clean                  Remove all built images"
 	@echo "    make list                   Show all built images"
 	@echo "    make lint                   Check the test harness for GNU-only shell (breaks on macOS/BSD)"
+	@echo "    make actionlint             Lint .github/workflows/ with actionlint (it and shellcheck must be on PATH)"
+	@echo "    make check                  Run lint and actionlint (host-only; run before committing)"
 	@echo ""
 	@echo "Environment Variables:"
 	@echo "  VERSION                   Version tag (default: git describe or 'dev')"
@@ -214,6 +216,26 @@ list:
 .PHONY: lint
 lint:
 	@sh spec/lint_portability.sh
+
+# Without shellcheck, actionlint silently skips the run: scripts, which CI's
+# ubuntu-latest (shellcheck preinstalled) does check -- so refuse a partial lint.
+.PHONY: actionlint
+actionlint:
+	@command -v actionlint >/dev/null 2>&1 || { \
+		echo "actionlint not found on PATH -- install it (brew install actionlint," \
+			"or a release from https://github.com/rhysd/actionlint/releases) and try again." >&2; \
+		exit 1; \
+	}
+	@command -v shellcheck >/dev/null 2>&1 || { \
+		echo "shellcheck not found on PATH -- actionlint needs it to check run: scripts as CI does" \
+			"(brew install shellcheck, or https://github.com/koalaman/shellcheck#installing)." >&2; \
+		exit 1; \
+	}
+	@actionlint
+
+.PHONY: check
+check: lint actionlint
+	@echo "✓ check passed"
 
 # =============================================================================
 # Crystal Targets

@@ -569,6 +569,18 @@ I'm happy to hear from you, email me or open an issue. Pull requests are fine to
 
 The project supports both Ruby and Crystal implementations. A Makefile manages Docker/Podman builds and testing across multiple versions of both languages.
 
+Development dependencies:
+
+- make
+- podman or docker\*
+- ruby (>= 2.6)
+- crystal (with shards)
+- actionlint\*\*
+- shellcheck\*\*
+
+\* The test suite is destructive, so it only runs in a container; see [To run the specs](#to-run-the-specs).<br>
+\*\* Used by `make check`; see "Pre-commit check" under [To run the specs](#to-run-the-specs).
+
 **Build images for all Ruby versions:**
 
 ```shell
@@ -700,6 +712,19 @@ make lint
 
 It also runs as a step in `.github/actions/run-shell-tests`, ahead of the suite
 itself, so a GNU-only form is caught in CI before it can fail on the macOS runner.
+
+**Pre-commit check:** jj has no git hooks to run this automatically, so before committing, run
+`make check` by hand. It runs `make lint` and then `actionlint` over `.github/workflows/`.
+[actionlint](https://github.com/rhysd/actionlint/releases) and
+[shellcheck](https://github.com/koalaman/shellcheck) must both be on `PATH` (`brew install actionlint
+shellcheck`): without shellcheck, actionlint quietly skips the `run:` scripts, which CI's runners
+do check, so `make check` refuses to run rather than pass something CI would fail. Both are fast,
+host-only checks (no container), and CI runs the same two: `lint_portability.sh` in
+`run-shell-tests`, and `actionlint` in `.github/workflows/lint.yml`.
+
+```shell
+make check
+```
 
 **Measure code coverage:**
 
@@ -1010,7 +1035,9 @@ It runs only when files under `.github/**` change.
 
 When making changes to the GitHub Actions workflow:
 
-1. **Test locally first**: Use [act](https://github.com/nektos/act) to test workflow changes locally before pushing
+1. **Test locally first**: Use [act](https://github.com/nektos/act) to test workflow changes locally
+   before pushing, and run `make check` (lint_portability.sh plus actionlint, same as CI) before
+   committing
 2. **Use a feature branch**: Make workflow changes on a separate branch and verify they pass
 3. **Update documentation**: If adding new features, update this README section
 4. **Maintain backwards compatibility**: Ensure changes don't break existing test patterns

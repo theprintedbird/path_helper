@@ -37,6 +37,7 @@ make shell RUBY_VER=3.3           # interactive container
 make coverage RUBY_VER=3.3        # suite with line coverage; report in coverage/ruby/
 make coverage-crystal CRYSTAL_VER=1.14.0   # same for Crystal (kcov, always glibc); coverage/crystal/
 make list / make clean
+make check                        # host-only, no container: lint + actionlint; before committing
 ```
 
 The test/shell/extract targets build their image first, so there is no need to run a build target by
@@ -117,7 +118,12 @@ compile target.
   has had both forms since 10.11). `make lint` (`spec/lint_portability.sh`, plain POSIX sh, no
   `grep -P`) greps the harness files and the actions' `run:` blocks for these forms, skipping comment
   lines since the harness's own comments deliberately mention some of them; it also runs as a CI step
-  in `.github/actions/run-shell-tests` before the suite, ahead of the macOS job.
+  in `.github/actions/run-shell-tests` before the suite, ahead of the macOS job. `make check` runs
+  `make lint` plus `actionlint` over `.github/workflows/` (it and `shellcheck` must be on `PATH`; fails
+  with a one-line install hint otherwise -- actionlint quietly skips `run:` scripts without
+  shellcheck, and CI's `ubuntu-latest` has it, so a local run without it could pass what CI fails) -- both host-only and fast; jj has no hooks, so run it by hand before
+  committing. CI runs the same two checks separately: `lint_portability.sh` in `run-shell-tests`,
+  `actionlint` in `.github/workflows/lint.yml`.
 - `spec/tests/*_test.sh` — the tests, sourced (not executed, since the TAP counters are shell globals)
   in this order: `setup_test.sh` (`--setup` of both home segments, and the symlinks, dangling link,
   subdirectory and fifo every later file relies on — so it must stay first — then a `--dry-run` in a
