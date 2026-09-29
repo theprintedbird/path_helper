@@ -290,13 +290,13 @@ path_helper will read files in this order:
 5. `/etc/paths.d`
 6. `/etc/paths`
 
-If you don't have any of those dirs/files, they are skipped. Files within the `.d` dirs are read in file system order.
+If you don't have them, they are skipped. Files within the `.d` dirs are read in byte order (C locale order), not the order Finder or `ls` use, upper-case letters sort before lower-case, e.g. `10-Zeta` comes before `10-alpha`, and treated as characters, e.g. `9-foo` comes after `10-bar`.
 
 ### Duplicates
 
 Comparison is done on each line's text, not on the actual target directory, so `/opt/x` and `/opt/x/` both survive, as do `~/bin` and `/Users/me/bin` (`~` is expanded afterwards), as do `/opt/Foo/bin` and `/opt/foo/bin`, even though on a Mac, case-insensitivity is the default thus they point at the same target, so it will appear in `PATH` twice.
 
-The simple way to avoid this is to be consistent in the way things are written.
+The simple way to avoid this, if you consider it to be a problem, is to be consistent in the way things are written.
 
 ## <a name="why-library-paths-paths-and-not-library-paths-">Why Library/Paths/paths and not Library/paths?</a>
 

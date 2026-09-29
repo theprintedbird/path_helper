@@ -8,6 +8,9 @@
   the line's text, not the directory it names, and the consequence of that
   on a case-insensitive APFS volume: two differently-cased spellings of the
   same directory both survive and both reach `PATH`.
+- README now says `.d` fragments are read in byte order (upper case before
+  lower case, `10-` before `9-`), replacing the wrong "file system order", and
+  recommends lower-case, zero-padded names.
 
 ## Monday the 28th of September 2026 ##
 

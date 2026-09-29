@@ -68,7 +68,6 @@ Language-Agnostic Infrastructure
 
 ###### Ready
 
-- `paths.d` fragments sort by byte, document it in the README ("C/byte order; use lower-case names"). <!-- backlog: 1790322957, id: card_01M3BS0QJ769Z62N5M02998RA4, ready: 1790646874 -->
 
 
 
@@ -79,6 +78,7 @@ Language-Agnostic Infrastructure
 
 
 ###### In Progress
+
 
 
 
@@ -245,3 +245,4 @@ Language-Agnostic Infrastructure
 - Fix: Ruby --setup reports a directory it could not create as "Created" (system("mkdir","-p") in exe/path_helper never raises, so the EACCES rescue misses it and the directory is left out of the permissions list; Crystal's Dir.mkdir_p raises). Then tighten the permission tests in spec/tests/error_test.sh to require the directories in the list <!-- backlog: 1790381867, done: 1790579679, id: card_01M3DH6GXTGRXH7EKM19JT9SC7, in_progress: 1790579404, ready: 1790579150 -->
 - Fix: Crystal --setup indents the "Consider whether you need to install these..." advice by two spaces (the <<-WARNING heredoc in src/path_helper/setup.cr); Ruby's <<~ doesn't. Then compare the permission-error stderr byte for byte <!-- backlog: 1790381870, done: 1790580405, id: card_01M3DH6K1FH10Y96BRJP279FMN, in_progress: 1790579687, ready: 1790579162 -->
 - Decide: de-duplication compares lines as text, so on case-insensitive APFS `/opt/Foo/bin` and `/opt/foo/bin` (the same directory) both reach PATH: keep text comparison and document it in the README. <!-- backlog: 1790322957, done: 1790650615, id: card_01M3BS0QN2BEE4J9NCXXA5X0PV, in_progress: 1790650500, ready: 1790646748 -->
+- `paths.d` fragments sort by byte, document it in the README ("C/byte order; use lower-case names"). <!-- backlog: 1790322957, done: 1790650706, id: card_01M3BS0QJ769Z62N5M02998RA4, in_progress: 1790650622, ready: 1790646874 -->
