@@ -931,45 +931,72 @@ exit
 
 ## <a name="ci-cd">CI/CD</a>
 
-The project uses GitHub Actions for continuous integration. The workflow runs on pushes and pull requests to the `master` and `dev` branches.
+The project uses GitHub Actions for continuous integration and release builds. `test-ruby.yml` and
+`test-crystal.yml` run on pushes and pull requests to the `master` and `dev`
+branches (`test-crystal.yml` also runs on pushes to `claude/path-helper-crystal-*` branches);
+`release.yml` builds and publishes binaries when a `v*.*.*` tag is pushed.
 
 ### Workflow Features
 
-- **Ruby Version Matrix**: Tests run against multiple Ruby versions (2.7, 3.3, 4.0.6), plus a
-  dedicated `macos-latest` job that runs the suite against macOS's own system Ruby
-  (`/usr/bin/ruby`) rather than a `ruby/setup-ruby`-installed version, to catch a future macOS
-  Ruby bump for real
-- **OS Matrix**: `ubuntu-latest` (glibc) and `macos-latest` (arm64), plus an Alpine container job (musl, busybox `sh`, no bash) in each workflow -- `ruby:<version>-alpine` for Ruby and `crystallang/crystal:<version>-alpine` for Crystal, the same images the Makefile builds on
-- **Manual Triggers**: Workflow can be manually triggered via `workflow_dispatch`
-- **Concurrency Control**: Duplicate runs are cancelled when new commits are pushed
-- **Test Summaries**: Results are displayed in the GitHub Actions UI
+- **Language Version Matrices**: `test-ruby.yml` tests multiple Ruby versions (2.x, 3.x, 4.x), plus a
+  dedicated `test-ruby-macos-system` job that runs the suite against macOS's own system Ruby
+  (`/usr/bin/ruby`). `test-crystal.yml` tests multiple Crystal versions.
+- **OS Matrix**: `ubuntu-latest` (glibc) and `macos-latest` (arm64), plus an Alpine container job
+  (musl, busybox `sh`, no bash) in each workflow: `ruby:<version>-alpine` for Ruby and
+  `crystallang/crystal:<version>-alpine` for Crystal, the same images the Makefile builds on.
+- **Manual Triggers**: Both test workflows can be manually triggered via `workflow_dispatch`; the
+  release workflow also accepts manual triggering, with a `tag_name` input.
+- **Concurrency Control**: Duplicate runs are cancelled when new commits are pushed.
+- **Test Summaries**: Results are displayed in the GitHub Actions UI.
 - **Code Coverage**: One job per language (`coverage-ruby` on Ruby 3.3, `coverage-crystal` on
   Crystal latest, both on `ubuntu-latest`) runs the suite with line coverage on, as
   [`make coverage`](#to-run-the-specs) does locally. The summary goes to the job summary and the
   full report is uploaded as the `coverage-ruby`/`coverage-crystal` artifact. It is a report, not a
-  gate: the job only fails if the suite does. `coverage-crystal` builds kcov from source into a
-  prefix under `$HOME` and caches it with `actions/cache`, keyed on the kcov version, runner
+  test: the job only fails if the suite does. `coverage-crystal` builds kcov from source into a
+  prefix under `$HOME` and caches it with `actions/cache`, based on the kcov version, runner
   OS/arch/Ubuntu release and `docker/install-kcov.sh`; a cache hit still installs kcov's runtime
-  libraries (cheap) and only rebuilds if the restored binary won't actually run
-- **Artifact Retention**: Test results are kept for 7 days, coverage reports for 14
+  libraries (cheap) and only rebuilds if the restored binary won't actually run.
+- **Artifact Retention**: Test results are kept for 7 days, coverage reports for 14 days.
 
 ### Workflow Structure
 
-The main workflow file is located at `.github/workflows/test-ruby.yml`. It:
+Two workflows test the project, one per implementation:
+
+- **`.github/workflows/test-ruby.yml`** runs `test-ruby` (the Ruby version matrix),
+  `test-ruby-macos-system` (macOS's own `/usr/bin/ruby`), `test-ruby-alpine` (the Alpine image) and
+  `coverage-ruby`.
+- **`.github/workflows/test-crystal.yml`** runs `test-crystal` (the Crystal version matrix, building
+  the executable with `shards build` first), `test-crystal-alpine` (the Alpine image) and
+  `coverage-crystal`.
+
+Every job follows the same shape:
 
 1. Checks out the code
-2. Sets up the specified Ruby version
-3. Installs the suite and the executable under test in root's home (`setup-test-env`)
-4. Lints the harness for GNU-only shell (`spec/lint_portability.sh`, see [Keeping it
-   portable](#to-run-the-specs) above), then runs the shell-based test suite as root
-   (`run-shell-tests`)
-5. Generates test summaries and uploads artifacts
+2. Installs the language under test -- `ruby/setup-ruby` or `crystal-lang/install-crystal` -- except
+   in the Alpine jobs, which take Ruby or Crystal from the container image instead (the Crystal jobs
+   also run `shards build --release --no-debug` to produce the binary under test)
+3. Installs the suite and the executable under test in root's home (`setup-test-env`), which exposes
+   `executable` and `home` outputs
+4. Passes those outputs into `run-shell-tests`, which lints the harness for GNU-only shell
+   (`spec/lint_portability.sh`, see [Keeping it portable](#to-run-the-specs) above), then runs the
+   shell-based test suite as root with `HOME`/`PATH_HELPER_EXECUTABLE` set. On the two `coverage-*`
+   jobs, a `coverage: ruby|crystal` input runs it under `spec/lib/coverage/run.sh` instead, exposing
+   the report directory as a `coverage-dir` output
+5. Generates test summaries and uploads artifacts (the coverage jobs also upload the coverage report
+   and append its summary to the job summary)
 
 The two composite actions in `.github/actions/` are plain POSIX `sh` and only use `sudo` when
 they aren't already root, so they work on hosted Ubuntu and macOS runners and in the Alpine
 container jobs (`test-ruby-alpine`, `test-crystal-alpine`), which are root with no sudo or bash.
 The Alpine jobs take their Ruby or Crystal from the image, since `ruby/setup-ruby` and
 `crystal-lang/install-crystal` have no Alpine builds.
+
+A third workflow, `.github/workflows/release.yml`, builds release binaries rather than running the
+test suite. It triggers on `v*.*.*` tags (or manually, with a `tag_name` input); its `build` job
+compiles a static (`--static`) Crystal binary on `ubuntu-latest` for Linux x86_64, and plain
+`--release --no-debug` binaries on `macos-15-intel` and `macos-14` for the two macOS architectures,
+then tars and checksums each one. Its `release` job downloads all three, and publishes them as assets
+on a GitHub Release created from the tag (`softprops/action-gh-release`).
 
 ### Contributing to CI/CD
 
@@ -982,10 +1009,14 @@ When making changes to the GitHub Actions workflow:
 5. **Follow security best practices**: Use minimal permissions, pin action versions, and avoid secrets in logs
 
 Key files:
-- `.github/workflows/test-ruby.yml` - Main test workflow
+- `.github/workflows/test-ruby.yml` - Ruby test workflow
+- `.github/workflows/test-crystal.yml` - Crystal test workflow
+- `.github/workflows/release.yml` - Builds and publishes release binaries on version tags
+- `.github/actions/setup-test-env/` - Installs the suite and the executable under test (language-agnostic)
+- `.github/actions/run-shell-tests/` - Lints and runs the suite, with optional coverage (language-agnostic)
 - `spec/shell_spec.sh` - Shell-based test suite
 - `spec/lib/test_helpers.sh` - TAP reporting, cleanup and assertions, sourced by the suite
-- `spec/tests/` - The tests themselves (setup, path, error and edge case), sourced by the suite in that order
+- `spec/tests/` - The tests themselves (setup, path, error, edge case and case), sourced by the suite in that order
 - `spec/fixtures/` - Test fixtures and expected results
 - `spec/lib/coverage/` - Runs the suite with line coverage and writes the report (`run.sh`,
   `ruby_coverage.rb`, `report.rb`)
@@ -1024,11 +1055,14 @@ To simulate the GitHub Actions environment locally:
 
 ```shell
 # Install act (https://github.com/nektos/act)
-# Then run the workflow
-act push
+# Then run a workflow
+act push -W .github/workflows/test-ruby.yml
 
-# Run with specific Ruby version
-act push --matrix ruby-version:3.2
+# Run with a specific Ruby version
+act push -W .github/workflows/test-ruby.yml --matrix ruby-version:3.3
+
+# Or the Crystal workflow, with a specific Crystal version
+act push -W .github/workflows/test-crystal.yml --matrix crystal-version:1.16.0
 ```
 
 **CI Testing**
@@ -1043,7 +1077,7 @@ Tests automatically run on GitHub Actions when:
 | Aspect | Local (Docker) | CI (GitHub Actions) |
 |--------|----------------|---------------------|
 | Environment | Alpine Linux (musl), or Ubuntu for `CRYSTAL_LIBC=gnu` | Ubuntu, macOS and an Alpine container |
-| Ruby setup | Pre-built in image | ruby/setup-ruby action, or the image in the Alpine job |
+| Ruby/Crystal setup | Pre-built in image | ruby/setup-ruby or crystal-lang/install-crystal action, or the image in the Alpine job |
 | Test output | TAP to the console | TAP, plus artifacts + summary |
 | Speed | Fast (cached image) | Depends on cache hits |
 

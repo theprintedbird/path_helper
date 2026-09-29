@@ -56,13 +56,13 @@ Language-Agnostic Infrastructure
 
 ###### Ready
 
-- README CI/CD section is Ruby-only: "Workflow Structure" calls `test-ruby.yml` the main workflow and "Key files" lists only it, with no mention of `test-crystal.yml` or `release.yml`; describe both test workflows and the composite actions they share (`executable`/`home` outputs). "Key files" also lists the test files as "setup, path, error and edge case", missing `case_test.sh` <!-- backlog: 1790666993, id: card_01M3P13W8HK2P28FD5FPVMZKM1, ready: 1790667266 -->
 - Workflow security: run actionlint as a CI step (so far only run by hand, which found the two release.yml problems) and consider pinning third-party actions to commit SHAs. Permissions, timeouts and concurrency are already set <!-- backlog: 1763431283, id: card_01M2CH88T8BY7W1N6F3YTETFZN, ready: 1790667427 -->
 - Pre-commit check that runs `make lint` and actionlint. jj doesn't run git hooks, so this likely wants a `make check` target (or jj config) rather than `.git/hooks/pre-commit` <!-- backlog: 1763431283, id: card_01M2CH8815F0KQKJZ13PVMBNRW, ready: 1790667445 -->
 
 
 
 ###### In Progress
+
 
 
 ###### Done
@@ -178,3 +178,4 @@ Language-Agnostic Infrastructure
 - Note: No longer needed, covered by the README and CLAUDE.md; the remaining README gap is card_01M3P13W8HK2P28FD5FPVMZKM1. Document multi-language testing strategy <!-- backlog: 1763431283, done: 1790666993, id: card_01M2CH88QSMR810X034C596ZRA -->
 - Note: No longer needed, everything builds and tests in containers via the Makefile (`make all`). Add developer setup script <!-- backlog: 1763431283, done: 1790666993, id: card_01M2CH88NS11S3SD2VRS29MAWV -->
 - Note: No longer needed, merged into card_01M2CH887P2B0TDX1TD7VSZXR1. Add performance comparison between implementations <!-- backlog: 1763431283, done: 1790666993, id: card_01M2CH8809ACKC836KVWQM91AG -->
+- README CI/CD section is Ruby-only: "Workflow Structure" calls `test-ruby.yml` the main workflow and "Key files" lists only it, with no mention of `test-crystal.yml` or `release.yml`; describe both test workflows and the composite actions they share (`executable`/`home` outputs). "Key files" also lists the test files as "setup, path, error and edge case", missing `case_test.sh` <!-- backlog: 1790666993, done: 1790667821, id: card_01M3P13W8HK2P28FD5FPVMZKM1, in_progress: 1790667688, ready: 1790667266 -->
