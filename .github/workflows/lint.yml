@@ -1,0 +1,58 @@
+name: Lint Workflows
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+    paths:
+      - '.github/**'
+  pull_request:
+    branches:
+      - master
+      - dev
+    paths:
+      - '.github/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ACTIONLINT_VERSION: '1.7.12'
+      # linux_amd64 checksum from actionlint_1.7.12_checksums.txt, published
+      # alongside the release at
+      # https://github.com/rhysd/actionlint/releases/tag/v1.7.12 -- verified
+      # below rather than trusted from a script piped over the network.
+      ACTIONLINT_SHA256: '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8'
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Download actionlint
+      run: |
+        curl -sSLO "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+
+    - name: Verify checksum
+      run: |
+        echo "${ACTIONLINT_SHA256}  actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" | sha256sum -c -
+
+    - name: Install actionlint
+      run: |
+        tar -xzf "actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" actionlint
+        chmod +x actionlint
+        ./actionlint -version
+
+    - name: Run actionlint
+      # Lints every workflow under .github/workflows/; composite actions under
+      # .github/actions/ are checked only as far as they're referenced from a
+      # workflow, which covers both of this project's.
+      run: ./actionlint -color

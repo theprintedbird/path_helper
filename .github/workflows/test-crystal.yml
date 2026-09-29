@@ -40,7 +40,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Install Crystal ${{ matrix.crystal-version }}
-      uses: crystal-lang/install-crystal@v1
+      uses: crystal-lang/install-crystal@d8ef131ecec0352ce0e39b81b0a6d95def58fe2f # v1.9.2
       with:
         crystal: ${{ matrix.crystal-version }}
 
@@ -159,7 +159,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Install Crystal latest
-      uses: crystal-lang/install-crystal@v1
+      uses: crystal-lang/install-crystal@d8ef131ecec0352ce0e39b81b0a6d95def58fe2f # v1.9.2
       with:
         crystal: 'latest'
 

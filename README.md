@@ -934,7 +934,8 @@ exit
 The project uses GitHub Actions for continuous integration and release builds. `test-ruby.yml` and
 `test-crystal.yml` run on pushes and pull requests to the `master` and `dev`
 branches (`test-crystal.yml` also runs on pushes to `claude/path-helper-crystal-*` branches);
-`release.yml` builds and publishes binaries when a `v*.*.*` tag is pushed.
+`release.yml` builds and publishes binaries when a `v*.*.*` tag is pushed; `lint.yml` runs
+`actionlint` over the workflows and composite actions whenever `.github/**` changes.
 
 ### Workflow Features
 
@@ -957,6 +958,8 @@ branches (`test-crystal.yml` also runs on pushes to `claude/path-helper-crystal-
   OS/arch/Ubuntu release and `docker/install-kcov.sh`; a cache hit still installs kcov's runtime
   libraries (cheap) and only rebuilds if the restored binary won't actually run.
 - **Artifact Retention**: Test results are kept for 7 days, coverage reports for 14 days.
+- **Workflow Linting**: `lint.yml` runs [`actionlint`](https://github.com/rhysd/actionlint) (a pinned
+  release, checksum-verified) over every workflow, triggered only when `.github/**` changes.
 
 ### Workflow Structure
 
@@ -998,6 +1001,11 @@ compiles a static (`--static`) Crystal binary on `ubuntu-latest` for Linux x86_6
 then tars and checksums each one. Its `release` job downloads all three, and publishes them as assets
 on a GitHub Release created from the tag (`softprops/action-gh-release`).
 
+A fourth workflow, `.github/workflows/lint.yml`, downloads a pinned `actionlint` release, verifies its
+checksum against the release's published checksums file, and runs against every workflow (composite
+actions are linted only as far as a workflow references them).
+It runs only when files under `.github/**` change.
+
 ### Contributing to CI/CD
 
 When making changes to the GitHub Actions workflow:
@@ -1006,12 +1014,16 @@ When making changes to the GitHub Actions workflow:
 2. **Use a feature branch**: Make workflow changes on a separate branch and verify they pass
 3. **Update documentation**: If adding new features, update this README section
 4. **Maintain backwards compatibility**: Ensure changes don't break existing test patterns
-5. **Follow security best practices**: Use minimal permissions, pin action versions, and avoid secrets in logs
+5. **Follow security best practices**: Use minimal permissions, and avoid secrets in logs. Third-party
+   actions (anything not under `actions/`) are pinned to a full commit SHA with the release version in
+   a trailing `# vX.Y.Z` comment -- bump the SHA and the comment together; `actions/*` (GitHub's own,
+   lower risk) stay on their major-version tag (e.g. `@v4`)
 
 Key files:
 - `.github/workflows/test-ruby.yml` - Ruby test workflow
 - `.github/workflows/test-crystal.yml` - Crystal test workflow
 - `.github/workflows/release.yml` - Builds and publishes release binaries on version tags
+- `.github/workflows/lint.yml` - Runs `actionlint` over the workflows and composite actions
 - `.github/actions/setup-test-env/` - Installs the suite and the executable under test (language-agnostic)
 - `.github/actions/run-shell-tests/` - Lints and runs the suite, with optional coverage (language-agnostic)
 - `spec/shell_spec.sh` - Shell-based test suite

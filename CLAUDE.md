@@ -203,6 +203,12 @@ rebuilds if the cached binary is missing or its `--version` doesn't actually run
 ruby|crystal` input that runs `spec/lib/coverage/run.sh` instead of the suite, appends `summary.md` to
 the job summary and exposes the report dir as the `coverage-dir` output for the artifact upload.
 
+A fourth workflow, `.github/workflows/lint.yml`, runs on `.github/**` changes only: it downloads a
+pinned, checksum-verified `actionlint` release and runs it over the four workflows (and the two
+composite actions, as far as a workflow references them). Third-party actions across all four
+workflows (anything not under `actions/`) are pinned to a full commit SHA with a trailing `# vX.Y.Z`
+comment naming the release it resolves to, kept in step by hand; `actions/*` stays on its major tag.
+
 ## Core logic (mirrored in both implementations)
 
 `CLI#run` is a four-step pipeline: determine the search graph → find files → read them → join.
