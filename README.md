@@ -292,6 +292,12 @@ path_helper will read files in this order:
 
 If you don't have any of those dirs/files, they are skipped. Files within the `.d` dirs are read in file system order.
 
+### Duplicates
+
+Comparison is done on each line's text, not on the actual target directory, so `/opt/x` and `/opt/x/` both survive, as do `~/bin` and `/Users/me/bin` (`~` is expanded afterwards), as do `/opt/Foo/bin` and `/opt/foo/bin`, even though on a Mac, case-insensitivity is the default thus they point at the same target, so it will appear in `PATH` twice.
+
+The simple way to avoid this is to be consistent in the way things are written.
+
 ## <a name="why-library-paths-paths-and-not-library-paths-">Why Library/Paths/paths and not Library/paths?</a>
 
 Because this is such a useful pattern that it can be extended for headers and includes, so `~/Library/Paths/paths` is for the PATH, `~/Library/Paths/manpaths` is for the MANPATH etc.

@@ -1,5 +1,14 @@
 # CHANGES #
 
+## Tuesday the 29th of September 2026 ##
+
+### Docs
+
+- README now explains that duplicate path lines are dropped by comparing
+  the line's text, not the directory it names, and the consequence of that
+  on a case-insensitive APFS volume: two differently-cased spellings of the
+  same directory both survive and both reach `PATH`.
+
 ## Monday the 28th of September 2026 ##
 
 ### Fixes

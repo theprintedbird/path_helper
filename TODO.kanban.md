@@ -62,13 +62,13 @@ Language-Agnostic Infrastructure
 - Add developer setup script <!-- backlog: 1763431283, id: card_01M2CH88NS11S3SD2VRS29MAWV -->
 - Add automated changelog generation <!-- id: card_01M2CH87XM5GEB37EGFC1Z945V, ready: 1788877330 -->
 - Add golden file generation mode via `GENERATE_GOLDEN` environment variable <!-- backlog: 1789267516, id: card_01M2CH884TEX2CZP8RM345J89Z -->
-- Decide: de-duplication compares lines as text, so on case-insensitive APFS `/opt/Foo/bin` and `/opt/foo/bin` (the same directory) both reach PATH. Leave as is (matches `/opt/x` vs `/opt/x/`), or compare case-insensitively where the file system is? <!-- backlog: 1790322957, id: card_01M3BS0QN2BEE4J9NCXXA5X0PV -->
-- Decide: `paths.d` fragments sort by byte, so any upper-case name runs before every lower-case one (`10-Zeta` before `10-alpha`). Keep byte order (pinned by spec/tests/case_test.sh), or sort case-insensitively like Finder? <!-- backlog: 1790322957, id: card_01M3BS0QJ769Z62N5M02998RA4 -->
 - Coverage threshold: print a non-blocking warning when line coverage drops below a minimum (e.g. 90%) in `make coverage`/`make coverage-crystal` and the CI coverage jobs; later turn it into a gate <!-- backlog: 1790332754, id: card_01M3C2BPC4C1QR07EEQP8SA7RY -->
 - Add a `coverage-all` make target (every Ruby and Crystal version), or fold the coverage targets into `make all` <!-- backlog: 1790332765, id: card_01M3C2C1FN2VCDEJQ9Z1SEN9ZQ -->
 - Check the docs to see whether an empty path after -p is acceptable. <!-- backlog: 1790384726, id: card_01M3DKXR9FSMD4EZJ0XJQNM9N4 -->
 
 ###### Ready
+
+- `paths.d` fragments sort by byte, document it in the README ("C/byte order; use lower-case names"). <!-- backlog: 1790322957, id: card_01M3BS0QJ769Z62N5M02998RA4, ready: 1790646874 -->
 
 
 
@@ -79,6 +79,7 @@ Language-Agnostic Infrastructure
 
 
 ###### In Progress
+
 
 
 
@@ -243,3 +244,4 @@ Language-Agnostic Infrastructure
 - release.yml: replace the retired `macos-13` runner in the macos-x86_64 build (actionlint: unknown label) with `macos-15-intel` <!-- backlog: 1790349231, done: 1790579396, id: card_01M3CJ2HSSGNDY810E867V3W72, in_progress: 1790579354, ready: 1790579180, tags: [agent-haiku] -->
 - Fix: Ruby --setup reports a directory it could not create as "Created" (system("mkdir","-p") in exe/path_helper never raises, so the EACCES rescue misses it and the directory is left out of the permissions list; Crystal's Dir.mkdir_p raises). Then tighten the permission tests in spec/tests/error_test.sh to require the directories in the list <!-- backlog: 1790381867, done: 1790579679, id: card_01M3DH6GXTGRXH7EKM19JT9SC7, in_progress: 1790579404, ready: 1790579150 -->
 - Fix: Crystal --setup indents the "Consider whether you need to install these..." advice by two spaces (the <<-WARNING heredoc in src/path_helper/setup.cr); Ruby's <<~ doesn't. Then compare the permission-error stderr byte for byte <!-- backlog: 1790381870, done: 1790580405, id: card_01M3DH6K1FH10Y96BRJP279FMN, in_progress: 1790579687, ready: 1790579162 -->
+- Decide: de-duplication compares lines as text, so on case-insensitive APFS `/opt/Foo/bin` and `/opt/foo/bin` (the same directory) both reach PATH: keep text comparison and document it in the README. <!-- backlog: 1790322957, done: 1790650615, id: card_01M3BS0QN2BEE4J9NCXXA5X0PV, in_progress: 1790650500, ready: 1790646748 -->
