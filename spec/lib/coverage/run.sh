@@ -82,7 +82,9 @@ case "$language" in
 	crystal)
 		installed_kcov=$(command -v kcov) || bail "kcov is not on PATH; see docker/install-kcov.sh"
 		src="${PATH_HELPER_COVERAGE_SRC:-$PWD}"
-		[ -f "$src/shard.yml" ] && [ -d "$src/src" ] || bail "no Crystal sources in $src"
+		if [ ! -f "$src/shard.yml" ] || [ ! -d "$src/src" ]; then
+			bail "no Crystal sources in $src"
+		fi
 		mkdir -p "$WORK/build" "$WORK/bin"
 		# kcov is run from a copy in the work dir, not from where it was
 		# installed: the runs as *nobody* need to reach it, and an install

@@ -10,3 +10,8 @@ rules:
       policies:
         "actions/*": ref-pin
         "*": hash-pin
+  self-repository:
+    # Wants `uses: $/.github/actions/...` in place of `./.github/actions/...`,
+    # but actionlint (1.7.12) rejects `$/` as an action missing its ref. Keep
+    # `./` until actionlint accepts the self-repository syntax.
+    disable: true
