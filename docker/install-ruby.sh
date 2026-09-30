@@ -1,6 +1,6 @@
 #!/bin/sh -x
 
-cd /root
+cd /root || exit 1
 
 mv /tmp/spec .
 mv /tmp/.ashenv .

@@ -18,7 +18,7 @@ fi
 # --setup creates segments in search order. The inputs go in the user
 # segment for the specified platform (see USER_SEGMENT in spec/shell_spec.sh)
 # ~/Library/Paths on macOS, ~/.config/paths elsewhere
-"$EXECUTABLE" --setup --$USER_SEGMENT --no-$OTHER_SEGMENT --quiet
+"$EXECUTABLE" --setup --"$USER_SEGMENT" --no-"$OTHER_SEGMENT" --quiet
 cp -R spec/fixtures/moredirs/* "$HOME/$USER_PATHS"
 
 # Populate /etc/paths if it's empty and the source file exists
@@ -45,7 +45,7 @@ fi
 # It is laid out by --setup with only the other segment switched on, which
 # shows that the switch is what enables it and that the other two segments are
 # left alone.
-"$EXECUTABLE" --setup --$OTHER_SEGMENT --no-$USER_SEGMENT --no-etc --quiet
+"$EXECUTABLE" --setup --"$OTHER_SEGMENT" --no-"$USER_SEGMENT" --no-etc --quiet
 cp -R spec/fixtures/otherdirs/* "$HOME/$OTHER_PATHS"
 
 if [ -d "$HOME/$OTHER_PATHS/c_include_paths.d" ] &&

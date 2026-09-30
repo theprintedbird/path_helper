@@ -6,6 +6,13 @@ shell=sh
 # feature, and spec/shell_spec.sh bails out on a shell that lacks it.
 disable=SC3043
 
+# SC2155: "declare and assign separately to avoid masking return values".
+# `local x="$(...)"`, quoted, is the harness's house style (see the header of
+# spec/lib/test_helpers.sh): `local` is not an assignment to POSIX, so some
+# shells field-split an unquoted value, and none of these sites reads the
+# command's exit status afterwards. Split a declaration only where one does.
+disable=SC2155
+
 # Follow `. file` / `source file` into the sourced scripts, so their variables
 # and functions are known to the files that use them.
 external-sources=true

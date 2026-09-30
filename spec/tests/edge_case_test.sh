@@ -50,6 +50,7 @@ test_a_path "a path with spaces is appended verbatim" "path-spaces-appended.txt"
 # Spec: spec/fixtures/moredirs/paths.d/12-special-chars.
 test_a_path "special characters within a path are preserved" "path.txt" "-p"
 test_a_path "special characters survive the debug report" "debug_path.txt" "-p" "--debug"
+# shellcheck disable=SC2016 # the $(dollars) is meant literally
 test_a_path "a path with special characters is appended verbatim" \
 	"path-special-chars-appended.txt" "-p" '/opt/appended*glob?/bin:/opt/appended$(dollars)&{braces}/bin'
 
@@ -104,10 +105,12 @@ test_unreadable_fragment "an unreadable fragment is marked in the debug report" 
 # Spec: spec/fixtures/moredirs/paths.d/17-dollar-home
 test_a_path "a literal \$HOME is not expanded" "path.txt" "-p"
 test_a_path "a literal \$HOME survives the debug report" "debug_path.txt" "-p" "--debug"
+# shellcheck disable=SC2016 # the $HOME is meant literally
 test_a_path "a literal \$HOME in an argument is appended verbatim" \
 	"path-dollar-home-appended.txt" "-p" '$HOME/appended/bin'
 
 # `~` expands to whatever HOME is set to at run time
+# shellcheck disable=SC2088 # the tildes are for path_helper to expand, not the shell
 test_expansion_under_home "~ expands to the HOME in the environment" \
 	"/tmp/not-a-real-home" "~/bin:~/sbin" "/tmp/not-a-real-home/bin:/tmp/not-a-real-home/sbin"
 
@@ -117,6 +120,7 @@ test_expansion_under_home "~ expands to the HOME in the environment" \
 # The debug report shows the lines as they were read.
 test_a_path "a tilde is expanded only at the front of a component" "path.txt" "-p"
 test_a_path "the debug report shows tildes unexpanded" "debug_path.txt" "-p" "--debug"
+# shellcheck disable=SC2088 # the tildes are for path_helper to expand, not the shell
 test_a_path "a tilde in an argument is expanded the same way" \
 	"path-tilde-appended.txt" "-p" "~/appended/bin:/opt/app~ended/bin"
 

@@ -22,6 +22,9 @@ trap cleanup 1 2 3 6
 
 EXECUTABLE="${PATH_HELPER_EXECUTABLE:-${PWD}/exe/path_helper}"
 
+# The segment names and directories are read by the test files, which are
+# sourced by a non-constant path below, so shellcheck cannot see them used.
+# shellcheck disable=SC2034
 case "$(uname -s)" in
 	Darwin)
 		PLATFORM=darwin
@@ -47,6 +50,7 @@ tap_comment "Platform: $PLATFORM"
 # thing it needs beyond POSIX is `local`, which all of those have, so a shell
 # without it is refused here rather than left to leak each helper's variables
 # into the next.
+# shellcheck disable=SC2034 # x only has to be declared, never read
 if ! (tap_local_check(){ local x=1; }; tap_local_check) 2>/dev/null; then
 	echo "Bail out! this shell has no 'local', which spec/lib/test_helpers.sh needs"
 	exit 1
@@ -127,6 +131,8 @@ if [ -n "$selected_files" ]; then
 fi
 
 for test_file in $running_files; do
+	# One of TEST_FILES, each checked on its own by `make shellcheck`.
+	# shellcheck source=/dev/null
 	. "$SPEC_DIR/tests/${test_file}_test.sh"
 done
 

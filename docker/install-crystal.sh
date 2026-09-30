@@ -1,13 +1,13 @@
 #!/bin/sh -x
 
-cd /tmp
+cd /tmp || exit 1
 
 # Build the Crystal binary
 shards install
 shards build --release --no-debug
 
 # Set up /root directories
-cd /root
+cd /root || exit 1
 mkdir -p exe bin
 
 # Move Crystal binary to bin/

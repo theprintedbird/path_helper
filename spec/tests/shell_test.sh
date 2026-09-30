@@ -84,7 +84,9 @@ for shell_name in sh bash zsh; do
 	# the form a shell is most likely to field-split, so it is the one used.
 	# The reporter then shows what a child process was given, and the probe
 	# is looked up and run through the new PATH, which in zsh also means the
-	# tied `path` array has followed it.
+	# tied `path` array has followed it. Single-quoted: the child shell expands
+	# $EXE, $PATH and the rest, not this one.
+	# shellcheck disable=SC2016
 	shell_out="$(run_in_shell "$shell_name" "$shell_home" '
 		export PATH=$("$EXE" -p "$PATH" --no-etc)
 		"$RUBY" --disable-gems "$HOME/report_env.rb" PATH
@@ -135,7 +137,7 @@ mkdir -p "$shell_home/$OTHER_PATHS/paths.d" "$shell_other_dir"
 printf '%s\n' "$shell_other_dir" > "$shell_home/$OTHER_PATHS/paths.d/10-other"
 shell_seg_switches="--no-etc --$OTHER_SEGMENT"
 
-HOME="$shell_home" PATH="$shell_base" "$EXECUTABLE" --setup --dry-run --$OTHER_SEGMENT --no-etc 2>/dev/null |
+HOME="$shell_home" PATH="$shell_base" "$EXECUTABLE" --setup --dry-run --"$OTHER_SEGMENT" --no-etc 2>/dev/null |
 	sed -n '/^# Put this in/,$p' > "$shell_seg_snippet"
 
 shell_seg_lines_expected=""
@@ -147,6 +149,7 @@ while read -r shell_var shell_switch; do
 		*" $shell_var "*) ;;
 		*) continue ;;
 	esac
+	# shellcheck disable=SC2086 # $shell_seg_switches is a list of switches, split on purpose
 	shell_seg_expected="$shell_seg_expected${shell_seg_expected:+
 }$shell_var=$(HOME="$shell_home" PATH="$shell_base" "$EXECUTABLE" "$shell_switch" $shell_seg_switches 2>/dev/null)"
 done <<EOF

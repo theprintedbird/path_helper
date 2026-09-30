@@ -45,6 +45,7 @@ tap_ok(){
 
 tap_not_ok(){
 	tap_count=$((tap_count + 1))
+	# shellcheck disable=SC2034 # read by spec/shell_spec.sh as the exit status
 	tap_failed=1
 	echo "not ok $tap_count - $1"
 }
@@ -162,37 +163,37 @@ fixture_path(){
 }
 
 test_setup(){
-	[ -d $HOME/$USER_PATHS/c_include_paths.d ] &&
+	[ -d "$HOME/$USER_PATHS/c_include_paths.d" ] &&
 	[ -d /etc/c_include_paths.d ] &&
-	[ -f $HOME/$USER_PATHS/c_include_paths ] &&
+	[ -f "$HOME/$USER_PATHS/c_include_paths" ] &&
 	[ -f /etc/c_include_paths ] &&
-	[ -d $HOME/$USER_PATHS/dyld_fallback_framework_paths.d ] &&
+	[ -d "$HOME/$USER_PATHS/dyld_fallback_framework_paths.d" ] &&
 	[ -d /etc/dyld_fallback_framework_paths.d ] &&
-	[ -f $HOME/$USER_PATHS/dyld_fallback_framework_paths ] &&
+	[ -f "$HOME/$USER_PATHS/dyld_fallback_framework_paths" ] &&
 	[ -f /etc/dyld_fallback_framework_paths ] &&
-	[ -d $HOME/$USER_PATHS/dyld_fallback_library_paths.d ] &&
+	[ -d "$HOME/$USER_PATHS/dyld_fallback_library_paths.d" ] &&
 	[ -d /etc/dyld_fallback_library_paths.d ] &&
-	[ -f $HOME/$USER_PATHS/dyld_fallback_library_paths ] &&
+	[ -f "$HOME/$USER_PATHS/dyld_fallback_library_paths" ] &&
 	[ -f /etc/dyld_fallback_library_paths ] &&
-	[ -d $HOME/$USER_PATHS/dyld_framework_paths.d ] &&
+	[ -d "$HOME/$USER_PATHS/dyld_framework_paths.d" ] &&
 	[ -d /etc/dyld_framework_paths.d ] &&
-	[ -f $HOME/$USER_PATHS/dyld_framework_paths ] &&
+	[ -f "$HOME/$USER_PATHS/dyld_framework_paths" ] &&
 	[ -f /etc/dyld_framework_paths ] &&
-	[ -d $HOME/$USER_PATHS/dyld_library_paths.d ] &&
+	[ -d "$HOME/$USER_PATHS/dyld_library_paths.d" ] &&
 	[ -d /etc/dyld_library_paths.d ] &&
-	[ -f $HOME/$USER_PATHS/dyld_library_paths ] &&
+	[ -f "$HOME/$USER_PATHS/dyld_library_paths" ] &&
 	[ -f /etc/dyld_library_paths ] &&
-	[ -d $HOME/$USER_PATHS/manpaths.d ] &&
+	[ -d "$HOME/$USER_PATHS/manpaths.d" ] &&
 	[ -d /etc/manpaths.d ] &&
-	[ -f $HOME/$USER_PATHS/manpaths ] &&
+	[ -f "$HOME/$USER_PATHS/manpaths" ] &&
 	[ -f /etc/manpaths ] &&
-	[ -d $HOME/$USER_PATHS/pkg_config_paths.d ] &&
+	[ -d "$HOME/$USER_PATHS/pkg_config_paths.d" ] &&
 	[ -d /etc/pkg_config_paths.d ] &&
-	[ -f $HOME/$USER_PATHS/pkg_config_paths ] &&
+	[ -f "$HOME/$USER_PATHS/pkg_config_paths" ] &&
 	[ -f /etc/pkg_config_paths ] &&
-	[ -d $HOME/$USER_PATHS/paths.d ] &&
+	[ -d "$HOME/$USER_PATHS/paths.d" ] &&
 	[ -d /etc/paths.d ] &&
-	[ -f $HOME/$USER_PATHS/paths ]
+	[ -f "$HOME/$USER_PATHS/paths" ]
 }
 
 # Function to get time in nanoseconds.
@@ -748,6 +749,7 @@ Created $root/$name"
 	else
 		tap_not_ok "$description creates nothing"
 		tap_yaml "a dry run left files behind in its HOME" "home: '$home'"
+		# shellcheck disable=SC2012 # a listing for a person to read, never parsed
 		ls -AR "$home" | tap_comment_stream
 	fi
 
@@ -1011,6 +1013,7 @@ test_files_listed_under_home(){
 # The environment variables --setup's profile snippet sets, each with the
 # switch that builds it (Setup::ENV_VARS in both implementations), as
 # `NAME switch` pairs.
+# shellcheck disable=SC2034 # read by spec/tests/shell_test.sh
 SNIPPET_VARS='C_INCLUDE_PATH -c
 DYLD_FALLBACK_FRAMEWORK_PATH --dyld-fallback-fram
 DYLD_FALLBACK_LIBRARY_PATH --dyld-fallback-lib
@@ -1023,6 +1026,10 @@ PATH -p'
 # sh_flavour
 # What /bin/sh is, for a comment: the `sh` runs in shell_test.sh are whatever
 # it is, busybox ash on Alpine, dash on Debian and Ubuntu, bash on macOS.
+# Dash is spotted by the symlink's target, read from `ls -l` because
+# `readlink` is not portable (see spec/lint_portability.sh); only the one fixed
+# path is listed, so SC2010's worry about awkward file names does not apply.
+# shellcheck disable=SC2010
 sh_flavour(){
 	if /bin/sh -c '[ -n "${BASH_VERSION-}" ]' < /dev/null; then
 		echo "bash (bash-as-sh)"
