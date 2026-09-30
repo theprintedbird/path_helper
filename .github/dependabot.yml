@@ -9,6 +9,11 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    # Only propose a release once it has been out for a week, so a
+    # compromised or broken one has time to be noticed and pulled before it
+    # reaches a PR (zizmor's dependabot-cooldown).
+    cooldown:
+      default-days: 7
     groups:
       github-actions-all:
         patterns: ["*"]
