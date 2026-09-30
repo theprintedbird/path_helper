@@ -116,15 +116,23 @@ if ! command -v ruby >/dev/null 2>&1; then
 	exit 1
 fi
 
-TMPDIR=$(mktemp -d)
-cleanup
-
+# Every file that is going to run has to be readable before anything is
+# touched. A `.` of a missing file exits a POSIX non-interactive shell (dash,
+# busybox ash) but only fails in bash-as-sh, which would carry on, print the
+# plan and pass having run nothing; so check first rather than rely on that.
 running_files=""
 for test_file in $TEST_FILES; do
 	if is_selected "$test_file"; then
+		if [ ! -f "$SPEC_DIR/tests/${test_file}_test.sh" ] || [ ! -r "$SPEC_DIR/tests/${test_file}_test.sh" ]; then
+			echo "Bail out! test file '$SPEC_DIR/tests/${test_file}_test.sh' is missing or not readable"
+			exit 1
+		fi
 		running_files="$running_files $test_file"
 	fi
 done
+
+TMPDIR=$(mktemp -d)
+cleanup
 
 if [ -n "$selected_files" ]; then
 	tap_comment "Running only:$running_files"

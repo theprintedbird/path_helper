@@ -28,6 +28,8 @@
   comment in the `make coverage` output, and a `Coverage` warning annotation in
   the CI coverage jobs). `PATH_HELPER_COVERAGE_THRESHOLD` sets another
   percentage. It is only a warning: the exit status is still the suite's.
+- A test file that is missing or unreadable is now a `Bail out!` naming it
+  with exit 1, instead of a "not found" per file, `1..0` and exit 0.
 
 ### Fixes
 

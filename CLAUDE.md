@@ -49,7 +49,9 @@ To run only some test files, name them: `make test RUBY_VER=3.3 TESTS="path erro
 `test-crystal` and the `-all` targets) passes them to the container's entrypoint, `spec/shell_spec.sh`.
 `path`, `path_test`, `path_test.sh` and `spec/tests/path_test.sh` are all accepted; `setup` always runs
 first and the files keep their fixed order; an unknown name is a `Bail out!` with exit 1, reported
-before the guard. A file is the finest grain — within one, each file is a flat sequence of calls, so to
+before the guard. A test file that is missing or unreadable is also a `Bail out!` naming it, exit 1, checked
+after the guard but before anything is touched (a failed `.` exits some shells but not bash-as-sh). A file is
+the finest grain — within one, each file is a flat sequence of calls, so to
 run a single case comment out the others or invoke the executable by hand inside `make shell`.
 
 The Makefile picks podman or docker, whichever is on `PATH`.
