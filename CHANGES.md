@@ -21,6 +21,15 @@
 
 ### Fixes
 
+- The snippet `--setup` prints ignored the segment switches given to it, so
+  `--setup --config` on a Mac created `~/.config/paths` but printed lines that
+  would never read it, and `--no-etc` was forgotten too. Both implementations
+  now append the `--etc`/`--lib`/`--config` switches (or their `--no-`
+  forms) that were given to `--setup` to each `export` line, after the
+  variable's own switch and always in that order, e.g.
+  `export PATH=$(ruby '/x/path_helper' -p --no-etc --config)`. With none given
+  the output is unchanged. `shell_test.sh` checks the export lines and sources
+  a snippet made with segment switches.
 - The snippet `--setup` prints put the executable's path into the shell
   unquoted, so an install path containing a space (or any other shell
   metacharacter) broke it. Both implementations now always POSIX

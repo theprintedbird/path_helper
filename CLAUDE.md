@@ -177,7 +177,11 @@ compile target.
   `HOME` whose user segment names a directory with a space in it, holding a probe program. It checks
   that `export PATH=$("$EXE" -p "$PATH" --no-etc)` exports exactly what `-p` prints, that
   `command -v` then finds the probe there and runs it, and that the `--setup --dry-run` snippet,
-  sourced, exports every variable it names with the value its switch prints directly. A fourth point sources the snippet of a *copy* of the
+  sourced, exports every variable it names with the value its switch prints directly. One shell-less point
+  and one per shell do the same for a snippet made with `--$OTHER_SEGMENT --no-etc` (given in that order, the other
+  segment holding a directory of its own): its export lines must end `--no-etc --$OTHER_SEGMENT` (the fixed
+  etc/lib/config order `Setup` emits segment switches in), and sourced it must export what each switch prints with
+  those segment switches. A fourth point sources the snippet of a *copy* of the
   executable in a directory named with spaces and quotes (`it's a "tricky" dir`), and one shell-less
   point checks the `if [ -x ... ]` line is the POSIX single-quoted path (`'` written `'\''`, in both
   implementations; Ruby's lines are `$(ruby 'PATH' switch)`, Crystal's `$('PATH' switch)`). What was

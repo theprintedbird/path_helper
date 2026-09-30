@@ -79,8 +79,17 @@ module PathHelper
       end
 
       script_path = shell_quote(Process.executable_path || "path_helper")
+      # The segment switches given to --setup, so the snippet reads the same
+      # segments that were set up. Fixed order, whatever the command line's.
+      segment_switches = [:etc, :lib, :config].map { |segment|
+        case options[segment]?
+        when true  then " --#{segment}"
+        when false then " --no-#{segment}"
+        else            ""
+        end
+      }.join
       unless quiet
-        env_exports = ENV_VARS.map { |var, switch| "export #{var}=$(#{script_path} #{switch})" }.join("\n  ")
+        env_exports = ENV_VARS.map { |var, switch| "export #{var}=$(#{script_path} #{switch}#{segment_switches})" }.join("\n  ")
         puts <<-SHENV
 
 

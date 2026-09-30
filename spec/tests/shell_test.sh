@@ -46,7 +46,8 @@ HOME="$shell_home" PATH="$shell_base" "$EXECUTABLE" --setup --dry-run --no-etc 2
 
 # What each variable should be once the snippet has run: what the executable
 # prints for its switch, run directly in the same HOME. The snippet's runs
-# take no current path, so neither do these.
+# take no current path, so neither do these. The snippet was made with
+# --no-etc, which it carries onto each line, so these take it too.
 shell_snippet_expected=""
 shell_snippet_names=""
 while read -r shell_var shell_switch; do
@@ -63,7 +64,7 @@ while read -r shell_var shell_switch; do
 	fi
 	shell_snippet_names="$shell_snippet_names $shell_var"
 	shell_snippet_expected="$shell_snippet_expected${shell_snippet_expected:+
-}$shell_var=$(HOME="$shell_home" PATH="$shell_base" "$EXECUTABLE" "$shell_switch" 2>/dev/null)"
+}$shell_var=$(HOME="$shell_home" PATH="$shell_base" "$EXECUTABLE" "$shell_switch" --no-etc 2>/dev/null)"
 done <<EOF
 $SNIPPET_VARS
 EOF
@@ -119,6 +120,60 @@ path-helper-probe ran" \
 	fi
 done
 
+# The segment switches given to --setup are carried into the snippet, after
+# each variable's own switch, in the fixed order etc, lib, config whatever
+# order they were given in. Here the command line says --$OTHER_SEGMENT first
+# and --no-etc second, so the snippet should end each export with
+# `--no-etc --$OTHER_SEGMENT`. The other segment gets a directory of its own
+# so that what is read with it differs from what the default reads.
+shell_other_dir="$shell_home/other bin"
+shell_seg_snippet="$shell_home/segment_snippet.sh"
+mkdir -p "$shell_home/$OTHER_PATHS/paths.d" "$shell_other_dir"
+printf '%s\n' "$shell_other_dir" > "$shell_home/$OTHER_PATHS/paths.d/10-other"
+shell_seg_switches="--no-etc --$OTHER_SEGMENT"
+
+HOME="$shell_home" PATH="$shell_base" "$EXECUTABLE" --setup --dry-run --$OTHER_SEGMENT --no-etc 2>/dev/null |
+	sed -n '/^# Put this in/,$p' > "$shell_seg_snippet"
+
+shell_seg_lines_expected=""
+shell_seg_expected=""
+while read -r shell_var shell_switch; do
+	shell_seg_lines_expected="$shell_seg_lines_expected${shell_seg_lines_expected:+
+}$shell_switch $shell_seg_switches)"
+	case " $shell_snippet_names " in
+		*" $shell_var "*) ;;
+		*) continue ;;
+	esac
+	shell_seg_expected="$shell_seg_expected${shell_seg_expected:+
+}$shell_var=$(HOME="$shell_home" PATH="$shell_base" "$EXECUTABLE" "$shell_switch" $shell_seg_switches 2>/dev/null)"
+done <<EOF
+$SNIPPET_VARS
+EOF
+
+assert_same "the --setup snippet carries the segment switches onto each export line, in a fixed order" \
+	"each export line's switches" "$shell_seg_lines_expected" \
+	"$(grep '^ *export ' "$shell_seg_snippet" | sed 's/^.* \(-[^ ]*\) \(--no-etc.*\)$/\1 \2/')" \
+	"--setup --dry-run --$OTHER_SEGMENT --no-etc"
+
+for shell_name in sh bash zsh; do
+	if [ "$shell_name" != sh ] && ! command -v "$shell_name" >/dev/null 2>&1; then
+		tap_skip "$shell_name: the --setup snippet made with segment switches exports what they give" "$shell_name not installed"
+		continue
+	fi
+
+	shell_out="$(run_in_shell "$shell_name" "$shell_home" "
+		. \"\$HOME/segment_snippet.sh\"
+		\"\$RUBY\" \"\$HOME/report_env.rb\" $shell_snippet_names
+	" 2>&1)"
+
+	assert_same "$shell_name: the --setup snippet made with segment switches exports what they give" \
+		"the exported variables" "$shell_seg_expected" "$shell_out" \
+		"$shell_name: . <the --setup --dry-run --$OTHER_SEGMENT --no-etc snippet>"
+	if [ "$shell_out" != "$shell_seg_expected" ]; then
+		tap_comment_file "snippet" "$shell_seg_snippet"
+	fi
+done
+
 # The same again from an executable installed somewhere awkward: a directory
 # whose name has spaces, a single quote and a double quote in it. The snippet
 # names the executable's own path, so unless it quotes it the shell splits it
@@ -158,7 +213,7 @@ while read -r shell_var shell_switch; do
 		*) continue ;;
 	esac
 	shell_awkward_expected="$shell_awkward_expected${shell_awkward_expected:+
-}$shell_var=$(HOME="$shell_home" PATH="$shell_base" "$shell_awkward_exe" "$shell_switch" 2>/dev/null)"
+}$shell_var=$(HOME="$shell_home" PATH="$shell_base" "$shell_awkward_exe" "$shell_switch" --no-etc 2>/dev/null)"
 done <<EOF
 $SNIPPET_VARS
 EOF
@@ -190,4 +245,5 @@ rm -rf "$shell_home"
 unset shell_home shell_spaced shell_plain shell_reporter shell_snippet shell_base \
 	shell_expected_path shell_direct_path shell_snippet_expected shell_snippet_names \
 	shell_var shell_switch shell_name shell_out shell_awkward shell_awkward_exe \
-	shell_awkward_snippet shell_awkward_quoted shell_awkward_expected shell_wrapped_reason
+	shell_awkward_snippet shell_awkward_quoted shell_other_dir shell_seg_snippet \
+	shell_seg_switches shell_seg_lines_expected shell_seg_expected shell_awkward_expected shell_wrapped_reason

@@ -49,13 +49,14 @@ Language-Agnostic Infrastructure
 - Add SAST (static analysis security testing) <!-- backlog: 1763431283, complexity: 3, id: card_01M2CH87ZJEYVC2FYFV6WY084Y -->
 - Decide: generate the changelog automatically (e.g. from the `fix:`/`docs:` commit prefixes) or keep `CHANGES.md` hand-written, and drop this card if the latter <!-- complexity: 4, id: card_01M2CH87XM5GEB37EGFC1Z945V, ready: 1788877330 -->
 - Add golden file generation mode via `GENERATE_GOLDEN` environment variable <!-- backlog: 1789267516, complexity: 3, id: card_01M2CH884TEX2CZP8RM345J89Z -->
-- Fix: the `--setup` snippet ignores the segment switches given to `--setup` (e.g. `--setup --config` on a Mac prints commands that don't read `~/.config/paths`; `--no-etc` isn't carried over either). Carry them into the printed commands in both implementations <!-- backlog: 1790738910, complexity: 3, id: card_01M3R5PJWNH0354F3WND3H6DVD -->
 
 ###### Ready
 
 
 
+
 ###### In Progress
+
 
 
 
@@ -182,3 +183,4 @@ Language-Agnostic Infrastructure
 - Coverage threshold: print a non-blocking warning when line coverage drops below 100% in `make coverage`/`make coverage-crystal` and the CI coverage jobs; later turn it into a gate <!-- backlog: 1790332754, complexity: 4, done: 1790746403, id: card_01M3C2BPC4C1QR07EEQP8SA7RY, in_progress: 1790746181, ready: 1790743941 -->
 - Add automated dependency updates (Dependabot) <!-- backlog: 1763431283, complexity: 5, done: 1790747240, id: card_01M2CH88150PJWM0KRN0QF0Z3T, ready: 1790743964 -->
 - The suggestion that `--setup` prints does not match the README "An example install" section (around line 447) ; update it to match the README <!-- backlog: 1790738912, complexity: 5, done: 1790750739, id: card_01M3R5PNGJEASE6TAEHNNZBY1P, ready: 1790743900 -->
+- Fix: the `--setup` snippet ignores the segment switches given to `--setup` (e.g. `--setup --config` on a Mac prints commands that don't read `~/.config/paths`; `--no-etc` isn't carried over either). Carry them into the printed commands in both implementations <!-- backlog: 1790738910, complexity: 3, done: 1790751982, id: card_01M3R5PJWNH0354F3WND3H6DVD, in_progress: 1790751048, ready: 1790750880 -->

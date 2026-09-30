@@ -200,7 +200,7 @@ On Linux:
 - `~/.config/paths.d/` and
 - `~/.config/paths`
 
-You can use the `--setup` switch to have the path_helper set up the directory layout and files, you just have to fill them! It also prints a snippet to paste into your shell profile. The executable's path in that snippet is always single-quoted (an embedded `'` is written `'\''`), so it works wherever path_helper is installed, even in a directory with spaces in its name.
+You can use the `--setup` switch to have the path_helper set up the directory layout and files, you just have to fill them! It also prints a snippet to paste into your shell profile. The executable's path in that snippet is always single-quoted (an embedded `'` is written `'\''`), so it works wherever path_helper is installed, even in a directory with spaces in its name. Any of `--etc`, `--lib`, `--config` or their `--no-` counterparts given to `--setup` are carried into the snippet, after the switch on each `export` line and always in that order (`--etc`, `--lib`, `--config`) whatever order you typed them in, so the profile reads the same segments that were set up. For example `path_helper --setup --config --no-etc` prints lines like `export PATH=$(ruby '/path/to/path_helper' -p --no-etc --config)`. Segments you didn't mention are left to their defaults, and `--dry-run` and `--quiet` are not carried.
 
 You can also start a path with the tilde `~` character and it will be replaced with the `HOME` env variable. Only a leading `~` on its own or followed by a `/` is expanded, so `/opt/app~1/bin` is left as it is, and so is `~user` (other users' home directories are not looked up). For example, if I install Haskell and want to put it in my path I can take the following steps.
 
@@ -709,7 +709,7 @@ no rc files, an emptied environment, a scratch `HOME` whose paths include a
 directory with a space in its name, it checks that `export PATH=$(path_helper -p "$PATH")`
 exports exactly what `-p` prints, and that a program in the new `PATH` is found and runs.
 
-It also checks that what `--setup` prints is correct.
+It also checks that what `--setup` prints is correct, including that segment switches given to `--setup` are carried onto its `export` lines and that the snippet then exports what those switches give.
 
 A shell that isn't installed is reported as `ok ... # SKIP`.
 The images add `bash` and `zsh` (Alpine) or `zsh` (Ubuntu), as

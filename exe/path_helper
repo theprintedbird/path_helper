@@ -462,6 +462,14 @@ module PathHelper
         end
 
         script_path = shell_quote(File.expand_path(__FILE__))
+        # The segment switches given to --setup, so the snippet reads the same
+        # segments that were set up. Fixed order, whatever the command line's.
+        segment_switches = [:etc, :lib, :config].map {|segment|
+          case options[segment]
+          when true then " --#{segment}"
+          when false then " --no-#{segment}"
+          end
+        }.join
         unless options[:quiet]
           puts <<~SHENV
 
@@ -469,7 +477,7 @@ module PathHelper
           # Put this in your ~/.bash_profile or your ~/.zprofile
           if [ -x #{script_path} ]; then
             #{ENV_VARS.map {|var,switch|
-								%Q!export #{var}=$(ruby #{script_path} #{switch})!
+								%Q!export #{var}=$(ruby #{script_path} #{switch}#{segment_switches})!
 							}.join("\n  ") 
             }
           fi
