@@ -4,6 +4,16 @@
 
 ### Dev tooling
 
+- `make check` now runs four checks: `lint`, `actionlint`, and two new ones,
+  `make shellcheck` (every `*.sh` under `spec/` and `docker/`, configured by
+  `.shellcheckrc`) and `make zizmor` (an offline security audit of the
+  workflows and composite actions, policy in `.github/zizmor.yml`). `lint.yml`
+  runs all three tools as separate jobs, triggered also by changes to the
+  shell scripts, `.shellcheckrc` and the `Makefile`. What they found is fixed:
+  unquoted expansions in the harness, `cd ... || exit 1` in the Docker install
+  scripts, `persist-credentials: false` on every checkout, `${{ }}`
+  expressions moved out of `run:` into `env:`, write permission in
+  `release.yml` scoped to the `release` job, and a 7-day Dependabot cooldown.
 - Dependabot now automatically checks for updates to GitHub Actions weekly and
   proposes pull requests to the `dev` branch, keeping third-party action SHAs
   and version comments in sync without manual intervention.

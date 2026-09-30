@@ -1,0 +1,12 @@
+# zizmor (https://docs.zizmor.sh/) configuration.
+
+rules:
+  unpinned-uses:
+    config:
+      # The project's pinning policy (CLAUDE.md, "Container/CI layout"):
+      # GitHub's own actions/* stay on their major tag, every other action is
+      # pinned to a full commit SHA with a trailing `# vX.Y.Z` comment.
+      # Dependabot (.github/dependabot.yml) proposes updates to both.
+      policies:
+        "actions/*": ref-pin
+        "*": hash-pin

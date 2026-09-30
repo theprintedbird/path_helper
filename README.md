@@ -579,6 +579,7 @@ Development dependencies:
 - crystal (with shards)
 - actionlint\*\*
 - shellcheck\*\*
+- zizmor\*\*
 
 \* The test suite is destructive, so it only runs in a container; see [To run the specs](#to-run-the-specs).<br>
 \*\* Used by `make check`; see "Pre-commit check" under [To run the specs](#to-run-the-specs).
@@ -729,13 +730,23 @@ It also runs as a step in `.github/actions/run-shell-tests`, ahead of the suite
 itself, so a GNU-only form is caught in CI before it can fail on the macOS runner.
 
 **Pre-commit check:** jj has no git hooks to run this automatically, so before committing, run
-`make check` by hand. It runs `make lint` and then `actionlint` over `.github/workflows/`.
-[actionlint](https://github.com/rhysd/actionlint/releases) and
-[shellcheck](https://github.com/koalaman/shellcheck) must both be on `PATH` (`brew install actionlint
-shellcheck`): without shellcheck, actionlint quietly skips the `run:` scripts, which CI's runners
-do check, so `make check` refuses to run rather than pass something CI would fail. Both are fast,
-host-only checks (no container), and CI runs the same two: `lint_portability.sh` in
-`run-shell-tests`, and `actionlint` in `.github/workflows/lint.yml`.
+`make check` by hand. It runs four checks, each also available as its own target:
+
+- `make lint`: the portability lint above.
+- `make actionlint`: [actionlint](https://github.com/rhysd/actionlint/releases) over `.github/workflows/`.
+- `make shellcheck`: [shellcheck](https://github.com/koalaman/shellcheck) over every `*.sh` under
+  `spec/` and `docker/`, configured by `.shellcheckrc`. It disables SC3043 (`local`) and SC2155 (the
+  quoted `local x="$(...)"` form is house style); any other exception is an inline
+  `# shellcheck disable=` with a reason beside it.
+- `make zizmor`: [zizmor](https://docs.zizmor.sh/), a security audit of the workflows and composite
+  actions, run offline. `.github/zizmor.yml` holds the action-pinning policy.
+
+`actionlint`, `shellcheck` and `zizmor` must all be on `PATH` (`brew install actionlint shellcheck
+zizmor`); each target refuses to run with an install hint otherwise. In particular, without shellcheck
+actionlint quietly skips the `run:` scripts, which CI's runners do check, so `make check` would pass
+something CI fails. All are fast, host-only checks (no container), and CI runs the same ones:
+`lint_portability.sh` in `run-shell-tests`, and `actionlint`, `shellcheck` and `zizmor` in
+`.github/workflows/lint.yml`.
 
 ```shell
 make check
@@ -985,7 +996,8 @@ The project uses GitHub Actions for continuous integration and release builds. `
 `test-crystal.yml` run on pushes and pull requests to the `master` and `dev`
 branches (`test-crystal.yml` also runs on pushes to `claude/path-helper-crystal-*` branches);
 `release.yml` builds and publishes binaries when a `v*.*.*` tag is pushed; `lint.yml` runs
-`actionlint` over the workflows and composite actions whenever `.github/**` changes.
+`actionlint`, `shellcheck` and `zizmor` whenever `.github/**`, the shell scripts under `spec/` and
+`docker/`, `.shellcheckrc` or the `Makefile` change.
 
 ### Workflow Features
 
@@ -1018,8 +1030,11 @@ branches (`test-crystal.yml` also runs on pushes to `claude/path-helper-crystal-
   the LLVM IR it has just generated is byte-identical, which skips the `--release` optimisation.
   The release workflow does not use it.
 - **Artifact Retention**: Test results are kept for 7 days, coverage reports for 14 days.
-- **Workflow Linting**: `lint.yml` runs [`actionlint`](https://github.com/rhysd/actionlint) (a pinned
-  release, checksum-verified) over every workflow, triggered only when `.github/**` changes.
+- **Workflow Linting and Security Audit**: `lint.yml` has three jobs: [`actionlint`](https://github.com/rhysd/actionlint)
+  (a pinned release, checksum-verified) over every workflow, `shellcheck` over the harness and
+  Docker install scripts, and [`zizmor`](https://docs.zizmor.sh/) over the workflows and composite
+  actions. It is triggered when `.github/**`, `spec/**/*.sh`, `docker/*.sh`, `.shellcheckrc` or the
+  `Makefile` change.
 - **Automated Dependency Updates**: Dependabot checks for updates to GitHub Actions weekly and proposes
   PRs to update them, targeting the `dev` branch (the primary development branch).
 
@@ -1063,17 +1078,25 @@ compiles a static (`--static`) Crystal binary on `ubuntu-latest` for Linux x86_6
 then tars and checksums each one. Its `release` job downloads all three, and publishes them as assets
 on a GitHub Release created from the tag (`softprops/action-gh-release`).
 
-A fourth workflow, `.github/workflows/lint.yml`, downloads a pinned `actionlint` release, verifies its
-checksum against the release's published checksums file, and runs against every workflow (composite
-actions are linted only as far as a workflow references them).
-It runs only when files under `.github/**` change.
+A fourth workflow, `.github/workflows/lint.yml`, runs three jobs:
+
+- `actionlint` downloads a pinned `actionlint` release, verifies its checksum against the release's
+  published checksums file, and runs against every workflow (composite actions are linted only as far
+  as a workflow references them).
+- `shellcheck` runs the same `find` as `make shellcheck` over `spec/` and `docker/`. It does not call
+  `make`, because the Makefile needs podman or docker just to be parsed.
+- `zizmor` runs the SHA-pinned `zizmorcore/zizmor-action` over `.github`, with the online audits
+  (default token) that `make zizmor` skips. Findings fail the job; nothing is uploaded as code scanning.
+
+It runs when files under `.github/**`, `spec/**/*.sh`, `docker/*.sh`, `.shellcheckrc` or the
+`Makefile` change.
 
 ### Contributing to CI/CD
 
 When making changes to the GitHub Actions workflow:
 
 1. **Test locally first**: Use [act](https://github.com/nektos/act) to test workflow changes locally
-   before pushing, and run `make check` (lint_portability.sh plus actionlint, same as CI) before
+   before pushing, and run `make check` (lint_portability.sh, actionlint, shellcheck and zizmor, same as CI) before
    committing
 2. **Use a feature branch**: Make workflow changes on a separate branch and verify they pass
 3. **Update documentation**: If adding new features, update this README section
@@ -1081,13 +1104,18 @@ When making changes to the GitHub Actions workflow:
 5. **Follow security best practices**: Use minimal permissions, and avoid secrets in logs. Third-party
    actions (anything not under `actions/`) are pinned to a full commit SHA with the release version in
    a trailing `# vX.Y.Z` comment -- bump the SHA and the comment together; `actions/*` (GitHub's own,
-   lower risk) stay on their major-version tag (e.g. `@v4`)
+   lower risk) stay on their major-version tag (e.g. `@v4`); `.github/zizmor.yml` enforces this. Every
+   `actions/checkout` sets `persist-credentials: false`, a `${{ }}` expression goes through `env:`
+   rather than into a `run:` script, and write permissions are scoped to the one job that needs them
+   (`release.yml` is `contents: read` overall, `contents: write` on its `release` job only)
 
 Key files:
 - `.github/workflows/test-ruby.yml` - Ruby test workflow
 - `.github/workflows/test-crystal.yml` - Crystal test workflow
 - `.github/workflows/release.yml` - Builds and publishes release binaries on version tags
-- `.github/workflows/lint.yml` - Runs `actionlint` over the workflows and composite actions
+- `.github/workflows/lint.yml` - Runs `actionlint`, `shellcheck` and `zizmor`
+- `.github/zizmor.yml` - zizmor policy (action pinning)
+- `.shellcheckrc` - shellcheck configuration for the harness and Docker scripts
 - `.github/actions/setup-test-env/` - Installs the suite and the executable under test (language-agnostic)
 - `.github/actions/run-shell-tests/` - Lints and runs the suite, with optional coverage (language-agnostic)
 - `spec/shell_spec.sh` - Shell-based test suite

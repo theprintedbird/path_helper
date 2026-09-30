@@ -14,8 +14,10 @@ on:
         required: true
         type: string
 
+# Read-only by default; only the release job, which creates the release and
+# uploads its assets, gets write access.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -43,6 +45,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Install Crystal
         uses: crystal-lang/install-crystal@d8ef131ecec0352ce0e39b81b0a6d95def58fe2f # v1.9.2
@@ -53,8 +57,12 @@ jobs:
         run: shards install --production
 
       - name: Build release binary
+        env:
+          BUILD_FLAGS: ${{ matrix.build_flags }}
         run: |
-          shards build --release --no-debug ${{ matrix.build_flags }}
+          # Unquoted on purpose: empty, or one or more flags to split.
+          # shellcheck disable=SC2086
+          shards build --release --no-debug $BUILD_FLAGS
           chmod +x bin/path_helper
 
       - name: Verify binary
@@ -63,12 +71,14 @@ jobs:
           file bin/path_helper
 
       - name: Create tarball and checksum
+        env:
+          ARTIFACT_NAME: ${{ matrix.artifact_name }}
         run: |
-          tar -czf ${{ matrix.artifact_name }}.tar.gz -C bin path_helper
+          tar -czf "$ARTIFACT_NAME.tar.gz" -C bin path_helper
           if [ "$RUNNER_OS" = "macOS" ]; then
-            shasum -a 256 ${{ matrix.artifact_name }}.tar.gz > ${{ matrix.artifact_name }}.tar.gz.sha256
+            shasum -a 256 "$ARTIFACT_NAME.tar.gz" > "$ARTIFACT_NAME.tar.gz.sha256"
           else
-            sha256sum ${{ matrix.artifact_name }}.tar.gz > ${{ matrix.artifact_name }}.tar.gz.sha256
+            sha256sum "$ARTIFACT_NAME.tar.gz" > "$ARTIFACT_NAME.tar.gz.sha256"
           fi
 
       - name: Upload artifact
@@ -84,10 +94,14 @@ jobs:
     name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # to create the release and upload its assets
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -103,7 +117,7 @@ jobs:
       - name: Extract version from tag
         id: version
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
             echo "tag=$TAG" >> "$GITHUB_OUTPUT"
             echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
           else
@@ -116,9 +130,14 @@ jobs:
 
       - name: Generate release notes
         id: notes
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        # The heading is printed separately so the here-document can stay
+        # quoted: unquoted, its backticks would be command substitutions.
         run: |
-          cat > release_notes.md << 'EOF'
-          # path_helper ${{ steps.version.outputs.version }}
+          {
+          printf '# path_helper %s\n' "$VERSION"
+          cat << 'EOF'
 
           ## Pre-built Binaries
 
@@ -152,8 +171,10 @@ jobs:
 
           See [CHANGES.md](CHANGES.md) for details.
           EOF
+          } > release_notes.md
 
       - name: Create Release
+        # zizmor: ignore[superfluous-actions] -- the runner's `gh release create` could do this; kept for now, SHA-pinned, as the release step is out of this change's scope
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           tag_name: ${{ steps.version.outputs.tag }}

@@ -39,7 +39,7 @@ make coverage-crystal CRYSTAL_VER=1.14.0   # same for Crystal (kcov, always glib
 make coverage-all                 # coverage for every Ruby and Crystal version, each into coverage/ruby-<ver>/ or
                                   # coverage/crystal-<ver>/ (not part of `make all`: slow, builds kcov)
 make list / make clean
-make check                        # host-only, no container: lint + actionlint; before committing
+make check                        # host-only, no container: lint + actionlint + shellcheck + zizmor; before committing
 ```
 
 The test/shell/extract targets build their image first, so there is no need to run a build target by
@@ -131,11 +131,20 @@ compile target.
   `grep -P`) greps the harness files and the actions' `run:` blocks for these forms, skipping comment
   lines since the harness's own comments deliberately mention some of them; it also runs as a CI step
   in `.github/actions/run-shell-tests` before the suite, ahead of the macOS job. `make check` runs
-  `make lint` plus `actionlint` over `.github/workflows/` (it and `shellcheck` must be on `PATH`; fails
-  with a one-line install hint otherwise -- actionlint quietly skips `run:` scripts without
-  shellcheck, and CI's `ubuntu-latest` has it, so a local run without it could pass what CI fails) -- both host-only and fast; jj has no hooks, so run it by hand before
-  committing. CI runs the same two checks separately: `lint_portability.sh` in `run-shell-tests`,
-  `actionlint` in `.github/workflows/lint.yml`.
+  `make lint`, `make actionlint` (over `.github/workflows/`), `make shellcheck` (every `*.sh` under
+  `spec/` and `docker/`, configured by `.shellcheckrc`) and `make zizmor` (`zizmor --offline --config
+  .github/zizmor.yml .github`, the workflows and composite actions). Each of the three tools must be on
+  `PATH` and fails with a one-line install hint otherwise (actionlint also needs `shellcheck`: it quietly
+  skips `run:` scripts without it, and CI's `ubuntu-latest` has it, so a local run without it could pass
+  what CI fails). All host-only and fast; jj has no hooks, so run it by hand before committing. CI runs
+  the same checks separately: `lint_portability.sh` in `run-shell-tests`, and `actionlint`, `shellcheck`
+  and `zizmor` in `.github/workflows/lint.yml`. `zizmor` gets `--config` explicitly because it finds the
+  repo root through `.git`, and a jj workspace has none, so it would audit against the main checkout's
+  `.github/zizmor.yml`. `.shellcheckrc` sets `shell=sh`, `external-sources` and `source-path=SCRIPTDIR`
+  (so the sourced helpers and tests are followed) and disables SC3043 (`local`, the harness's one
+  non-POSIX feature) and SC2155 (the quoted `local x="$(...)"` form is house style). Anything else is a
+  deliberate one-off: an inline `# shellcheck disable=` with the reason beside it, on the individual
+  statement (SC2034 for a global another file reads), never a per-file disable.
 - `spec/tests/*_test.sh` — the tests, sourced (not executed, since the TAP counters are shell globals)
   in this order: `setup_test.sh` (`--setup` of both home segments, and the symlinks, dangling link,
   subdirectory and fifo every later file relies on — so it must stay first — then a `--dry-run` in a
@@ -263,11 +272,23 @@ is one LLVM module, so a stale entry can never be partly reused -- hence no `res
 key). The Alpine job `apk add`s GNU `tar`, which `actions/cache` needs. `release.yml` deliberately
 uses no cache, so shipped binaries never come from a cache entry.
 
-A fourth workflow, `.github/workflows/lint.yml`, runs on `.github/**` changes only: it downloads a
-pinned, checksum-verified `actionlint` release and runs it over the four workflows (and the two
-composite actions, as far as a workflow references them). Third-party actions across all four
-workflows (anything not under `actions/`) are pinned to a full commit SHA with a trailing `# vX.Y.Z`
-comment naming the release it resolves to; Dependabot proposes updates to both. `actions/*` stays on its major tag.
+A fourth workflow, `.github/workflows/lint.yml` ("Lint"), runs on changes to `.github/**`,
+`spec/**/*.sh`, `docker/*.sh`, `.shellcheckrc` and `Makefile` (one YAML anchor shared by `push` and
+`pull_request`), in three jobs. `actionlint` downloads a pinned, checksum-verified release and runs it
+over the workflows (and the two composite actions, as far as a workflow references them). `shellcheck`
+runs the same `find` as `make shellcheck`, not `make`, since the Makefile errors at parse time without
+podman/docker. `zizmor` runs `zizmorcore/zizmor-action` (SHA-pinned, `advanced-security: false`, so
+findings fail the job rather than upload SARIF) with online audits on the default token, where `make
+zizmor` is `--offline`. `.github/zizmor.yml` encodes the pinning policy below as its `unpinned-uses`
+rule (`actions/*: ref-pin`, `*: hash-pin`). The same audit is why every `actions/checkout` sets
+`persist-credentials: false`, no `${{ }}` expression sits in a `run:` (it goes through `env:`),
+`release.yml` has workflow-level `contents: read` with `contents: write` on the `release` job alone, and
+Dependabot has a `cooldown` of 7 days. The one inline `# zizmor: ignore[superfluous-actions]` is on
+`softprops/action-gh-release`, which a backlog card replaces with `gh release create`. The Crystal/kcov
+caches were reviewed for cache poisoning and not flagged (exact keys, push/PR only, nothing shipped from
+them). Third-party actions across all four workflows (anything not under `actions/`) are pinned to a full
+commit SHA with a trailing `# vX.Y.Z` comment naming the release it resolves to; Dependabot proposes
+updates to both. `actions/*` stays on its major tag.
 
 ## Core logic (mirrored in both implementations)
 

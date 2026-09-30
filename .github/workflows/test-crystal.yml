@@ -55,6 +55,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
 
     # install-crystal apt-get installs its build dependencies without
     # updating first, so a runner image whose package lists have fallen
@@ -153,6 +155,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
 
     # The suite's timing helper shells out to ruby. actions/cache needs GNU
     # tar: busybox's refuses its --posix. bash and zsh are for the shell
@@ -238,6 +242,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
 
     # See test-crystal.
     - name: Update the apt package lists

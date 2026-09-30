@@ -1,18 +1,22 @@
-name: Lint Workflows
+name: Lint
 
 on:
   push:
     branches:
       - master
       - dev
-    paths:
+    paths: &paths
       - '.github/**'
+      - 'spec/**/*.sh'
+      - 'docker/*.sh'
+      - '.shellcheckrc'
+      # `make shellcheck` is the shellcheck job's file list, kept in step here.
+      - 'Makefile'
   pull_request:
     branches:
       - master
       - dev
-    paths:
-      - '.github/**'
+    paths: *paths
   workflow_dispatch:
 
 concurrency:
@@ -36,6 +40,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
 
     - name: Download actionlint
       run: |
@@ -52,7 +58,42 @@ jobs:
         ./actionlint -version
 
     - name: Run actionlint
-      # Lints every workflow under .github/workflows/; composite actions under
-      # .github/actions/ are checked only as far as they're referenced from a
-      # workflow, which covers both of this project's.
+      # Lints the workflows under .github/workflows/ (its own shellcheck check of
+      # their run: scripts uses the runner's preinstalled shellcheck); composite
+      # actions under .github/actions/ are checked only as far as they're
+      # referenced from a workflow, which covers both of this project's.
       run: ./actionlint -color
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
+
+    - name: Show shellcheck version
+      run: shellcheck --version
+
+    - name: Run shellcheck
+      # The same find as `make shellcheck` (config: .shellcheckrc) -- keep them
+      # in step. Not `make` itself: the Makefile errors at parse time unless
+      # podman or docker is on PATH, which this job has no need of.
+      run: find spec docker -name '*.sh' -type f -exec shellcheck {} +
+
+  zizmor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
+
+    - name: Run zizmor
+      uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
+      with:
+        # Print findings in the log and fail the job, rather than uploading
+        # SARIF to code scanning (which would need security-events: write).
+        advanced-security: false
