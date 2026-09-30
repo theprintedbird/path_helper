@@ -9,6 +9,7 @@ on:
       - '.github/**'
       - 'spec/**/*.sh'
       - 'docker/*.sh'
+      - 'script/*.sh'
       - '.shellcheckrc'
       # `make shellcheck` is the shellcheck job's file list, kept in step here.
       - 'Makefile'
@@ -120,7 +121,7 @@ jobs:
       # The same find as `make shellcheck` (config: .shellcheckrc) -- keep them
       # in step. Not `make` itself: the Makefile errors at parse time unless
       # podman or docker is on PATH, which this job has no need of.
-      run: find spec docker -name '*.sh' -type f -exec shellcheck {} +
+      run: find spec docker script -name '*.sh' -type f -exec shellcheck {} +
 
   zizmor:
     runs-on: ubuntu-latest

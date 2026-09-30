@@ -130,11 +130,11 @@ compile target.
 - macOS's bash-as-sh is also BSD userland: `sed -i`, `stat`, `readlink`, `realpath` and `date +%N` are
   GNU-only and either error out or emit something different there. `mktemp`/`mktemp -d` are fine (BSD
   has had both forms since 10.11). `make lint` (`spec/lint_portability.sh`, plain POSIX sh, no
-  `grep -P`) greps the harness files and the actions' `run:` blocks for these forms, skipping comment
+  `grep -P`) greps the harness files, `script/*.sh` and the actions' `run:` blocks for these forms, skipping comment
   lines since the harness's own comments deliberately mention some of them; it also runs as a CI step
   in `.github/actions/run-shell-tests` before the suite, ahead of the macOS job. `make check` runs
   `make lint`, `make actionlint` (over `.github/workflows/`), `make shellcheck` (every `*.sh` under
-  `spec/` and `docker/`, configured by `.shellcheckrc`) and `make zizmor` (`zizmor --offline --config
+  `spec/`, `docker/` and `script/`, configured by `.shellcheckrc`) and `make zizmor` (`zizmor --offline --config
   .github/zizmor.yml .github`, the workflows and composite actions). Each of the three tools must be on
   `PATH` and fails with a one-line install hint otherwise (actionlint also needs `shellcheck`: it quietly
   skips `run:` scripts without it, and CI's `ubuntu-latest` has it, so a local run without it could pass
@@ -277,7 +277,7 @@ key). The Alpine job `apk add`s GNU `tar`, which `actions/cache` needs. `release
 uses no cache, so shipped binaries never come from a cache entry.
 
 A fourth workflow, `.github/workflows/lint.yml` ("Lint"), runs on changes to `.github/**`,
-`spec/**/*.sh`, `docker/*.sh`, `.shellcheckrc` and `Makefile` (one YAML anchor shared by `push` and
+`spec/**/*.sh`, `docker/*.sh`, `script/*.sh`, `.shellcheckrc` and `Makefile` (one YAML anchor shared by `push` and
 `pull_request`), in three jobs. `actionlint` downloads a pinned, checksum-verified release and runs it
 over the workflows (and the two composite actions, as far as a workflow references them). `shellcheck`
 installs a pinned, checksum-verified release (workflow-level `SHELLCHECK_VERSION`/`SHELLCHECK_SHA256`; the
@@ -290,12 +290,16 @@ rule (`actions/*: ref-pin`, `*: hash-pin`). The same audit is why every `actions
 `persist-credentials: false`, no `${{ }}` expression sits in a `run:` (it goes through `env:`),
 `release.yml` has workflow-level `contents: read` with `contents: write` on the `release` job alone, and
 Dependabot has a `cooldown` of 7 days. There are no inline zizmor ignores: `release.yml`'s last step
-uses the runner's own `gh` (`GH_TOKEN` from `github.token`, via `env:`) rather than a third-party
-action, so nothing outside `actions/` holds the `contents: write` token. It updates a release that
-already exists (`gh release upload --clobber`, then `gh release edit` to retitle, replace the notes
-and publish) and otherwise runs `gh release create`, both with `--target "$GITHUB_SHA"` so a tag that
-doesn't exist yet is made at the built commit (GitHub ignores it for an existing tag), much as
-`softprops/action-gh-release` did before it. The Crystal/kcov
+runs `sh script/release.sh --target "$GITHUB_SHA" "$TAG" release_notes.md release-assets/*`, which
+uses the runner's own `gh` (`GH_TOKEN` from `github.token`, `GH_REPO`, via `env:`) rather than a
+third-party action, so nothing outside `actions/` holds the `contents: write` token. The script is
+the one source of truth for the invocation, also run by hand (README "Cutting a release by hand"):
+POSIX `sh`, BSD-safe, title `Release TAG`; it validates its arguments (exit 2) before calling `gh`.
+It updates a release that already exists (`gh release upload --clobber`, then `gh release edit` to
+retitle, replace the notes and publish) and otherwise runs `gh release create`; `--target` goes to
+both, so a tag that doesn't exist yet is made at the built commit (GitHub ignores it for an existing
+tag), much as `softprops/action-gh-release` did before it. `script/` is in `make shellcheck`,
+`lint.yml`'s shellcheck `find` and paths, and `lint_portability.sh`. The Crystal/kcov
 caches were reviewed for cache poisoning and not flagged (exact keys, push/PR only, nothing shipped from
 them). Third-party actions across all four workflows (anything not under `actions/`) are pinned to a full
 commit SHA with a trailing `# vX.Y.Z` comment naming the release it resolves to; Dependabot proposes

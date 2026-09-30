@@ -16,10 +16,11 @@
 status=0
 
 # The files a macOS (or any) CI job actually executes: the harness itself and
-# the composite actions' `run:` steps. docker/*.sh only ever runs inside the
-# Linux build images, so it is not held to this rule.
+# the composite actions' `run:` steps -- plus script/*.sh, run by hand on a
+# Mac. docker/*.sh only ever runs inside the Linux build images, so it is not
+# held to this rule.
 files="spec/shell_spec.sh spec/lib/test_helpers.sh"
-for f in spec/tests/*.sh spec/lib/coverage/*.sh; do
+for f in spec/tests/*.sh spec/lib/coverage/*.sh script/*.sh; do
 	[ -f "$f" ] && files="$files $f"
 done
 for f in .github/actions/*/action.yml; do

@@ -720,7 +720,8 @@ do CI's Alpine jobs. The `ubuntu-latest` jobs skip zsh. macOS has both.
 `stat`, `readlink`, `realpath` and `date +%N` are all off limits in the harness —
 they're either GNU-only or behave differently on BSD. `make lint` runs
 `spec/lint_portability.sh`, a POSIX `sh` script with no `grep -P`, over the harness
-files and the GitHub Actions `run:` blocks and fails on any of those forms:
+files, `script/release.sh` (also run by hand on a Mac) and the GitHub Actions `run:`
+blocks and fails on any of those forms:
 
 ```shell
 make lint
@@ -735,8 +736,8 @@ itself, so a GNU-only form is caught in CI before it can fail on the macOS runne
 - `make lint`: the portability lint above.
 - `make actionlint`: [actionlint](https://github.com/rhysd/actionlint/releases) over `.github/workflows/`.
 - `make shellcheck`: [shellcheck](https://github.com/koalaman/shellcheck) over every `*.sh` under
-  `spec/` and `docker/`, configured by `.shellcheckrc`. It disables SC3043 (`local`) and SC2155 (the
-  quoted `local x="$(...)"` form is house style); any other exception is an inline
+  `spec/`, `docker/` and `script/`, configured by `.shellcheckrc`. It disables SC3043 (`local`) and
+  SC2155 (the quoted `local x="$(...)"` form is house style); any other exception is an inline
   `# shellcheck disable=` with a reason beside it.
 - `make zizmor`: [zizmor](https://docs.zizmor.sh/), a security audit of the workflows and composite
   actions, run offline. `.github/zizmor.yml` holds the action-pinning policy.
@@ -999,8 +1000,8 @@ The project uses GitHub Actions for continuous integration and release builds. `
 `test-crystal.yml` run on pushes and pull requests to the `master` and `dev`
 branches (`test-crystal.yml` also runs on pushes to `claude/path-helper-crystal-*` branches);
 `release.yml` builds and publishes binaries when a `v*.*.*` tag is pushed; `lint.yml` runs
-`actionlint`, `shellcheck` and `zizmor` whenever `.github/**`, the shell scripts under `spec/` and
-`docker/`, `.shellcheckrc` or the `Makefile` change.
+`actionlint`, `shellcheck` and `zizmor` whenever `.github/**`, the shell scripts under `spec/`,
+`docker/` and `script/`, `.shellcheckrc` or the `Makefile` change.
 
 ### Workflow Features
 
@@ -1035,9 +1036,10 @@ branches (`test-crystal.yml` also runs on pushes to `claude/path-helper-crystal-
 - **Artifact Retention**: Test results are kept for 7 days, coverage reports for 14 days.
 - **Workflow Linting and Security Audit**: `lint.yml` has three jobs: [`actionlint`](https://github.com/rhysd/actionlint)
   (a pinned release, checksum-verified) over every workflow, `shellcheck` (likewise pinned) over the
-  harness and Docker install scripts, and [`zizmor`](https://docs.zizmor.sh/) (a pinned version) over the workflows and composite
-  actions. To bump a tool, change its pin in `lint.yml` and the matching `Makefile` version together. It is triggered when `.github/**`, `spec/**/*.sh`, `docker/*.sh`, `.shellcheckrc` or the
-  `Makefile` change.
+  harness, the Docker install scripts and `script/release.sh`, and [`zizmor`](https://docs.zizmor.sh/)
+  (a pinned version) over the workflows and composite actions. To bump a tool, change its pin in
+  `lint.yml` and the matching `Makefile` version together. It is triggered when `.github/**`,
+  `spec/**/*.sh`, `docker/*.sh`, `script/*.sh`, `.shellcheckrc` or the `Makefile` change.
 - **Automated Dependency Updates**: Dependabot checks for updates to GitHub Actions weekly and proposes
   PRs to update them, targeting the `dev` branch (the primary development branch).
 
@@ -1079,10 +1081,32 @@ test suite. It triggers on `v*.*.*` tags (or manually, with a `tag_name` input);
 compiles a static (`--static`) Crystal binary on `ubuntu-latest` for Linux x86_64, and plain
 `--release --no-debug` binaries on `macos-15-intel` and `macos-14` for the two macOS architectures,
 then tars and checksums each one. Its `release` job downloads all three, and publishes them as assets
-on a GitHub Release for the tag, using the runner's own `gh` rather than a third-party action. If
-the release already exists (a re-run, say) its assets are replaced and it is retitled, given the new
-notes and published; otherwise it is created, and on a manual run whose tag doesn't exist yet the tag
-is made at the commit that was built.
+on a GitHub Release for the tag with `script/release.sh`, which uses the runner's own `gh` rather
+than a third-party action. If the release already exists (a re-run, say) its assets are replaced and
+it is retitled, given the new notes and published; otherwise it is created, and on a manual run whose
+tag doesn't exist yet the tag is made at the commit that was built.
+
+#### <a name="cutting-a-release-by-hand">Cutting a release by hand</a>
+
+The workflow's last step is a script, so the same release can be made (or fixed up) from a checkout
+without remembering the `gh` invocation. You need [gh](https://cli.github.com/) logged in (`gh auth
+login`) or `GH_TOKEN` set, with write access to the repository:
+
+```shell
+script/release.sh [--target COMMIT] TAG NOTES_FILE ASSET...
+
+# e.g.
+script/release.sh v5.0.0 release_notes.md \
+  path_helper-*.tar.gz path_helper-*.tar.gz.sha256
+```
+
+The release is titled `Release TAG`, its notes are taken from `NOTES_FILE`, and every `ASSET` is
+attached. It is published, never left as a draft or prerelease. If a release for `TAG` already exists
+its assets are replaced (any of the same name are overwritten), then its title and notes are, and it
+is published. If the tag doesn't exist yet, GitHub makes it at `--target COMMIT` (a branch or full
+SHA), or without one at the head of the default branch, so push the tag first or pass `--target`.
+The repository is the checkout's own, or `GH_REPO` if set. It checks its arguments before asking
+GitHub anything, and `script/release.sh --help` prints the usage.
 
 A fourth workflow, `.github/workflows/lint.yml`, runs three jobs:
 
@@ -1092,14 +1116,14 @@ A fourth workflow, `.github/workflows/lint.yml`, runs three jobs:
   of the `run:` scripts uses the same version as the `shellcheck` job.
 - `shellcheck` installs a pinned `shellcheck` release (checksum-verified, from the workflow-level
   `SHELLCHECK_VERSION`/`SHELLCHECK_SHA256`, not the runner's drifting copy) and runs the same `find` as
-  `make shellcheck` over `spec/` and `docker/`. It does not call `make`, because the Makefile needs
-  podman or docker just to be parsed.
+  `make shellcheck` over `spec/`, `docker/` and `script/`. It does not call `make`, because the
+  Makefile needs podman or docker just to be parsed.
 - `zizmor` runs the SHA-pinned `zizmorcore/zizmor-action` at a pinned zizmor `version:` (not the
   action's default, `latest`) over `.github`, with the online audits (default token) that `make zizmor`
   skips. Findings fail the job; nothing is uploaded as code scanning.
 
-It runs when files under `.github/**`, `spec/**/*.sh`, `docker/*.sh`, `.shellcheckrc` or the
-`Makefile` change.
+It runs when files under `.github/**`, `spec/**/*.sh`, `docker/*.sh`, `script/*.sh`,
+`.shellcheckrc` or the `Makefile` change.
 
 ### Contributing to CI/CD
 
@@ -1123,9 +1147,10 @@ Key files:
 - `.github/workflows/test-ruby.yml` - Ruby test workflow
 - `.github/workflows/test-crystal.yml` - Crystal test workflow
 - `.github/workflows/release.yml` - Builds and publishes release binaries on version tags
+- `script/release.sh` - Creates or updates a GitHub release with `gh` (release.yml's last step, or by hand)
 - `.github/workflows/lint.yml` - Runs `actionlint`, `shellcheck` and `zizmor`
 - `.github/zizmor.yml` - zizmor policy (action pinning)
-- `.shellcheckrc` - shellcheck configuration for the harness and Docker scripts
+- `.shellcheckrc` - shellcheck configuration for the harness, Docker and release scripts
 - `.github/actions/setup-test-env/` - Installs the suite and the executable under test (language-agnostic)
 - `.github/actions/run-shell-tests/` - Lints and runs the suite, with optional coverage (language-agnostic)
 - `spec/shell_spec.sh` - Shell-based test suite

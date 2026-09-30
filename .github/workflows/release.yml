@@ -174,10 +174,11 @@ jobs:
           } > release_notes.md
 
       - name: Create Release
-        # The runner's own gh, so no third-party action holds the write token.
-        # A release that already exists (a re-run, or one made by hand) has its
-        # assets replaced and is then retitled, given these notes and published,
-        # as softprops/action-gh-release did; otherwise it is created, published
+        # The runner's own gh, via script/release.sh (also run by hand), so no
+        # third-party action holds the write token. A release that already
+        # exists (a re-run, or one made by hand) has its assets replaced and is
+        # then retitled, given these notes and published, as
+        # softprops/action-gh-release did; otherwise it is created, published
         # (not a draft or prerelease).
         # --target only matters when the tag doesn't exist yet (a manual run,
         # or a draft left without one): the tag is then made at the commit that
@@ -187,11 +188,4 @@ jobs:
           GH_REPO: ${{ github.repository }}
           TAG: ${{ steps.version.outputs.tag }}
         run: |
-          if gh release view "$TAG" > /dev/null 2>&1; then
-            gh release upload "$TAG" release-assets/* --clobber
-            gh release edit "$TAG" --title "Release $TAG" --notes-file release_notes.md \
-              --draft=false --prerelease=false --target "$GITHUB_SHA"
-          else
-            gh release create "$TAG" release-assets/* --title "Release $TAG" \
-              --notes-file release_notes.md --target "$GITHUB_SHA"
-          fi
+          sh script/release.sh --target "$GITHUB_SHA" "$TAG" release_notes.md release-assets/*

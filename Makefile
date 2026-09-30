@@ -82,7 +82,7 @@ help:
 	@echo "    make list                   Show all built images"
 	@echo "    make lint                   Check the test harness for GNU-only shell (breaks on macOS/BSD)"
 	@echo "    make actionlint             Lint .github/workflows/ with actionlint (it and shellcheck must be on PATH)"
-	@echo "    make shellcheck             Lint spec/**/*.sh and docker/*.sh with shellcheck (config: .shellcheckrc)"
+	@echo "    make shellcheck             Lint spec/**/*.sh, docker/*.sh and script/*.sh with shellcheck (config: .shellcheckrc)"
 	@echo "    make zizmor                 Audit .github/ workflows and actions with zizmor (offline)"
 	@echo "    make check                  Run lint, actionlint, shellcheck and zizmor (host-only; run before committing)"
 	@echo ""
@@ -303,7 +303,7 @@ shellcheck:
 	@have="$$(shellcheck --version | sed -n 's/^version: //p')"; \
 	[ "$$have" = "$(SHELLCHECK_VERSION)" ] || \
 		echo "warning: shellcheck is $$have but CI pins $(SHELLCHECK_VERSION); results may differ from CI." >&2
-	@find spec docker -name '*.sh' -type f -exec shellcheck {} +
+	@find spec docker script -name '*.sh' -type f -exec shellcheck {} +
 
 # --offline skips the audits that query the GitHub API, so this stays host-only and
 # fast, with no token needed. Given a directory, zizmor audits both the workflows and

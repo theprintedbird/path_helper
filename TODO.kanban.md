@@ -51,7 +51,8 @@ Language-Agnostic Infrastructure
 
 ###### Ready
 
-- Put the `gh release create` command (see the release.yml card to replace `softprops/action-gh-release`) into a script in the repo, so a release can be cut by hand without remembering the invocation: tag, title, notes file and assets; document it in the README's release section <!-- backlog: 1790765755, id: card_01M3RZ9TRXSHVPKG3DBR6QW44C, ready: 1790767789 -->
+- Add Github pages. <!-- backlog: 1790846866, id: card_01M3VCN4SMTWFYGWJMTFFVEK58, ready: 1790846874 -->
+
 
 
 
@@ -195,3 +196,4 @@ Language-Agnostic Infrastructure
 - Harness: a test file that can't be sourced should be a `Bail out!` with exit 1. Today a broken source line in `spec/shell_spec.sh` prints "not found" for each test file, then `1..0`, and exits 0, so the suite passes having run nothing <!-- backlog: 1790765843, done: 1790768213, id: card_01M3RZCGNPG32TNJJYQ6BY02NP, in_progress: 1790767942, ready: 1790767775 -->
 - Pin the lint tool versions so `make check` and CI's Lint workflow agree: zizmor-action installs the latest zizmor (1.30 added the `self-repository` audit and failed CI while the host had 1.29), and ubuntu-latest's shellcheck flags SC2015 where the host's 0.11.0 doesn't. Pin zizmor's version in the zizmor job and install a pinned, checksum-verified shellcheck release in the shellcheck job (as the actionlint job does), and record the expected versions where `make check` can warn when the host's differ <!-- backlog: 1790767538, done: 1790768344, id: card_01M3S107ZJX1GSK6V7MWQ0CYWV, in_progress: 1790767943, ready: 1790767781 -->
 - release.yml: replace `softprops/action-gh-release` with the runner's preinstalled `gh release create "$TAG" --title ... --notes-file release_notes.md <artifacts>` (with `GH_TOKEN: ${{ github.token }}` in the step's `env:`), so no third-party action holds the `contents: write` token. Remove the `# zizmor: ignore[superfluous-actions]` comment on that step, and check the release comes out the same: tag, title, notes, the tarballs and `.sha256` files, and what happens when the release already exists <!-- backlog: 1790765751, done: 1790768125, id: card_01M3RZ9PX8FASVJZV2W4DAT5RV, in_progress: 1790767944, ready: 1790767795 -->
+- Put the `gh release create` command (see the release.yml card to replace `softprops/action-gh-release`) into a script in the repo, so a release can be cut by hand without remembering the invocation: tag, title, notes file and assets; document it in the README's release section <!-- backlog: 1790765755, done: 1790768583, id: card_01M3RZ9TRXSHVPKG3DBR6QW44C, in_progress: 1790768130, ready: 1790767789 -->
