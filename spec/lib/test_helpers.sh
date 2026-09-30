@@ -1084,6 +1084,9 @@ run_in_shell(){
 # exported. Ruby rather than env(1) because macOS strips DYLD_* variables from
 # the environment of its protected system binaries (/usr/bin/env among them),
 # so env(1) would report those as missing there whatever the shell exported.
+# Run it with --disable-gems: the PATH it is there to report may no longer
+# hold /usr/bin, and macOS's system ruby loads rbconfig with RubyGems, which
+# shells out to `uname` and dies with ENOENT without it.
 write_env_reporter(){
 	cat > "$1" <<-'RUBY'
 		ARGV.each do |name|

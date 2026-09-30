@@ -18,7 +18,10 @@
 
 tap_comment "sh is: $(sh_flavour)"
 
-shell_home="$(mktemp -d /tmp/path_helper.XXXXXX)"
+# The physical path: on macOS /tmp is a link to /private/tmp, and Crystal's
+# Process.executable_path resolves links where Ruby's __FILE__ does not, so
+# the snippet's -x line would otherwise name a different path in each.
+shell_home="$(cd -P "$(mktemp -d /tmp/path_helper.XXXXXX)" && pwd -P)"
 shell_spaced="$shell_home/my bin"
 shell_plain="$shell_home/tools/bin"
 shell_reporter="$shell_home/report_env.rb"
@@ -84,7 +87,7 @@ for shell_name in sh bash zsh; do
 	# tied `path` array has followed it.
 	shell_out="$(run_in_shell "$shell_name" "$shell_home" '
 		export PATH=$("$EXE" -p "$PATH" --no-etc)
-		"$RUBY" "$HOME/report_env.rb" PATH
+		"$RUBY" --disable-gems "$HOME/report_env.rb" PATH
 		command -v path-helper-probe
 		path-helper-probe
 	' 2>&1)"
@@ -104,7 +107,7 @@ path-helper-probe ran" \
 	# read back from a child.
 	shell_out="$(run_in_shell "$shell_name" "$shell_home" "
 		. \"\$HOME/snippet.sh\"
-		\"\$RUBY\" \"\$HOME/report_env.rb\" $shell_snippet_names
+		\"\$RUBY\" --disable-gems \"\$HOME/report_env.rb\" $shell_snippet_names
 	" 2>&1)"
 
 	if [ -s "$shell_snippet" ]; then
@@ -163,7 +166,7 @@ for shell_name in sh bash zsh; do
 
 	shell_out="$(run_in_shell "$shell_name" "$shell_home" "
 		. \"\$HOME/segment_snippet.sh\"
-		\"\$RUBY\" \"\$HOME/report_env.rb\" $shell_snippet_names
+		\"\$RUBY\" --disable-gems \"\$HOME/report_env.rb\" $shell_snippet_names
 	" 2>&1)"
 
 	assert_same "$shell_name: the --setup snippet made with segment switches exports what they give" \
@@ -230,7 +233,7 @@ for shell_name in sh bash zsh; do
 
 	shell_out="$(run_in_shell "$shell_name" "$shell_home" "
 		. \"\$HOME/awkward_snippet.sh\"
-		\"\$RUBY\" \"\$HOME/report_env.rb\" $shell_snippet_names
+		\"\$RUBY\" --disable-gems \"\$HOME/report_env.rb\" $shell_snippet_names
 	" 2>&1)"
 
 	assert_same "$shell_name: the --setup snippet from an executable in a directory with spaces and quotes" \
