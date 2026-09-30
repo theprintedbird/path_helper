@@ -66,7 +66,10 @@ printed as TAP comments after the plan). The exit status is the suite's; there i
   source by `docker/install-kcov.sh` (not packaged for Ubuntu 24.04 or Alpine; apt only, no musl), so
   `coverage-crystal` uses its own glibc image, `Dockerfile.crystal-coverage`, run with
   `--security-opt seccomp=unconfined` (kcov disables ASLR in the tracee, which the default profile
-  refuses).
+  refuses). The wrapper always runs the one binary in `$WORK/bin`, so `run.sh` also exports
+  `PATH_HELPER_EXECUTABLE_WRAPPED=1` (read only by the harness, not passed to children): a copy of the
+  wrapper reports that binary's path, not its own, which `shell_test.sh`'s awkward-directory points
+  can't cope with.
 - Everything the executable touches is in a world-readable work dir (`/tmp/path_helper-coverage`,
   raw output dir mode 1777, kcov output per uid), because `test_unreadable_fragment` copies the
   executable and runs the copy as *nobody*, who can't read `/root`. That includes kcov: `run.sh`
@@ -160,16 +163,22 @@ compile target.
   sourcing `spec/lib/test_helpers.sh` and the test file with `EXECUTABLE`, `PLATFORM=darwin` and
   `USER_PATHS=Library/Paths` set — without the guard variable.
 - `shell_test.sh` runs the output through `sh` (whatever `/bin/sh` is, reported as `# sh is:`), `bash`
-  and `zsh`, three points each, a shell that isn't installed giving `# SKIP <shell> not installed`.
+  and `zsh`, four points each, a shell that isn't installed giving `# SKIP <shell> not installed`.
   Each runs as a profile would (`run_in_shell`: `env -i` with `HOME`, a built `PATH` of ruby's
   directory plus `/usr/bin:/bin`, `EXE`, `RUBY`; `bash --norc --noprofile`, `zsh -f`) in a scratch
   `HOME` whose user segment names a directory with a space in it, holding a probe program. It checks
   that `export PATH=$("$EXE" -p "$PATH" --no-etc)` exports exactly what `-p` prints, that
   `command -v` then finds the probe there and runs it, and that the `--setup --dry-run` snippet,
-  sourced, exports every variable it names with the value its switch prints directly. What was
+  sourced, exports every variable it names with the value its switch prints directly. A fourth point sources the snippet of a *copy* of the
+  executable in a directory named with spaces and quotes (`it's a "tricky" dir`), and one shell-less
+  point checks the `if [ -x ... ]` line is the POSIX single-quoted path (`'` written `'\''`, in both
+  implementations; Ruby's lines are `$(ruby 'PATH' switch)`, Crystal's `$('PATH' switch)`). What was
   exported is read back by a child, a Ruby script (`write_env_reporter`) rather than `env(1)`: macOS
   strips `DYLD_*` from its protected binaries' environment, so there those are left out of the check
-  when the only ruby is the system one. Like `case_test.sh`, it can be run on a Mac host.
+  when the only ruby is the system one. Under Crystal coverage (`PATH_HELPER_EXECUTABLE_WRAPPED` set)
+  the `-x` point and the three awkward-directory per-shell points are `tap_skip`ped, since a copy of
+  kcov's wrapper still runs the fixed binary and names its path; the point count is unchanged. Like
+  `case_test.sh`, it can be run on a Mac host.
 - `spec/fixtures/moredirs/` — input path files, copied by the run into the platform's user segment:
   `~/.config/paths` on Linux, `~/Library/Paths` on macOS.
 - `spec/fixtures/otherdirs/` — the other segment's inputs (a `paths`, one `paths.d` fragment and a

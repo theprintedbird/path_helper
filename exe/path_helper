@@ -414,6 +414,12 @@ module PathHelper
 
     class << self
 
+      # POSIX single-quote: wrap in '...', each embedded ' becomes '\''.
+      # Hand-rolled (not Shellwords) so the Crystal port prints the same bytes.
+      def shell_quote str
+        "'" + str.gsub("'") { "'\\''" } + "'"
+      end
+
       # {:setup=>true}
       # {:setup=>true, :etc=>false, :lib=>false}
       # {:setup=>true, :etc=>false, :lib=>true}
@@ -455,7 +461,7 @@ module PathHelper
           return false
         end
 
-        script_path = File.expand_path(__FILE__)
+        script_path = shell_quote(File.expand_path(__FILE__))
         unless options[:quiet]
           puts <<~SHENV
 

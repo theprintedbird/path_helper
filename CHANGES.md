@@ -4,6 +4,13 @@
 
 ### Fixes
 
+- The snippet `--setup` prints put the executable's path into the shell
+  unquoted, so an install path containing a space (or any other shell
+  metacharacter) broke it. Both implementations now always POSIX
+  single-quote the path in the `if [ -x ... ]` test and in every `export`
+  line, writing an embedded `'` as `'\''`, with identical output. The rest of
+  the snippet is unchanged. `shell_test.sh` now sources the snippet of a copy
+  installed in a directory with spaces and quotes in its name.
 - Ruby stored an empty `-p`/`-m`/etc. argument as `""` rather than `nil`, so
   `-p '' --debug` showed `current_path: ""` where Crystal (and a bare `-p
   --debug`) showed `nil`. All eight path switches now normalise an absent or

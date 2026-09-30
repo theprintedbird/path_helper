@@ -110,6 +110,13 @@ case "$language" in
 		chmod 755 "$WORK/path_helper"
 		PATH_HELPER_EXECUTABLE="$WORK/path_helper"
 		export PATH_HELPER_EXECUTABLE
+		# The executable under test is a wrapper that always runs the one
+		# binary in $WORK/bin, so a copy of it elsewhere still reports that
+		# binary's path as its own. shell_test.sh reads this to skip the
+		# points that install a copy somewhere awkward and check the path
+		# the snippet names; only the harness reads it.
+		PATH_HELPER_EXECUTABLE_WRAPPED=1
+		export PATH_HELPER_EXECUTABLE_WRAPPED
 		title="Crystal $(crystal --version | sed -n '1s/^Crystal \([^ ]*\).*/\1/p')"
 		;;
 	*)

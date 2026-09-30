@@ -200,7 +200,7 @@ On Linux:
 - `~/.config/paths.d/` and
 - `~/.config/paths`
 
-You can use the `--setup` switch to have the path_helper set up the directory layout and files, you just have to fill them!
+You can use the `--setup` switch to have the path_helper set up the directory layout and files, you just have to fill them! It also prints a snippet to paste into your shell profile. The executable's path in that snippet is always single-quoted (an embedded `'` is written `'\''`), so it works wherever path_helper is installed, even in a directory with spaces in its name.
 
 You can also start a path with the tilde `~` character and it will be replaced with the `HOME` env variable. Only a leading `~` on its own or followed by a `/` is expanded, so `/opt/app~1/bin` is left as it is, and so is `~user` (other users' home directories are not looked up). For example, if I install Haskell and want to put it in my path I can take the following steps.
 
@@ -701,16 +701,17 @@ test point is reported as `ok ... # SKIP` with the reason rather than failing.
 Ubuntu and macOS have both; the Alpine images add them (`util-linux` and
 `ncurses`), but CI's Alpine jobs, which run in the stock images, skip it.
 
-**Real shells:** `spec/tests/shell_test.sh` checks that the output works the way
-it is meant to be used, in `sh` (whatever `/bin/sh` is; the run says which),
-`bash` and `zsh`. In each, run as a profile would be (no rc files, an emptied
-environment, a scratch `HOME` whose paths include a directory with a space in
-its name), it checks that `export PATH=$(path_helper -p "$PATH")` exports exactly
-what `-p` prints, that a program in the new `PATH` is then found and runs, and
-that the snippet `--setup` prints, sourced, exports every variable it names with
-the value path_helper prints for it. A shell that isn't installed is reported as
-`ok ... # SKIP`. The images add `bash` and `zsh` (Alpine) or `zsh` (Ubuntu), as
-do CI's Alpine jobs; the `ubuntu-latest` jobs skip zsh, and macOS has both.
+**Real shells:** `spec/tests/shell_test.sh` checks that the output works in `sh` 
+(whatever `/bin/sh` is, the run says which), `bash` and `zsh`. In each, run  with 
+no rc files, an emptied environment, a scratch `HOME` whose paths include a
+directory with a space in its name, it checks that `export PATH=$(path_helper -p "$PATH")`
+exports exactly what `-p` prints, and that a program in the new `PATH` is found and runs.
+
+It also checks that what `--setup` prints is correct.
+
+A shell that isn't installed is reported as `ok ... # SKIP`.
+The images add `bash` and `zsh` (Alpine) or `zsh` (Ubuntu), as
+do CI's Alpine jobs. The `ubuntu-latest` jobs skip zsh. macOS has both.
 
 **Keeping it portable:** bash-as-`sh` on macOS is still BSD userland, so `sed -i`,
 `stat`, `readlink`, `realpath` and `date +%N` are all off limits in the harness —

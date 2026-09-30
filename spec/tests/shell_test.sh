@@ -11,7 +11,8 @@
 #
 # Everything happens in a scratch HOME, whose user segment names two
 # directories: one with a space in its name, holding a probe program, and an
-# ordinary one. Nothing here touches the tree laid out by setup_test.sh.
+# ordinary one. The snippet is also tried from an executable copied into a
+# directory whose name has spaces and quotes. Nothing here touches the tree laid out by setup_test.sh.
 #
 # Sourced by spec/shell_spec.sh after setup_test.sh
 
@@ -118,7 +119,75 @@ path-helper-probe ran" \
 	fi
 done
 
+# The same again from an executable installed somewhere awkward: a directory
+# whose name has spaces, a single quote and a double quote in it. The snippet
+# names the executable's own path, so unless it quotes it the shell splits it
+# (or, with the quote, fails to parse the line at all). A copy is run, as
+# test_unreadable_fragment does; the Ruby script and the Crystal binary are
+# both self-contained. The expected values are what the copy itself prints.
+# Under Crystal coverage the executable is a wrapper around one fixed binary,
+# so a copy still names that binary's path and none of this is tested: the
+# -x point and the three per-shell points are then skipped (the count is the
+# same), on PATH_HELPER_EXECUTABLE_WRAPPED, which spec/lib/coverage/run.sh sets.
+shell_awkward="$shell_home/it's a \"tricky\" dir"
+shell_awkward_exe="$shell_awkward/path_helper"
+shell_awkward_snippet="$shell_home/awkward_snippet.sh"
+mkdir -p "$shell_awkward"
+cp "$EXECUTABLE" "$shell_awkward_exe"
+chmod +x "$shell_awkward_exe"
+
+HOME="$shell_home" PATH="$shell_base" "$shell_awkward_exe" --setup --dry-run --no-etc 2>/dev/null |
+	sed -n '/^# Put this in/,$p' > "$shell_awkward_snippet"
+
+# The path as POSIX single quotes spell it: wrapped in '...', each ' as '\''.
+shell_awkward_quoted="'$(printf '%s' "$shell_awkward_exe" | sed "s/'/'\\\\''/g")'"
+shell_wrapped_reason="the executable under test is kcov's wrapper, whose copies all run one fixed binary"
+if [ -n "${PATH_HELPER_EXECUTABLE_WRAPPED:-}" ]; then
+	tap_skip "the --setup snippet single-quotes an executable path with spaces and quotes" "$shell_wrapped_reason"
+else
+	assert_same "the --setup snippet single-quotes an executable path with spaces and quotes" \
+		"the -x test line" "if [ -x $shell_awkward_quoted ]; then" \
+		"$(grep '^if ' "$shell_awkward_snippet")" \
+		"$shell_awkward_exe --setup --dry-run --no-etc"
+fi
+
+shell_awkward_expected=""
+while read -r shell_var shell_switch; do
+	case " $shell_snippet_names " in
+		*" $shell_var "*) ;;
+		*) continue ;;
+	esac
+	shell_awkward_expected="$shell_awkward_expected${shell_awkward_expected:+
+}$shell_var=$(HOME="$shell_home" PATH="$shell_base" "$shell_awkward_exe" "$shell_switch" 2>/dev/null)"
+done <<EOF
+$SNIPPET_VARS
+EOF
+
+for shell_name in sh bash zsh; do
+	if [ "$shell_name" != sh ] && ! command -v "$shell_name" >/dev/null 2>&1; then
+		tap_skip "$shell_name: the --setup snippet from an executable in a directory with spaces and quotes" "$shell_name not installed"
+		continue
+	fi
+	if [ -n "${PATH_HELPER_EXECUTABLE_WRAPPED:-}" ]; then
+		tap_skip "$shell_name: the --setup snippet from an executable in a directory with spaces and quotes" "$shell_wrapped_reason"
+		continue
+	fi
+
+	shell_out="$(run_in_shell "$shell_name" "$shell_home" "
+		. \"\$HOME/awkward_snippet.sh\"
+		\"\$RUBY\" \"\$HOME/report_env.rb\" $shell_snippet_names
+	" 2>&1)"
+
+	assert_same "$shell_name: the --setup snippet from an executable in a directory with spaces and quotes" \
+		"the exported variables" "$shell_awkward_expected" "$shell_out" \
+		"$shell_name: . <the snippet of $shell_awkward_exe>"
+	if [ "$shell_out" != "$shell_awkward_expected" ]; then
+		tap_comment_file "snippet" "$shell_awkward_snippet"
+	fi
+done
+
 rm -rf "$shell_home"
 unset shell_home shell_spaced shell_plain shell_reporter shell_snippet shell_base \
 	shell_expected_path shell_direct_path shell_snippet_expected shell_snippet_names \
-	shell_var shell_switch shell_name shell_out
+	shell_var shell_switch shell_name shell_out shell_awkward shell_awkward_exe \
+	shell_awkward_snippet shell_awkward_quoted shell_awkward_expected shell_wrapped_reason

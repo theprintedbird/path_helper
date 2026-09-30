@@ -11,6 +11,12 @@ module PathHelper
       "PATH"                         => "-p",
     }
 
+    # POSIX single-quote: wrap in '...', each embedded ' becomes '\''.
+    # Hand-rolled so the output matches the Ruby implementation byte for byte.
+    def self.shell_quote(str : String) : String
+      "'" + str.gsub("'", "'\\''") + "'"
+    end
+
     def self.setup!(options : Hash(Symbol, String | Bool | Nil)) : Bool
       search_order = Helpers.determine_search_order(options)
       permission_errors = [] of String
@@ -72,7 +78,7 @@ module PathHelper
         return false
       end
 
-      script_path = Process.executable_path || "path_helper"
+      script_path = shell_quote(Process.executable_path || "path_helper")
       unless quiet
         env_exports = ENV_VARS.map { |var, switch| "export #{var}=$(#{script_path} #{switch})" }.join("\n  ")
         puts <<-SHENV
