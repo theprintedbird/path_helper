@@ -41,8 +41,9 @@ SPEC_DIR=$(cd "$(dirname "$0")" && pwd)
 echo "TAP version 14"
 tap_comment "Platform: $PLATFORM"
 
-# The suite runs under whatever /bin/sh is: busybox ash on Alpine (there is no
-# bash in the images), dash on Debian and Ubuntu, bash-as-sh on macOS. The one
+# The suite runs under whatever /bin/sh is: busybox ash on Alpine (the images
+# have bash and zsh only for shell_test.sh to run), dash on Debian and Ubuntu,
+# bash-as-sh on macOS. The one
 # thing it needs beyond POSIX is `local`, which all of those have, so a shell
 # without it is refused here rather than left to leak each helper's variables
 # into the next.
@@ -56,7 +57,7 @@ fi
 # Every test file, in the order they run. The tests share the TAP counters, so
 # the files are sourced rather than run. setup has to come first; the order of
 # the rest does not matter.
-TEST_FILES="setup path error edge_case case"
+TEST_FILES="setup path error edge_case case shell"
 
 # The files named on the command line, reduced to the short names above. They
 # are checked before the guard so that a mistyped name is reported even where

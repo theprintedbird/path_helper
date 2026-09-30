@@ -128,8 +128,8 @@ jobs:
         path: test_output.log
         retention-days: 7
 
-  # The local images are Alpine -- musl, busybox sh and no bash -- so this runs
-  # the suite that way in CI too. ruby/setup-ruby has no Alpine builds, so the
+  # The local images are Alpine -- musl, and busybox sh running the suite --
+  # so this runs the suite that way in CI too. ruby/setup-ruby has no Alpine builds, so the
   # Ruby comes from the official image, and the job is already root. The runner
   # supplies a musl node for the JavaScript actions, on x86_64 only.
   test-ruby-alpine:
@@ -145,6 +145,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
+
+    # For the shell integration tests (spec/tests/shell_test.sh), which skip
+    # a shell that isn't installed. sh is busybox ash here.
+    - name: Install bash and zsh
+      run: apk add --no-cache bash zsh
 
     - name: Set up test environment
       id: setup-test-env

@@ -43,7 +43,6 @@ Language-Agnostic Infrastructure
 - Create `ci.yml` main workflow (orchestrator) <!-- backlog: 1763431283, id: card_01M2CH88BK8P0N1F94FVJM60KR -->
 - Design workflow structure for Go implementation <!-- backlog: 1763431283, id: card_01M2CH87XDQS1TEBK3KMJEW430 -->
 - Create template for adding new language implementations <!-- backlog: 1763431283, id: card_01M2CH88402BTT1FQ104Q58W2G -->
-- Add shell integration tests (bash, zsh, sh) <!-- backlog: 1763431283, id: card_01M2CH88R1KG5HKTC38PM972ZY -->
 - Implement `test-go.yml` workflow (when Go implementation exists) <!-- backlog: 1763431283, id: card_01M2CH87Y7YD0YB6R6775QFA1Q -->
 - Add test result reporting with PR comments <!-- backlog: 1763431283, id: card_01M2CH88EHJRC4FXWBN7YA6MJG -->
 - Performance: compare Ruby and Crystal and catch regressions. Every test point already prints a `# Performance:` timing comment; collect them per implementation (a make target and/or a CI job), compare the two, and flag a run that is slower than baseline (merges "Add performance comparison between implementations"; see also "performance regression tests with timing bounds" in testing-list.md) <!-- backlog: 1763431283, id: card_01M2CH887P2B0TDX1TD7VSZXR1 -->
@@ -53,8 +52,12 @@ Language-Agnostic Infrastructure
 - Add golden file generation mode via `GENERATE_GOLDEN` environment variable <!-- backlog: 1789267516, id: card_01M2CH884TEX2CZP8RM345J89Z -->
 - Coverage threshold: print a non-blocking warning when line coverage drops below a minimum (e.g. 90%) in `make coverage`/`make coverage-crystal` and the CI coverage jobs; later turn it into a gate <!-- backlog: 1790332754, id: card_01M3C2BPC4C1QR07EEQP8SA7RY -->
 - Add a `coverage-all` make target (every Ruby and Crystal version), or fold the coverage targets into `make all` <!-- backlog: 1790332765, id: card_01M3C2C1FN2VCDEJQ9Z1SEN9ZQ -->
+- Fix: the `--setup` snippet ignores the segment switches given to `--setup` (e.g. `--setup --config` on a Mac prints commands that don't read `~/.config/paths`; `--no-etc` isn't carried over either). Carry them into the printed commands in both implementations <!-- backlog: 1790738910, id: card_01M3R5PJWNH0354F3WND3H6DVD -->
+- Fix: the `--setup` snippet leaves the executable's path unquoted in `[ -x ... ]` and `$(...)`, so an install path containing a space breaks it. Quote it in both implementations and extend `shell_test.sh` to cover it <!-- backlog: 1790738911, id: card_01M3R5PKYDYAHQV0Z0HBX8GE6J -->
+- README "An example install" section (around line 447) shows a stale `--setup` snippet: it names `~/.bash_profile`/`~/.zprofile`, uses separate `export` lines after `fi`; update it to match what `--setup` prints <!-- backlog: 1790738912, id: card_01M3R5PNGJEASE6TAEHNNZBY1P -->
 
 ###### Ready
+
 
 
 
@@ -181,3 +184,5 @@ Language-Agnostic Infrastructure
 - README CI/CD section is Ruby-only: "Workflow Structure" calls `test-ruby.yml` the main workflow and "Key files" lists only it, with no mention of `test-crystal.yml` or `release.yml`; describe both test workflows and the composite actions they share (`executable`/`home` outputs). "Key files" also lists the test files as "setup, path, error and edge case", missing `case_test.sh` <!-- backlog: 1790666993, done: 1790667821, id: card_01M3P13W8HK2P28FD5FPVMZKM1, in_progress: 1790667688, ready: 1790667266 -->
 - Workflow security: run actionlint as a CI step (so far only run by hand, which found the two release.yml problems) and consider pinning third-party actions to commit SHAs. Permissions, timeouts and concurrency are already set <!-- backlog: 1763431283, done: 1790668251, id: card_01M2CH88T8BY7W1N6F3YTETFZN, in_progress: 1790667861, ready: 1790667427 -->
 - Pre-commit check that runs `make lint` and actionlint. jj doesn't run git hooks, so this likely wants a `make check` target (or jj config) rather than `.git/hooks/pre-commit` <!-- backlog: 1763431283, done: 1790668398, id: card_01M2CH8815F0KQKJZ13PVMBNRW, in_progress: 1790668281, ready: 1790667445 -->
+- Add shell integration tests (bash, zsh, sh) <!-- backlog: 1763431283, done: 1790738790, id: card_01M2CH88R1KG5HKTC38PM972ZY, in_progress: 1790737634, ready: 1790737515 -->
+- Add shell integration tests (bash, zsh, sh) <!-- backlog: 1763431283, done: 1790743862, id: card_01M2CH88R1KG5HKTC38PM972ZY, ready: 1790737515 -->

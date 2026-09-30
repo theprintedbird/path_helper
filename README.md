@@ -682,7 +682,8 @@ their usual order regardless of the order they are passed in.
 A name with no matches halts the run with `Bail out!` and exit status 1.
 
 **Which shell runs it:** the suite is plain `sh`, run by whatever `/bin/sh` is —
-busybox `ash` in the Alpine images (which have no bash), `dash` in the glibc
+busybox `ash` in the Alpine images (which have bash only as something to test
+with, see below), `dash` in the glibc
 Crystal image and on Ubuntu, bash-as-`sh` on macOS. The only thing it relies on
 beyond POSIX is `local`, which all of those support; a shell without it gets a
 `Bail out!`. Because some shells field-split the value in `local x=$(...)`, such
@@ -699,6 +700,17 @@ handled) and `tput` supplies the colours to expect. Where either is missing that
 test point is reported as `ok ... # SKIP` with the reason rather than failing.
 Ubuntu and macOS have both; the Alpine images add them (`util-linux` and
 `ncurses`), but CI's Alpine jobs, which run in the stock images, skip it.
+
+**Real shells:** `spec/tests/shell_test.sh` checks that the output works the way
+it is meant to be used, in `sh` (whatever `/bin/sh` is; the run says which),
+`bash` and `zsh`. In each, run as a profile would be (no rc files, an emptied
+environment, a scratch `HOME` whose paths include a directory with a space in
+its name), it checks that `export PATH=$(path_helper -p "$PATH")` exports exactly
+what `-p` prints, that a program in the new `PATH` is then found and runs, and
+that the snippet `--setup` prints, sourced, exports every variable it names with
+the value path_helper prints for it. A shell that isn't installed is reported as
+`ok ... # SKIP`. The images add `bash` and `zsh` (Alpine) or `zsh` (Ubuntu), as
+do CI's Alpine jobs; the `ubuntu-latest` jobs skip zsh, and macOS has both.
 
 **Keeping it portable:** bash-as-`sh` on macOS is still BSD userland, so `sed -i`,
 `stat`, `readlink`, `realpath` and `date +%N` are all off limits in the harness —

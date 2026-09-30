@@ -12,9 +12,11 @@
 ARG CRYSTAL_VERSION=latest
 FROM crystallang/crystal:${CRYSTAL_VERSION}
 
-# Ruby for the suite's timing helper and the report.
+# Ruby for the suite's timing helper and the report; zsh so the shell
+# integration tests (spec/tests/shell_test.sh) run rather than skip (bash is
+# already there).
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ruby && \
+    apt-get install -y --no-install-recommends ruby zsh && \
     rm -rf /var/lib/apt/lists/*
 
 COPY docker/install-kcov.sh /tmp/install-kcov.sh

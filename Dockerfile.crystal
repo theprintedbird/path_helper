@@ -7,12 +7,14 @@ FROM crystallang/crystal:${CRYSTAL_VERSION}${CRYSTAL_BASE_SUFFIX}
 # Install Ruby, which the suite's timing helper shells out to. Neither base
 # image has it, and they differ in package manager. The Alpine base also lacks
 # script(1) and tput(1), which the test of colour on a terminal needs (Ubuntu
-# has both); without them that test is skipped.
+# has both); without them that test is skipped. bash and zsh are for the shell
+# integration tests (spec/tests/shell_test.sh), which skip a missing shell;
+# Ubuntu has bash already, and its sh is dash where Alpine's is busybox ash.
 RUN if command -v apk >/dev/null; then \
-      apk add --no-cache ruby util-linux ncurses; \
+      apk add --no-cache ruby util-linux ncurses bash zsh; \
     else \
       apt-get update && \
-      apt-get install -y --no-install-recommends ruby && \
+      apt-get install -y --no-install-recommends ruby zsh && \
       rm -rf /var/lib/apt/lists/*; \
     fi
 

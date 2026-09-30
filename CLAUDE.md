@@ -109,8 +109,9 @@ compile target.
 - `spec/lib/test_helpers.sh` — the TAP reporting, `cleanup`, and every assertion (`test_a_path`,
   `expect_failure`, ...). It only defines things; `spec/shell_spec.sh` sources it (located via `$0`),
   holds the guard, and then sources the test files.
-- The harness is plain `sh` run by whatever `/bin/sh` is — busybox ash in the Alpine images (no bash
-  there), dash in the glibc Crystal image, bash-as-sh on macOS. `local` is the one non-POSIX feature
+- The harness is plain `sh` run by whatever `/bin/sh` is — busybox ash in the Alpine images (which have
+  bash and zsh only for `shell_test.sh` to run as children), dash in the glibc Crystal image, bash-as-sh
+  on macOS. `local` is the one non-POSIX feature
   used; `spec/shell_spec.sh` bails out on a shell without it. Write `local x="$(...)"`, quoted, since
   `local` isn't an assignment to POSIX and some shells field-split its value.
 - macOS's bash-as-sh is also BSD userland: `sed -i`, `stat`, `readlink`, `realpath` and `date +%N` are
@@ -131,8 +132,9 @@ compile target.
   terminal, the `--etc`/`--no-*` segment switches, enabling the other segment, append mode),
   `error_test.sh` (exit status and stream contract: refusals, `--setup` without permission, `--`,
   `--version`, `--help`), `edge_case_test.sh` (awkward input files), `case_test.sh` (names differing
-  only by case). Nothing after setup mutates shared state (the dry run and the permission tests use
-  scratch `HOME`s), so the last four can be reordered freely. The order is
+  only by case), `shell_test.sh` (the output used by real shells). Nothing after setup mutates shared
+  state (the dry run, the permission tests, `case_test.sh` and `shell_test.sh` use scratch `HOME`s),
+  so the last five can be reordered freely. The order is
   `TEST_FILES` in `spec/shell_spec.sh`, which is also what named files are checked against, so a new
   test file has to be added there.
 - `--setup` without permission runs as *nobody* (`as_nobody`, like `test_unreadable_fragment`) in a
@@ -147,6 +149,7 @@ compile target.
   (`pty_flavour` probes for util-linux/busybox `-c` or BSD syntax) with `TERM=xterm` and compares the
   `Name:` line with one built from `tput`; without `script` or `tput` it emits `ok ... # SKIP`
   (`tap_skip`). The Alpine Dockerfiles `apk add util-linux ncurses` for it; CI's Alpine jobs skip.
+  (They also `apk add bash zsh`, and the glibc images `apt-get install zsh`, for `shell_test.sh`.)
 - `test_a_path_with_env` adds one `NAME=value` to the run's environment through `env(1)` (a prefix
   assignment on a function call may outlive it in POSIX sh); the `DEBUG` test uses it.
 - `case_test.sh` probes the file system (`is_case_insensitive`, a scratch file looked up in the other
@@ -156,6 +159,17 @@ compile target.
   `test_files_listed_under_home`), not fixtures. Being non-destructive, it can be run on a Mac host by
   sourcing `spec/lib/test_helpers.sh` and the test file with `EXECUTABLE`, `PLATFORM=darwin` and
   `USER_PATHS=Library/Paths` set — without the guard variable.
+- `shell_test.sh` runs the output through `sh` (whatever `/bin/sh` is, reported as `# sh is:`), `bash`
+  and `zsh`, three points each, a shell that isn't installed giving `# SKIP <shell> not installed`.
+  Each runs as a profile would (`run_in_shell`: `env -i` with `HOME`, a built `PATH` of ruby's
+  directory plus `/usr/bin:/bin`, `EXE`, `RUBY`; `bash --norc --noprofile`, `zsh -f`) in a scratch
+  `HOME` whose user segment names a directory with a space in it, holding a probe program. It checks
+  that `export PATH=$("$EXE" -p "$PATH" --no-etc)` exports exactly what `-p` prints, that
+  `command -v` then finds the probe there and runs it, and that the `--setup --dry-run` snippet,
+  sourced, exports every variable it names with the value its switch prints directly. What was
+  exported is read back by a child, a Ruby script (`write_env_reporter`) rather than `env(1)`: macOS
+  strips `DYLD_*` from its protected binaries' environment, so there those are left out of the check
+  when the only ruby is the system one. Like `case_test.sh`, it can be run on a Mac host.
 - `spec/fixtures/moredirs/` — input path files, copied by the run into the platform's user segment:
   `~/.config/paths` on Linux, `~/Library/Paths` on macOS.
 - `spec/fixtures/otherdirs/` — the other segment's inputs (a `paths`, one `paths.d` fragment and a
@@ -203,6 +217,9 @@ list, or a change to it alone won't be tested. Each has an
 `ruby:<ver>-alpine`, `test-crystal-alpine` in `crystallang/crystal:<ver>-alpine` (which `apk add`s
 ruby) -- since `ruby/setup-ruby` and `crystal-lang/install-crystal` have no Alpine builds. So CI tests
 Crystal against glibc on Ubuntu and musl on Alpine, as `CRYSTAL_LIBC` does locally.
+Both Alpine jobs `apk add bash zsh` for `shell_test.sh`. `ubuntu-latest` has bash but not zsh, and
+deliberately gets no apt step for it: zsh on Linux is already covered by the Alpine jobs, so the
+Ubuntu jobs' zsh points skip; macOS has both.
 Each workflow also has one coverage job on `ubuntu-latest` (`coverage-ruby`, Ruby 3.3;
 `coverage-crystal`, Crystal latest, which installs kcov first -- built from source into
 `KCOV_PREFIX` under `$HOME` and cached across runs by `actions/cache`, keyed on the kcov version

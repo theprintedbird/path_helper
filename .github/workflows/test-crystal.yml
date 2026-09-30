@@ -148,9 +148,11 @@ jobs:
     - uses: actions/checkout@v7
 
     # The suite's timing helper shells out to ruby. actions/cache needs GNU
-    # tar: busybox's refuses its --posix.
-    - name: Install Ruby and GNU tar
-      run: apk add --no-cache ruby tar
+    # tar: busybox's refuses its --posix. bash and zsh are for the shell
+    # integration tests (spec/tests/shell_test.sh), which skip a shell that
+    # isn't installed; sh is busybox ash here.
+    - name: Install Ruby, GNU tar, bash and zsh
+      run: apk add --no-cache ruby tar bash zsh
 
     - name: Install shards dependencies
       run: shards install

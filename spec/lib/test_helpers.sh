@@ -1005,3 +1005,89 @@ test_files_listed_under_home(){
 	assert_same "$description" "the files in the debug report" \
 		"$expected" "$actual" "$* --debug"
 }
+
+# --- Shells -----------------------------------------------------------------
+
+# The environment variables --setup's profile snippet sets, each with the
+# switch that builds it (Setup::ENV_VARS in both implementations), as
+# `NAME switch` pairs.
+SNIPPET_VARS='C_INCLUDE_PATH -c
+DYLD_FALLBACK_FRAMEWORK_PATH --dyld-fallback-fram
+DYLD_FALLBACK_LIBRARY_PATH --dyld-fallback-lib
+DYLD_FRAMEWORK_PATH --dyld-fram
+DYLD_LIBRARY_PATH --dyld-lib
+MANPATH -m
+PKG_CONFIG_PATH --pc
+PATH -p'
+
+# sh_flavour
+# What /bin/sh is, for a comment: the `sh` runs in shell_test.sh are whatever
+# it is, busybox ash on Alpine, dash on Debian and Ubuntu, bash on macOS.
+sh_flavour(){
+	if /bin/sh -c '[ -n "${BASH_VERSION-}" ]' < /dev/null; then
+		echo "bash (bash-as-sh)"
+	elif /bin/sh -c '[ -n "${ZSH_VERSION-}" ]' < /dev/null; then
+		echo "zsh (zsh-as-sh)"
+	elif /bin/sh --help < /dev/null 2>&1 | grep -q BusyBox; then
+		echo "busybox ash"
+	elif ls -l /bin/sh | grep -q 'dash$'; then
+		echo "dash"
+	else
+		echo "an unidentified POSIX shell"
+	fi
+}
+
+# The PATH each shell starts with in shell_test.sh: the system directories plus
+# wherever ruby is, which the Ruby implementation's `#!/usr/bin/env ruby`, the
+# Ruby snippet's `ruby <script>` and the reporter (below) all need. Built rather
+# than inherited, so it is short and known, and the expected paths can be
+# written out in full.
+shell_base_path(){
+	local ruby_dir="$(dirname "$(command -v ruby)")"
+	case "$ruby_dir" in
+		/usr/bin|/bin) echo "/usr/bin:/bin" ;;
+		*) echo "$ruby_dir:/usr/bin:/bin" ;;
+	esac
+}
+
+# run_in_shell <shell> <home> <script>
+# Runs <script> in <shell> (sh, bash or zsh) as a profile would be run:
+# non-interactive, and reading none of the user's or the system's rc files
+# (`bash --norc --noprofile`, `zsh -f`). The environment is emptied and rebuilt
+# with env(1): HOME, PATH (shell_base_path), EXE (the executable under test)
+# and RUBY (an absolute ruby, for the reporter, which has to be found after the
+# script has replaced PATH). A coverage run's RUBYOPT and raw output dir are
+# passed on when set, so the runs made inside the shell are counted too.
+# `sh` is /bin/sh, whatever that is (see sh_flavour).
+run_in_shell(){
+	local shell="$1"
+	local home="$2"
+	local script="$3"
+	local ruby="$(command -v ruby)"
+	local base="$(shell_base_path)"
+
+	case "$shell" in
+		sh) set -- /bin/sh -c "$script" ;;
+		bash) set -- "$(command -v bash)" --norc --noprofile -c "$script" ;;
+		zsh) set -- "$(command -v zsh)" -f -c "$script" ;;
+	esac
+	env -i HOME="$home" PATH="$base" EXE="$EXECUTABLE" RUBY="$ruby" \
+		${RUBYOPT:+"RUBYOPT=$RUBYOPT"} \
+		${PATH_HELPER_COVERAGE_RAW:+"PATH_HELPER_COVERAGE_RAW=$PATH_HELPER_COVERAGE_RAW"} \
+		"$@" < /dev/null
+}
+
+# write_env_reporter <file>
+# A Ruby script that prints `NAME=value` for each variable named on its
+# command line that is in its environment, and `NAME is not exported` for any
+# that is not. Being a child process of the shell, it sees only what was
+# exported. Ruby rather than env(1) because macOS strips DYLD_* variables from
+# the environment of its protected system binaries (/usr/bin/env among them),
+# so env(1) would report those as missing there whatever the shell exported.
+write_env_reporter(){
+	cat > "$1" <<-'RUBY'
+		ARGV.each do |name|
+		  puts(ENV.key?(name) ? "#{name}=#{ENV[name]}" : "#{name} is not exported")
+		end
+	RUBY
+}
