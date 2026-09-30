@@ -1,0 +1,14 @@
+# Dialect: the harness and installers are plain POSIX sh (run by busybox ash,
+# dash, or bash-as-sh), so check against that rather than guessing from shebangs.
+shell=sh
+
+# SC3043: "local is not POSIX". The harness uses `local`, its one non-POSIX
+# feature, and spec/shell_spec.sh bails out on a shell that lacks it.
+disable=SC3043
+
+# Follow `. file` / `source file` into the sourced scripts, so their variables
+# and functions are known to the files that use them.
+external-sources=true
+
+# Resolve source paths relative to the directory of the script being checked.
+source-path=SCRIPTDIR

@@ -51,8 +51,6 @@ Language-Agnostic Infrastructure
 
 ###### Ready
 
-- Add SAST (static analysis security testing). Minimal scope: zizmor + ShellCheck (no Ruby SAST engine; none exists for Crystal). See the SAST sub-cards below <!-- backlog: 1763431283, complexity: 3, id: card_01M2CH87ZJEYVC2FYFV6WY084Y, ready: 1790763453 -->
-- SAST 1/6: Add `.shellcheckrc` (shell=sh, disable=SC3043 for `local`, external-sources=true, source-path=SCRIPTDIR) and a `make shellcheck` target over `spec/**/*.sh` and `docker/*.sh` (found with `find`, same not-on-PATH guard as `actionlint`); wire it into `make check` and the help text. Part of card_01M2CH87ZJEYVC2FYFV6WY084Y <!-- id: card_01M3RY7FWVE57R9NJD9X9F92TN, ready: 1790764629 -->
 - SAST 2/6: Triage and fix the shellcheck findings in the harness, test files and docker scripts (targeted inline disables with a reason for deliberate cases; SC2154 for helper globals per file, not globally); then `make test RUBY_VER=3.3` and `make test-crystal CRYSTAL_VER=1.14.0` with musl and `CRYSTAL_LIBC=gnu`. Part of card_01M2CH87ZJEYVC2FYFV6WY084Y <!-- id: card_01M3RY7M35NV1MAGQQKNSFY5J4, ready: 1790764634 -->
 - SAST 3/6: Add a `make zizmor` target over `.github/` (workflows and composite actions; not-on-PATH guard with install hint) and wire it into `make check`. Part of card_01M2CH87ZJEYVC2FYFV6WY084Y <!-- id: card_01M3RY7QMNHJPSR77WK8XZB5S4, ready: 1790764637 -->
 - SAST 4/6: Triage and fix the zizmor findings: `persist-credentials: false` on every checkout, `${{ }}` in `run:` blocks moved into `env:`, review cache-poisoning on the Crystal/kcov caches, release.yml write permissions scoped to the job. Part of card_01M2CH87ZJEYVC2FYFV6WY084Y <!-- id: card_01M3RY7W8BB6CAS1PKD7VGN3XJ, ready: 1790764642 -->
@@ -63,6 +61,8 @@ Language-Agnostic Infrastructure
 
 
 ###### In Progress
+
+- Add SAST (static analysis security testing). Minimal scope: zizmor + ShellCheck (no Ruby SAST engine; none exists for Crystal). See the SAST sub-cards below <!-- backlog: 1763431283, complexity: 3, id: card_01M2CH87ZJEYVC2FYFV6WY084Y, in_progress: 1790765082, ready: 1790763453 -->
 
 ###### Done
 
@@ -188,3 +188,4 @@ Language-Agnostic Infrastructure
 - Add automated dependency updates (Dependabot) <!-- backlog: 1763431283, complexity: 5, done: 1790747240, id: card_01M2CH88150PJWM0KRN0QF0Z3T, ready: 1790743964 -->
 - The suggestion that `--setup` prints does not match the README "An example install" section (around line 447) ; update it to match the README <!-- backlog: 1790738912, complexity: 5, done: 1790750739, id: card_01M3R5PNGJEASE6TAEHNNZBY1P, ready: 1790743900 -->
 - Fix: the `--setup` snippet ignores the segment switches given to `--setup` (e.g. `--setup --config` on a Mac prints commands that don't read `~/.config/paths`; `--no-etc` isn't carried over either). Carry them into the printed commands in both implementations <!-- backlog: 1790738910, complexity: 3, done: 1790751982, id: card_01M3R5PJWNH0354F3WND3H6DVD, in_progress: 1790751048, ready: 1790750880 -->
+- SAST 1/6: Add `.shellcheckrc` (shell=sh, disable=SC3043 for `local`, external-sources=true, source-path=SCRIPTDIR) and a `make shellcheck` target over `spec/**/*.sh` and `docker/*.sh` (found with `find`, same not-on-PATH guard as `actionlint`); wire it into `make check` and the help text. Part of card_01M2CH87ZJEYVC2FYFV6WY084Y <!-- done: 1790765224, id: card_01M3RY7FWVE57R9NJD9X9F92TN, in_progress: 1790765082, ready: 1790764629 -->

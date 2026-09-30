@@ -82,7 +82,8 @@ help:
 	@echo "    make list                   Show all built images"
 	@echo "    make lint                   Check the test harness for GNU-only shell (breaks on macOS/BSD)"
 	@echo "    make actionlint             Lint .github/workflows/ with actionlint (it and shellcheck must be on PATH)"
-	@echo "    make check                  Run lint and actionlint (host-only; run before committing)"
+	@echo "    make shellcheck             Lint spec/**/*.sh and docker/*.sh with shellcheck (config: .shellcheckrc)"
+	@echo "    make check                  Run lint, actionlint and shellcheck (host-only; run before committing)"
 	@echo ""
 	@echo "Environment Variables:"
 	@echo "  VERSION                   Version tag (default: git describe or 'dev')"
@@ -277,8 +278,17 @@ actionlint:
 	}
 	@actionlint
 
+.PHONY: shellcheck
+shellcheck:
+	@command -v shellcheck >/dev/null 2>&1 || { \
+		echo "shellcheck not found on PATH -- install it" \
+			"(brew install shellcheck, or https://github.com/koalaman/shellcheck#installing)." >&2; \
+		exit 1; \
+	}
+	@find spec docker -name '*.sh' -type f -exec shellcheck {} +
+
 .PHONY: check
-check: lint actionlint
+check: lint actionlint shellcheck
 	@echo "✓ check passed"
 
 # =============================================================================
