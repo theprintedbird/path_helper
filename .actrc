@@ -4,7 +4,7 @@
 # no Ruby 2.7 binaries for 24.04.
 -P ubuntu-latest=catthehacker/ubuntu:act-22.04
 
-# actions/upload-artifact@v4 fails without a local artifact server.
+# actions/upload-artifact@v7 fails without a local artifact server.
 --artifact-server-path /tmp/act-artifacts
 
 # The workflows never use Docker, so don't mount the host daemon socket in.
