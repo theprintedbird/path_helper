@@ -259,6 +259,14 @@ list:
 	@echo "Available path_helper images:"
 	@$(CONTAINER_RUNTIME) images $(REPO)
 
+# The lint tool versions CI's Lint workflow pins (.github/workflows/lint.yml:
+# SHELLCHECK_VERSION, ACTIONLINT_VERSION and the zizmor job's `version:`) -- change
+# them together. Each target below warns on stderr, without failing, when the host's
+# copy differs, since a different version can pass here and fail in CI (or the reverse).
+SHELLCHECK_VERSION := 0.11.0
+ACTIONLINT_VERSION := 1.7.12
+ZIZMOR_VERSION := 1.30.1
+
 .PHONY: lint
 lint:
 	@sh spec/lint_portability.sh
@@ -277,6 +285,12 @@ actionlint:
 			"(brew install shellcheck, or https://github.com/koalaman/shellcheck#installing)." >&2; \
 		exit 1; \
 	}
+	@have="$$(actionlint -version 2>&1 | sed -n '1s/^v//p')"; \
+	[ "$$have" = "$(ACTIONLINT_VERSION)" ] || \
+		echo "warning: actionlint is $$have but CI pins $(ACTIONLINT_VERSION); results may differ from CI." >&2
+	@have="$$(shellcheck --version | sed -n 's/^version: //p')"; \
+	[ "$$have" = "$(SHELLCHECK_VERSION)" ] || \
+		echo "warning: shellcheck is $$have but CI pins $(SHELLCHECK_VERSION); results may differ from CI." >&2
 	@actionlint
 
 .PHONY: shellcheck
@@ -286,6 +300,9 @@ shellcheck:
 			"(brew install shellcheck, or https://github.com/koalaman/shellcheck#installing)." >&2; \
 		exit 1; \
 	}
+	@have="$$(shellcheck --version | sed -n 's/^version: //p')"; \
+	[ "$$have" = "$(SHELLCHECK_VERSION)" ] || \
+		echo "warning: shellcheck is $$have but CI pins $(SHELLCHECK_VERSION); results may differ from CI." >&2
 	@find spec docker -name '*.sh' -type f -exec shellcheck {} +
 
 # --offline skips the audits that query the GitHub API, so this stays host-only and
@@ -300,6 +317,9 @@ zizmor:
 			"or see https://docs.zizmor.sh/installation/) and try again." >&2; \
 		exit 1; \
 	}
+	@have="$$(zizmor --version | sed 's/^zizmor //')"; \
+	[ "$$have" = "$(ZIZMOR_VERSION)" ] || \
+		echo "warning: zizmor is $$have but CI pins $(ZIZMOR_VERSION); results may differ from CI." >&2
 	@zizmor --offline --config .github/zizmor.yml .github
 
 .PHONY: check

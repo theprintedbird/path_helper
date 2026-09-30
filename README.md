@@ -744,7 +744,10 @@ itself, so a GNU-only form is caught in CI before it can fail on the macOS runne
 `actionlint`, `shellcheck` and `zizmor` must all be on `PATH` (`brew install actionlint shellcheck
 zizmor`); each target refuses to run with an install hint otherwise. In particular, without shellcheck
 actionlint quietly skips the `run:` scripts, which CI's runners do check, so `make check` would pass
-something CI fails. All are fast, host-only checks (no container), and CI runs the same ones:
+something CI fails. The versions CI pins (`SHELLCHECK_VERSION`, `ACTIONLINT_VERSION` and
+`ZIZMOR_VERSION` at the top of the lint targets in the `Makefile`, matching `lint.yml`) are recorded
+there too: each target prints a warning, without failing, when the host's tool differs, since another
+version can pass here and fail in CI. All are fast, host-only checks (no container), and CI runs the same ones:
 `lint_portability.sh` in `run-shell-tests`, and `actionlint`, `shellcheck` and `zizmor` in
 `.github/workflows/lint.yml`.
 
@@ -1031,9 +1034,9 @@ branches (`test-crystal.yml` also runs on pushes to `claude/path-helper-crystal-
   The release workflow does not use it.
 - **Artifact Retention**: Test results are kept for 7 days, coverage reports for 14 days.
 - **Workflow Linting and Security Audit**: `lint.yml` has three jobs: [`actionlint`](https://github.com/rhysd/actionlint)
-  (a pinned release, checksum-verified) over every workflow, `shellcheck` over the harness and
-  Docker install scripts, and [`zizmor`](https://docs.zizmor.sh/) over the workflows and composite
-  actions. It is triggered when `.github/**`, `spec/**/*.sh`, `docker/*.sh`, `.shellcheckrc` or the
+  (a pinned release, checksum-verified) over every workflow, `shellcheck` (likewise pinned) over the
+  harness and Docker install scripts, and [`zizmor`](https://docs.zizmor.sh/) (a pinned version) over the workflows and composite
+  actions. To bump a tool, change its pin in `lint.yml` and the matching `Makefile` version together. It is triggered when `.github/**`, `spec/**/*.sh`, `docker/*.sh`, `.shellcheckrc` or the
   `Makefile` change.
 - **Automated Dependency Updates**: Dependabot checks for updates to GitHub Actions weekly and proposes
   PRs to update them, targeting the `dev` branch (the primary development branch).
@@ -1082,11 +1085,15 @@ A fourth workflow, `.github/workflows/lint.yml`, runs three jobs:
 
 - `actionlint` downloads a pinned `actionlint` release, verifies its checksum against the release's
   published checksums file, and runs against every workflow (composite actions are linted only as far
-  as a workflow references them).
-- `shellcheck` runs the same `find` as `make shellcheck` over `spec/` and `docker/`. It does not call
-  `make`, because the Makefile needs podman or docker just to be parsed.
-- `zizmor` runs the SHA-pinned `zizmorcore/zizmor-action` over `.github`, with the online audits
-  (default token) that `make zizmor` skips. Findings fail the job; nothing is uploaded as code scanning.
+  as a workflow references them). It also installs the pinned shellcheck first, so actionlint's check
+  of the `run:` scripts uses the same version as the `shellcheck` job.
+- `shellcheck` installs a pinned `shellcheck` release (checksum-verified, from the workflow-level
+  `SHELLCHECK_VERSION`/`SHELLCHECK_SHA256`, not the runner's drifting copy) and runs the same `find` as
+  `make shellcheck` over `spec/` and `docker/`. It does not call `make`, because the Makefile needs
+  podman or docker just to be parsed.
+- `zizmor` runs the SHA-pinned `zizmorcore/zizmor-action` at a pinned zizmor `version:` (not the
+  action's default, `latest`) over `.github`, with the online audits (default token) that `make zizmor`
+  skips. Findings fail the job; nothing is uploaded as code scanning.
 
 It runs when files under `.github/**`, `spec/**/*.sh`, `docker/*.sh`, `.shellcheckrc` or the
 `Makefile` change.

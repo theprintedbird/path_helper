@@ -138,7 +138,9 @@ compile target.
   .github/zizmor.yml .github`, the workflows and composite actions). Each of the three tools must be on
   `PATH` and fails with a one-line install hint otherwise (actionlint also needs `shellcheck`: it quietly
   skips `run:` scripts without it, and CI's `ubuntu-latest` has it, so a local run without it could pass
-  what CI fails). All host-only and fast; jj has no hooks, so run it by hand before committing. CI runs
+  what CI fails). The Makefile records the versions CI pins (`SHELLCHECK_VERSION`, `ACTIONLINT_VERSION`,
+  `ZIZMOR_VERSION`, kept in step with `lint.yml` by hand) and each target warns on stderr, without failing,
+  when the host's tool differs. All host-only and fast; jj has no hooks, so run it by hand before committing. CI runs
   the same checks separately: `lint_portability.sh` in `run-shell-tests`, and `actionlint`, `shellcheck`
   and `zizmor` in `.github/workflows/lint.yml`. `zizmor` gets `--config` explicitly because it finds the
   repo root through `.git`, and a jj workspace has none, so it would audit against the main checkout's
@@ -278,8 +280,10 @@ A fourth workflow, `.github/workflows/lint.yml` ("Lint"), runs on changes to `.g
 `spec/**/*.sh`, `docker/*.sh`, `.shellcheckrc` and `Makefile` (one YAML anchor shared by `push` and
 `pull_request`), in three jobs. `actionlint` downloads a pinned, checksum-verified release and runs it
 over the workflows (and the two composite actions, as far as a workflow references them). `shellcheck`
-runs the same `find` as `make shellcheck`, not `make`, since the Makefile errors at parse time without
-podman/docker. `zizmor` runs `zizmorcore/zizmor-action` (SHA-pinned, `advanced-security: false`, so
+installs a pinned, checksum-verified release (workflow-level `SHELLCHECK_VERSION`/`SHELLCHECK_SHA256`; the
+`actionlint` job installs the same one so its `run:` script check agrees) and runs the same `find` as `make
+shellcheck`, not `make`, since the Makefile errors at parse time without podman/docker. `zizmor` runs `zizmorcore/zizmor-action` (SHA-pinned, `version:` pinned to an exact zizmor release rather than the default `latest`,
+`advanced-security: false`, so
 findings fail the job rather than upload SARIF) with online audits on the default token, where `make
 zizmor` is `--offline`. `.github/zizmor.yml` encodes the pinning policy below as its `unpinned-uses`
 rule (`actions/*: ref-pin`, `*: hash-pin`). The same audit is why every `actions/checkout` sets

@@ -26,6 +26,19 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  # Tool versions are pinned so CI lints with what `make check` does on the host
+  # (the Makefile records the same versions and warns when the host differs --
+  # change them together). ACTIONLINT_VERSION is in the actionlint job and
+  # zizmor's `version:` in the zizmor job.
+  SHELLCHECK_VERSION: '0.11.0'
+  # linux.x86_64 .tar.xz digest, as published for the asset on the release at
+  # https://github.com/koalaman/shellcheck/releases/tag/v0.11.0 (shellcheck
+  # ships no checksum file) -- verified below rather than trusted from the
+  # runner's preinstalled copy, whose version drifts (ubuntu-latest's flagged
+  # SC2015 where 0.11.0 doesn't).
+  SHELLCHECK_SHA256: '8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198'
+
 jobs:
   actionlint:
     runs-on: ubuntu-latest
@@ -43,6 +56,21 @@ jobs:
       with:
         persist-credentials: false
 
+    - name: Download shellcheck
+      run: |
+        curl -sSL -o "${RUNNER_TEMP}/shellcheck.tar.xz" "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.xz"
+
+    - name: Verify shellcheck checksum
+      run: |
+        echo "${SHELLCHECK_SHA256}  ${RUNNER_TEMP}/shellcheck.tar.xz" | sha256sum -c -
+
+    - name: Install shellcheck
+      run: |
+        mkdir -p "${RUNNER_TEMP}/bin"
+        tar -xJf "${RUNNER_TEMP}/shellcheck.tar.xz" -C "${RUNNER_TEMP}/bin" --strip-components=1 "shellcheck-v${SHELLCHECK_VERSION}/shellcheck"
+        echo "${RUNNER_TEMP}/bin" >> "${GITHUB_PATH}"
+        "${RUNNER_TEMP}/bin/shellcheck" --version
+
     - name: Download actionlint
       run: |
         curl -sSLO "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
@@ -59,7 +87,7 @@ jobs:
 
     - name: Run actionlint
       # Lints the workflows under .github/workflows/ (its own shellcheck check of
-      # their run: scripts uses the runner's preinstalled shellcheck); composite
+      # their run: scripts uses the pinned shellcheck installed above); composite
       # actions under .github/actions/ are checked only as far as they're
       # referenced from a workflow, which covers both of this project's.
       run: ./actionlint -color
@@ -73,8 +101,20 @@ jobs:
       with:
         persist-credentials: false
 
-    - name: Show shellcheck version
-      run: shellcheck --version
+    - name: Download shellcheck
+      run: |
+        curl -sSL -o "${RUNNER_TEMP}/shellcheck.tar.xz" "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.xz"
+
+    - name: Verify shellcheck checksum
+      run: |
+        echo "${SHELLCHECK_SHA256}  ${RUNNER_TEMP}/shellcheck.tar.xz" | sha256sum -c -
+
+    - name: Install shellcheck
+      run: |
+        mkdir -p "${RUNNER_TEMP}/bin"
+        tar -xJf "${RUNNER_TEMP}/shellcheck.tar.xz" -C "${RUNNER_TEMP}/bin" --strip-components=1 "shellcheck-v${SHELLCHECK_VERSION}/shellcheck"
+        echo "${RUNNER_TEMP}/bin" >> "${GITHUB_PATH}"
+        "${RUNNER_TEMP}/bin/shellcheck" --version
 
     - name: Run shellcheck
       # The same find as `make shellcheck` (config: .shellcheckrc) -- keep them
@@ -94,6 +134,9 @@ jobs:
     - name: Run zizmor
       uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
       with:
+        # An exact version (the action's default is `latest`, which picked up
+        # new audits such as 1.30's self-repository unannounced).
+        version: '1.30.1'
         # Print findings in the log and fail the job, rather than uploading
         # SARIF to code scanning (which would need security-events: write).
         advanced-security: false
