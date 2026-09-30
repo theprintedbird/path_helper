@@ -745,12 +745,18 @@ make check
 make coverage RUBY_VER=3.3
 make coverage-crystal CRYSTAL_VER=1.14.0
 make coverage RUBY_VER=3.3 TESTS=path     # TESTS works here too
+make coverage-all                         # every Ruby and Crystal version (slow)
 ```
 
 These run the same suite with line coverage switched on for the implementation
 under test, then print a summary (lines, percentage and the uncovered line numbers
 per file) as TAP comments after the plan. The report is copied out to
-`coverage/ruby/` or `coverage/crystal/` (git-ignored):
+`coverage/ruby/` or `coverage/crystal/` (git-ignored; override with `COVERAGE_RUBY_DIR` /
+`COVERAGE_CRYSTAL_DIR`). `make coverage-all` (or `coverage-ruby-all` / `coverage-crystal-all`)
+runs every version in `RUBY_VERSIONS` / `CRYSTAL_VERSIONS`, each into its own directory,
+`coverage/ruby-<ver>/` and `coverage/crystal-<ver>/`, carries on past a failing version and
+lists the reports at the end. It is deliberately not part of `make all`: coverage runs are
+slow, and the Crystal one builds kcov from source.
 
 - `summary.md` — the summary, in Markdown.
 - Ruby: `path_helper.txt`, the script with each line's hit count in the margin
@@ -1101,6 +1107,9 @@ make test-crystal-all
 # Line coverage, report in coverage/ruby/ and coverage/crystal/
 make coverage RUBY_VER=3.3
 make coverage-crystal CRYSTAL_VER=1.14.0
+
+# Coverage for every version, into coverage/ruby-<ver>/ and coverage/crystal-<ver>/
+make coverage-all
 
 # Interactive shell for debugging
 make shell RUBY_VER=3.3

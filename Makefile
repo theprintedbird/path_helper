@@ -39,6 +39,12 @@ VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev
 # Docker/Podman image repository
 REPO := path_helper
 
+# Where the coverage targets put their report (relative to this directory, or
+# absolute). Each run removes and recreates its directory, so coverage-all gives
+# every version its own.
+COVERAGE_RUBY_DIR ?= coverage/ruby
+COVERAGE_CRYSTAL_DIR ?= coverage/crystal
+
 .PHONY: help
 help:
 	@echo "Path Helper Container Build System"
@@ -53,6 +59,7 @@ help:
 	@echo "    make test RUBY_VER=2.7      Run tests for specific Ruby version"
 	@echo "    make shell RUBY_VER=2.7     Open interactive shell in container"
 	@echo "    make coverage RUBY_VER=3.3  Run tests with line coverage, report in coverage/ruby/"
+	@echo "    make coverage-ruby-all      Coverage for every Ruby version, into coverage/ruby-<ver>/"
 	@echo ""
 	@echo "  Crystal:"
 	@echo "    make build-crystal-all                  Build images for all Crystal versions"
@@ -63,9 +70,11 @@ help:
 	@echo "    make extract-crystal CRYSTAL_VER=latest Extract binary from container to bin/"
 	@echo "    make coverage-crystal CRYSTAL_VER=1.14.0 Run tests with line coverage (kcov, glibc),"
 	@echo "                                            report in coverage/crystal/"
+	@echo "    make coverage-crystal-all               Coverage for every Crystal version, into coverage/crystal-<ver>/"
 	@echo ""
 	@echo "  General:"
 	@echo "    make all                    Build and test both Ruby and Crystal"
+	@echo "    make coverage-all           Coverage for every Ruby and Crystal version (slow)"
 	@echo "    make clean                  Remove all built images"
 	@echo "    make list                   Show all built images"
 	@echo "    make lint                   Check the test harness for GNU-only shell (breaks on macOS/BSD)"
@@ -78,6 +87,8 @@ help:
 	@echo "  CRYSTAL_VERSIONS          Crystal versions to build (default: $(CRYSTAL_VERSIONS))"
 	@echo "  CRYSTAL_LIBC              C library for the Crystal images: musl (Alpine, default) or gnu (Ubuntu)"
 	@echo "  CONTAINER_RUNTIME         Override container runtime (podman or docker)"
+	@echo "  COVERAGE_RUBY_DIR         Report directory for 'coverage' (default: coverage/ruby)"
+	@echo "  COVERAGE_CRYSTAL_DIR      Report directory for 'coverage-crystal' (default: coverage/crystal)"
 	@echo "  TESTS                     Test files to run, e.g. 'path error' (default: all; setup always runs)"
 	@echo ""
 	@echo "Examples:"
@@ -88,6 +99,7 @@ help:
 	@echo "  make test-crystal CRYSTAL_VER=latest    # Test latest Crystal"
 	@echo "  make test-crystal CRYSTAL_VER=1.14.0 CRYSTAL_LIBC=gnu  # Test against glibc"
 	@echo "  make coverage RUBY_VER=3.3 TESTS=path   # Coverage of one test file (after setup)"
+	@echo "  make coverage-all                       # Every version, one report directory each"
 	@echo ""
 	@echo "Notes:"
 	@echo "  The test, shell and extract targets build the image they need first,"
@@ -95,6 +107,8 @@ help:
 	@echo "  Coverage is a report, not a gate: its exit status is the suite's. Crystal"
 	@echo "  coverage always uses its own glibc image (Dockerfile.crystal-coverage),"
 	@echo "  whatever CRYSTAL_LIBC is, as kcov does not build against musl."
+	@echo "  coverage-all is not part of 'make all': coverage runs are slow, and the"
+	@echo "  Crystal one builds kcov from source."
 
 .PHONY: build-all
 build-all:
@@ -186,7 +200,8 @@ endif
 
 # Line coverage of the Ruby implementation as the suite exercises it. Runs the
 # ordinary test image through spec/lib/coverage/run.sh instead of the suite
-# directly, so nothing extra is installed; the report lands in coverage/ruby/.
+# directly, so nothing extra is installed; the report lands in
+# $(COVERAGE_RUBY_DIR) (coverage/ruby/ by default).
 .PHONY: coverage
 coverage:
 ifndef RUBY_VER
@@ -195,12 +210,37 @@ ifndef RUBY_VER
 	@exit 1
 endif
 	@$(MAKE) build RUBY_VER=$(RUBY_VER)
-	@rm -rf coverage/ruby && mkdir -p coverage/ruby
+	@rm -rf "$(COVERAGE_RUBY_DIR)" && mkdir -p "$(COVERAGE_RUBY_DIR)"
 	@echo "Running tests with coverage for Ruby $(RUBY_VER)..."
-	@$(CONTAINER_RUNTIME) run --rm -v "$(CURDIR)/coverage/ruby":/coverage:Z \
+	@$(CONTAINER_RUNTIME) run --rm -v "$(abspath $(COVERAGE_RUBY_DIR))":/coverage:Z \
 		--entrypoint sh $(REPO):$(VERSION)-ruby$(RUBY_VER) \
 		spec/lib/coverage/run.sh ruby /coverage $(TESTS)
-	@echo "Coverage report: coverage/ruby/summary.md"
+	@echo "Coverage report: $(COVERAGE_RUBY_DIR)/summary.md"
+
+# Coverage for every Ruby version, each into coverage/ruby-<ver>/. Like
+# test-all it carries on past a failing version and fails at the end.
+.PHONY: coverage-ruby-all
+coverage-ruby-all:
+	@failed=0; \
+	for ruby in $(RUBY_VERSIONS); do \
+		echo ""; \
+		echo "==> Coverage for Ruby $$ruby..."; \
+		if $(MAKE) coverage RUBY_VER=$$ruby COVERAGE_RUBY_DIR=coverage/ruby-$$ruby; then \
+			echo "✓ Ruby $$ruby coverage done"; \
+		else \
+			echo "✗ Ruby $$ruby coverage failed"; \
+			failed=$$((failed + 1)); \
+		fi; \
+	done; \
+	echo ""; \
+	echo "Ruby coverage reports:"; \
+	for ruby in $(RUBY_VERSIONS); do \
+		echo "  Ruby $$ruby: coverage/ruby-$$ruby/summary.md"; \
+	done; \
+	if [ $$failed -ne 0 ]; then \
+		echo "✗ $$failed Ruby coverage run(s) failed"; \
+		exit 1; \
+	fi
 
 .PHONY: clean
 clean:
@@ -341,7 +381,8 @@ endif
 # glibc (Ubuntu) whatever CRYSTAL_LIBC says: kcov is built there from source
 # and does not build against musl. kcov needs address randomisation off in the
 # process it traces, which the default seccomp profile refuses, hence
-# seccomp=unconfined. The report lands in coverage/crystal/.
+# seccomp=unconfined. The report lands in $(COVERAGE_CRYSTAL_DIR)
+# (coverage/crystal/ by default).
 .PHONY: coverage-crystal
 coverage-crystal:
 ifndef CRYSTAL_VER
@@ -354,12 +395,37 @@ endif
 		--build-arg CRYSTAL_VERSION=$(CRYSTAL_VER) \
 		--tag $(REPO):$(VERSION)-crystal$(CRYSTAL_VER)-coverage \
 		-f Dockerfile.crystal-coverage .
-	@rm -rf coverage/crystal && mkdir -p coverage/crystal
+	@rm -rf "$(COVERAGE_CRYSTAL_DIR)" && mkdir -p "$(COVERAGE_CRYSTAL_DIR)"
 	@echo "Running tests with coverage for Crystal $(CRYSTAL_VER) (gnu)..."
 	@$(CONTAINER_RUNTIME) run --rm --security-opt seccomp=unconfined \
-		-v "$(CURDIR)/coverage/crystal":/coverage:Z \
+		-v "$(abspath $(COVERAGE_CRYSTAL_DIR))":/coverage:Z \
 		$(REPO):$(VERSION)-crystal$(CRYSTAL_VER)-coverage $(TESTS)
-	@echo "Coverage report: coverage/crystal/summary.md (HTML: coverage/crystal/kcov/index.html)"
+	@echo "Coverage report: $(COVERAGE_CRYSTAL_DIR)/summary.md (HTML: $(COVERAGE_CRYSTAL_DIR)/kcov/index.html)"
+
+# Coverage for every Crystal version, each into coverage/crystal-<ver>/. Like
+# test-crystal-all it carries on past a failing version and fails at the end.
+.PHONY: coverage-crystal-all
+coverage-crystal-all:
+	@failed=0; \
+	for crystal in $(CRYSTAL_VERSIONS); do \
+		echo ""; \
+		echo "==> Coverage for Crystal $$crystal (gnu)..."; \
+		if $(MAKE) coverage-crystal CRYSTAL_VER=$$crystal COVERAGE_CRYSTAL_DIR=coverage/crystal-$$crystal; then \
+			echo "✓ Crystal $$crystal coverage done"; \
+		else \
+			echo "✗ Crystal $$crystal coverage failed"; \
+			failed=$$((failed + 1)); \
+		fi; \
+	done; \
+	echo ""; \
+	echo "Crystal coverage reports:"; \
+	for crystal in $(CRYSTAL_VERSIONS); do \
+		echo "  Crystal $$crystal: coverage/crystal-$$crystal/summary.md"; \
+	done; \
+	if [ $$failed -ne 0 ]; then \
+		echo "✗ $$failed Crystal coverage run(s) failed"; \
+		exit 1; \
+	fi
 
 # =============================================================================
 # Combined Targets
@@ -369,6 +435,22 @@ endif
 all: build-all build-crystal-all test-all test-crystal-all
 	@echo ""
 	@echo "✓ All Ruby and Crystal images built and tested successfully!"
+
+# Coverage for every Ruby and Crystal version. Not part of `all`: coverage runs
+# are slow, and the Crystal one builds kcov from source. Runs both languages
+# even if the first has a failure, then fails if either did.
+.PHONY: coverage-all
+coverage-all:
+	@failed=0; \
+	$(MAKE) coverage-ruby-all || failed=1; \
+	$(MAKE) coverage-crystal-all || failed=1; \
+	echo ""; \
+	if [ $$failed -eq 0 ]; then \
+		echo "✓ Coverage reports written under coverage/ (ruby-<ver>/, crystal-<ver>/)"; \
+	else \
+		echo "✗ Some coverage runs failed"; \
+		exit 1; \
+	fi
 
 # =============================================================================
 # Legacy Targets

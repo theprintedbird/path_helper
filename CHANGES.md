@@ -2,6 +2,16 @@
 
 ## Tuesday the 29th of September 2026 ##
 
+### Dev tooling
+
+- `make coverage-all` runs the coverage suite for every version in
+  `RUBY_VERSIONS` and `CRYSTAL_VERSIONS`, each into its own directory
+  (`coverage/ruby-<ver>/`, `coverage/crystal-<ver>/`), carrying on past a
+  failing version like `test-all` does; `coverage-ruby-all` and
+  `coverage-crystal-all` do one language. `coverage` and `coverage-crystal`
+  take the report directory from `COVERAGE_RUBY_DIR` / `COVERAGE_CRYSTAL_DIR`
+  (defaults unchanged). Coverage is deliberately not part of `make all`.
+
 ### Fixes
 
 - The snippet `--setup` prints put the executable's path into the shell

@@ -36,6 +36,8 @@ make all                          # build + test both languages
 make shell RUBY_VER=3.3           # interactive container
 make coverage RUBY_VER=3.3        # suite with line coverage; report in coverage/ruby/
 make coverage-crystal CRYSTAL_VER=1.14.0   # same for Crystal (kcov, always glibc); coverage/crystal/
+make coverage-all                 # coverage for every Ruby and Crystal version, each into coverage/ruby-<ver>/ or
+                                  # coverage/crystal-<ver>/ (not part of `make all`: slow, builds kcov)
 make list / make clean
 make check                        # host-only, no container: lint + actionlint; before committing
 ```
