@@ -735,7 +735,7 @@ Created $root/$name"
 		"the Created lines" "$expected" "$(grep '^Created ' "$out")" \
 		"--setup --dry-run --no-etc"
 
-	if grep -q '^# Put this in your ~/.bashrc or your ~/.zshenv$' "$out"; then
+	if grep -q '^# Put this in your ~/.bash_profile or your ~/.zprofile$' "$out"; then
 		tap_ok "$description prints the lines for a shell profile"
 	else
 		tap_not_ok "$description prints the lines for a shell profile"

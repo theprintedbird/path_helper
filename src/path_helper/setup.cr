@@ -84,7 +84,7 @@ module PathHelper
         puts <<-SHENV
 
 
-        # Put this in your ~/.bashrc or your ~/.zshenv
+        # Put this in your ~/.bash_profile or your ~/.zprofile
         if [ -x #{script_path} ]; then
           #{env_exports}
         fi

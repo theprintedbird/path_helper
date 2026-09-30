@@ -53,7 +53,6 @@ Language-Agnostic Infrastructure
 
 ###### Ready
 
-- README "An example install" section (around line 447) shows a stale `--setup` snippet: it names `~/.bash_profile`/`~/.zprofile`, uses separate `export` lines after `fi`; update it to match what `--setup` prints <!-- backlog: 1790738912, complexity: 5, id: card_01M3R5PNGJEASE6TAEHNNZBY1P, ready: 1790743900 -->
 
 
 ###### In Progress
@@ -182,3 +181,4 @@ Language-Agnostic Infrastructure
 - Add a `coverage-all` make target (every Ruby and Crystal version), or fold the coverage targets into `make all` <!-- backlog: 1790332765, complexity: 4, done: 1790746023, id: card_01M3C2C1FN2VCDEJQ9Z1SEN9ZQ, in_progress: 1790745616, ready: 1790743933 -->
 - Coverage threshold: print a non-blocking warning when line coverage drops below 100% in `make coverage`/`make coverage-crystal` and the CI coverage jobs; later turn it into a gate <!-- backlog: 1790332754, complexity: 4, done: 1790746403, id: card_01M3C2BPC4C1QR07EEQP8SA7RY, in_progress: 1790746181, ready: 1790743941 -->
 - Add automated dependency updates (Dependabot) <!-- backlog: 1763431283, complexity: 5, done: 1790747240, id: card_01M2CH88150PJWM0KRN0QF0Z3T, ready: 1790743964 -->
+- The suggestion that `--setup` prints does not match the README "An example install" section (around line 447) ; update it to match the README <!-- backlog: 1790738912, complexity: 5, done: 1790750739, id: card_01M3R5PNGJEASE6TAEHNNZBY1P, ready: 1790743900 -->

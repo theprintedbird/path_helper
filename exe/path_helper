@@ -466,7 +466,7 @@ module PathHelper
           puts <<~SHENV
 
 
-          # Put this in your ~/.bashrc or your ~/.zshenv
+          # Put this in your ~/.bash_profile or your ~/.zprofile
           if [ -x #{script_path} ]; then
             #{ENV_VARS.map {|var,switch|
 								%Q!export #{var}=$(ruby #{script_path} #{switch})!

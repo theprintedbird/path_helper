@@ -467,9 +467,11 @@ export PKG_CONFIG_PATH
 export PATH
 ```
 
+That is the Ruby version. The Crystal build prints the same lines without the leading `ruby`, e.g. `export PATH=$('/path/to/path_helper' -p)`.
+
 ### NOTE!
 
-Remember, it **won't set the PATH**, it *returns* a path, **you have to set the path** with it e.g. `PATH=$(/usr/local/libexec/path_helper.rb -p)`. Call `/usr/local/libexec/path_helper -h` to see all the options.
+Remember, it **won't set the PATH**, it *returns* a path, **you have to set the path** with it e.g. `PATH=$(/path/to/path_helper.rb -p)`. Call `/path/to/path_helper -h` to see all the options.
 
 ### Another NOTE!
 
