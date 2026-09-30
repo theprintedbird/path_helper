@@ -973,6 +973,10 @@ branches (`test-crystal.yml` also runs on pushes to `claude/path-helper-crystal-
 - **Manual Triggers**: Both test workflows can be manually triggered via `workflow_dispatch`; the
   release workflow also accepts manual triggering, with a `tag_name` input.
 - **Concurrency Control**: Duplicate runs are cancelled when new commits are pushed.
+- **Path Filters**: Each test workflow runs on a push or pull request *only* when something it *reads*
+  changes i.e. its implementation (`exe/` or `src/` and the shard files), `spec/`, `docker/assets/`,
+  the composite actions or its own workflow file (Crystal also has `docker/install-kcov.sh`), so a
+  docs-only change runs neither. `workflow_dispatch` runs regardless.
 - **Test Summaries**: Results are displayed in the GitHub Actions UI.
 - **Code Coverage**: One job per language (`coverage-ruby` on Ruby 3.3, `coverage-crystal` on
   Crystal latest, both on `ubuntu-latest`) runs the suite with line coverage on, as

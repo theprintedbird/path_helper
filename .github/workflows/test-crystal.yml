@@ -1,15 +1,32 @@
 name: Crystal Implementation Tests
 
+# Only when something the Crystal run reads has changed: the sources and
+# shard files, the suite (spec/, which also holds its fixtures and the coverage
+# helpers), the /etc/paths setup-test-env installs, the kcov install script,
+# the composite actions and this file. The list is a YAML anchor so push and
+# pull_request can't drift apart. No branch has required checks, so a skipped
+# run can't leave one pending (if one is ever added, it will);
+# workflow_dispatch runs regardless.
 on:
   push:
     branches:
       - master
       - dev
       - 'claude/path-helper-crystal-*'
+    paths: &crystal-paths
+      - 'src/**'
+      - 'shard.yml'
+      - 'shard.lock'
+      - 'spec/**'
+      - 'docker/assets/**'
+      - 'docker/install-kcov.sh'
+      - '.github/actions/**'
+      - '.github/workflows/test-crystal.yml'
   pull_request:
     branches:
       - master
       - dev
+    paths: *crystal-paths
   workflow_dispatch:
 
 concurrency:

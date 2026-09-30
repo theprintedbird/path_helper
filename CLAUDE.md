@@ -194,7 +194,11 @@ steps run on a hosted Ubuntu or macOS runner and in a root container job without
 through `env(1)` rather than exported around it. The suite does its own `--setup`, so the actions don't.
 
 CI: `.github/workflows/test-ruby.yml` (Ruby matrix) and `test-crystal.yml`, both driving the two
-composite actions in `.github/actions/`. They run on `master` and `dev`. Each has an
+composite actions in `.github/actions/`. They run on `master` and `dev`, path-filtered to what each
+reads (a YAML anchor shared by `push` and `pull_request`): Ruby on `exe/**`, Crystal on `src/**`,
+`shard.yml`/`shard.lock` and `docker/install-kcov.sh`, both on `spec/**`, `docker/assets/**`,
+`.github/actions/**` and their own workflow file. A new file either run reads must be added to its
+list, or a change to it alone won't be tested. Each has an
 `ubuntu-latest`/`macos-latest` matrix job and an Alpine container job -- `test-ruby-alpine` in
 `ruby:<ver>-alpine`, `test-crystal-alpine` in `crystallang/crystal:<ver>-alpine` (which `apk add`s
 ruby) -- since `ruby/setup-ruby` and `crystal-lang/install-crystal` have no Alpine builds. So CI tests
