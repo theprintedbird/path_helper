@@ -83,7 +83,8 @@ help:
 	@echo "    make lint                   Check the test harness for GNU-only shell (breaks on macOS/BSD)"
 	@echo "    make actionlint             Lint .github/workflows/ with actionlint (it and shellcheck must be on PATH)"
 	@echo "    make shellcheck             Lint spec/**/*.sh and docker/*.sh with shellcheck (config: .shellcheckrc)"
-	@echo "    make check                  Run lint, actionlint and shellcheck (host-only; run before committing)"
+	@echo "    make zizmor                 Audit .github/ workflows and actions with zizmor (offline)"
+	@echo "    make check                  Run lint, actionlint, shellcheck and zizmor (host-only; run before committing)"
 	@echo ""
 	@echo "Environment Variables:"
 	@echo "  VERSION                   Version tag (default: git describe or 'dev')"
@@ -287,8 +288,20 @@ shellcheck:
 	}
 	@find spec docker -name '*.sh' -type f -exec shellcheck {} +
 
+# --offline skips the audits that query the GitHub API, so this stays host-only and
+# fast, with no token needed. Given a directory, zizmor audits both the workflows and
+# the composite actions under it.
+.PHONY: zizmor
+zizmor:
+	@command -v zizmor >/dev/null 2>&1 || { \
+		echo "zizmor not found on PATH -- install it (brew install zizmor, pipx install zizmor," \
+			"or see https://docs.zizmor.sh/installation/) and try again." >&2; \
+		exit 1; \
+	}
+	@zizmor --offline .github
+
 .PHONY: check
-check: lint actionlint shellcheck
+check: lint actionlint shellcheck zizmor
 	@echo "✓ check passed"
 
 # =============================================================================
