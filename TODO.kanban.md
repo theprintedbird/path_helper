@@ -47,16 +47,17 @@ Language-Agnostic Infrastructure
 - Add test result reporting with PR comments <!-- backlog: 1763431283, complexity: 3, id: card_01M2CH88EHJRC4FXWBN7YA6MJG -->
 - Performance: compare Ruby and Crystal and catch regressions. Every test point already prints a `# Performance:` timing comment; collect them per implementation (a make target and/or a CI job), compare the two, and flag a run that is slower than baseline (merges "Add performance comparison between implementations"; see also "performance regression tests with timing bounds" in testing-list.md) <!-- backlog: 1763431283, complexity: 1, id: card_01M2CH887P2B0TDX1TD7VSZXR1 -->
 - Add SAST (static analysis security testing) <!-- backlog: 1763431283, complexity: 3, id: card_01M2CH87ZJEYVC2FYFV6WY084Y -->
-- Add automated dependency updates (Dependabot) <!-- backlog: 1763431283, complexity: 5, id: card_01M2CH88150PJWM0KRN0QF0Z3T -->
 - Decide: generate the changelog automatically (e.g. from the `fix:`/`docs:` commit prefixes) or keep `CHANGES.md` hand-written, and drop this card if the latter <!-- complexity: 4, id: card_01M2CH87XM5GEB37EGFC1Z945V, ready: 1788877330 -->
 - Add golden file generation mode via `GENERATE_GOLDEN` environment variable <!-- backlog: 1789267516, complexity: 3, id: card_01M2CH884TEX2CZP8RM345J89Z -->
-- Coverage threshold: print a non-blocking warning when line coverage drops below a minimum (e.g. 90%) in `make coverage`/`make coverage-crystal` and the CI coverage jobs; later turn it into a gate <!-- backlog: 1790332754, complexity: 4, id: card_01M3C2BPC4C1QR07EEQP8SA7RY -->
-- Add a `coverage-all` make target (every Ruby and Crystal version), or fold the coverage targets into `make all` <!-- backlog: 1790332765, complexity: 4, id: card_01M3C2C1FN2VCDEJQ9Z1SEN9ZQ -->
 - Fix: the `--setup` snippet ignores the segment switches given to `--setup` (e.g. `--setup --config` on a Mac prints commands that don't read `~/.config/paths`; `--no-etc` isn't carried over either). Carry them into the printed commands in both implementations <!-- backlog: 1790738910, complexity: 3, id: card_01M3R5PJWNH0354F3WND3H6DVD -->
-- Fix: the `--setup` snippet leaves the executable's path unquoted in `[ -x ... ]` and `$(...)`, so an install path containing a space breaks it. Quote it in both implementations and extend `shell_test.sh` to cover it <!-- backlog: 1790738911, complexity: 4, id: card_01M3R5PKYDYAHQV0Z0HBX8GE6J -->
-- README "An example install" section (around line 447) shows a stale `--setup` snippet: it names `~/.bash_profile`/`~/.zprofile`, uses separate `export` lines after `fi`; update it to match what `--setup` prints <!-- backlog: 1790738912, complexity: 5, id: card_01M3R5PNGJEASE6TAEHNNZBY1P -->
 
 ###### Ready
+
+- README "An example install" section (around line 447) shows a stale `--setup` snippet: it names `~/.bash_profile`/`~/.zprofile`, uses separate `export` lines after `fi`; update it to match what `--setup` prints <!-- backlog: 1790738912, complexity: 5, id: card_01M3R5PNGJEASE6TAEHNNZBY1P, ready: 1790743900 -->
+- Fix: the `--setup` snippet leaves the executable's path unquoted in `[ -x ... ]` and `$(...)`, so an install path containing a space breaks it. Quote it in both implementations and extend `shell_test.sh` to cover it <!-- backlog: 1790738911, complexity: 4, id: card_01M3R5PKYDYAHQV0Z0HBX8GE6J, ready: 1790743909 -->
+- Add a `coverage-all` make target (every Ruby and Crystal version), or fold the coverage targets into `make all` <!-- backlog: 1790332765, complexity: 4, id: card_01M3C2C1FN2VCDEJQ9Z1SEN9ZQ, ready: 1790743933 -->
+- Coverage threshold: print a non-blocking warning when line coverage drops below 100% in `make coverage`/`make coverage-crystal` and the CI coverage jobs; later turn it into a gate <!-- backlog: 1790332754, complexity: 4, id: card_01M3C2BPC4C1QR07EEQP8SA7RY, ready: 1790743941 -->
+- Add automated dependency updates (Dependabot) <!-- backlog: 1763431283, complexity: 5, id: card_01M2CH88150PJWM0KRN0QF0Z3T, ready: 1790743964 -->
 
 
 
