@@ -47,10 +47,43 @@ jobs:
     - name: Install shards dependencies
       run: shards install
 
+    # The compiler's own cache (CRYSTAL_CACHE_DIR), not the binary: every
+    # build still parses, type-checks, generates the LLVM IR and links against
+    # the runner's libraries in full, and reuses the cached object file only
+    # when the IR it has just generated is byte-identical to what produced it.
+    # That skips LLVM's --release optimisation, most of the build time, when
+    # nothing that affects the output has changed; anything else is a normal
+    # full build. A --release build is a single LLVM module, so an older
+    # entry can never be partly reused, hence an exact key and no
+    # restore-keys. The key is the full `crystal --version` (so "latest", and
+    # glibc/musl/darwin targets, each get their own) and the sources.
+    # Never used by release.yml, whose binaries are always built cold.
+    - name: Locate the Crystal compiler cache
+      id: crystal-cache
+      run: |
+        echo "dir=$(crystal env CRYSTAL_CACHE_DIR)" >> "$GITHUB_OUTPUT"
+        echo "compiler=$(crystal --version | cksum | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+
+    - name: Restore the Crystal compiler cache
+      id: crystal-cache-restore
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ steps.crystal-cache.outputs.dir }}
+        key: crystal-${{ runner.os }}-${{ runner.arch }}-${{ steps.crystal-cache.outputs.compiler }}-${{ hashFiles('src/**', 'shard.yml') }}
+
     - name: Build Crystal executable
       run: |
         shards build --release --no-debug
         ls -la bin/
+
+    # Straight after the build rather than at the end of the job, so a test
+    # failure doesn't also throw away a good build's cache.
+    - name: Save the Crystal compiler cache
+      if: steps.crystal-cache-restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: ${{ steps.crystal-cache.outputs.dir }}
+        key: ${{ steps.crystal-cache-restore.outputs.cache-primary-key }}
 
     - name: Set up test environment
       id: setup-test-env
@@ -97,17 +130,39 @@ jobs:
     steps:
     - uses: actions/checkout@v7
 
-    # The suite's timing helper shells out to ruby.
-    - name: Install Ruby
-      run: apk add --no-cache ruby
+    # The suite's timing helper shells out to ruby. actions/cache needs GNU
+    # tar: busybox's refuses its --posix.
+    - name: Install Ruby and GNU tar
+      run: apk add --no-cache ruby tar
 
     - name: Install shards dependencies
       run: shards install
+
+    # See test-crystal for what is cached and why it is safe to.
+    - name: Locate the Crystal compiler cache
+      id: crystal-cache
+      run: |
+        echo "dir=$(crystal env CRYSTAL_CACHE_DIR)" >> "$GITHUB_OUTPUT"
+        echo "compiler=$(crystal --version | cksum | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+
+    - name: Restore the Crystal compiler cache
+      id: crystal-cache-restore
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ steps.crystal-cache.outputs.dir }}
+        key: crystal-${{ runner.os }}-${{ runner.arch }}-${{ steps.crystal-cache.outputs.compiler }}-${{ hashFiles('src/**', 'shard.yml') }}
 
     - name: Build Crystal executable
       run: |
         shards build --release --no-debug
         ls -la bin/
+
+    - name: Save the Crystal compiler cache
+      if: steps.crystal-cache-restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: ${{ steps.crystal-cache.outputs.dir }}
+        key: ${{ steps.crystal-cache-restore.outputs.cache-primary-key }}
 
     - name: Set up test environment
       id: setup-test-env
@@ -173,9 +228,9 @@ jobs:
         path: ${{ env.KCOV_PREFIX }}
         key: kcov-${{ env.KCOV_VERSION }}-${{ runner.os }}-${{ runner.arch }}-${{ env.ImageOS }}-${{ hashFiles('docker/install-kcov.sh') }}
 
-    # A no-op build on a cache hit: install-kcov.sh installs kcov's runtime
-    # libraries either way (cheap) and only rebuilds if $KCOV_PREFIX/bin/kcov
-    # is missing or won't actually run.
+    # A no-op on a cache hit whose kcov already runs on this image. Otherwise
+    # install-kcov.sh installs kcov's runtime libraries, and only rebuilds if
+    # $KCOV_PREFIX/bin/kcov is missing or still won't run.
     - name: Install kcov
       run: sh docker/install-kcov.sh "$KCOV_VERSION"
 
@@ -184,6 +239,22 @@ jobs:
 
     - name: Install shards dependencies
       run: shards install
+
+    # The same key as test-crystal's ubuntu-latest/latest build, which is
+    # the one that saves it (see there for why the cache is safe): this job
+    # only reads it. A --debug build has nothing to reuse, so the coverage
+    # run's own build gets nothing from it.
+    - name: Locate the Crystal compiler cache
+      id: crystal-cache
+      run: |
+        echo "dir=$(crystal env CRYSTAL_CACHE_DIR)" >> "$GITHUB_OUTPUT"
+        echo "compiler=$(crystal --version | cksum | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+
+    - name: Restore the Crystal compiler cache
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ steps.crystal-cache.outputs.dir }}
+        key: crystal-${{ runner.os }}-${{ runner.arch }}-${{ steps.crystal-cache.outputs.compiler }}-${{ hashFiles('src/**', 'shard.yml') }}
 
     # Only so setup-test-env has an executable to install: the coverage run
     # builds and measures its own debug binary from the checked-out sources.

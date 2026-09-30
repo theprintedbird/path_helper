@@ -13,10 +13,11 @@
 # so the Crystal coverage CI job can point it at a directory under $HOME and
 # cache the build across runs (see .github/workflows/test-crystal.yml);
 # Dockerfile.crystal-coverage leaves it at the default, unchanged. On a cache
-# hit -- an executable already at $KCOV_PREFIX/bin/kcov -- only the runtime
-# libraries kcov links (libcurl, libdw/libelf, zlib, libstdc++; found by `ldd`
-# on a built binary) are installed, since the runner image isn't guaranteed to
-# have libdw/libelf; if the binary then runs, the build is skipped.
+# hit -- an executable already at $KCOV_PREFIX/bin/kcov -- nothing is done if
+# it runs; if it doesn't, only the runtime libraries kcov links (libcurl,
+# libdw/libelf, zlib, libstdc++; found by `ldd` on a built binary) are
+# installed, since the runner image isn't guaranteed to have libdw/libelf, and
+# if the binary then runs, the build is skipped.
 #
 # Used by Dockerfile.crystal-coverage (as root) and by the Crystal coverage job
 # in .github/workflows/test-crystal.yml (as the runner user, with sudo), hence
@@ -39,12 +40,21 @@ if ! command -v apt-get >/dev/null 2>&1; then
 	exit 1
 fi
 
+kcov_bin="$KCOV_PREFIX/bin/kcov"
+
+# A restored build that already runs has every library it links against (the
+# loader resolves them all before --version prints anything), so there is
+# nothing to install -- and no `apt-get update`, the slow part of a cache hit.
+if [ -x "$kcov_bin" ] && "$kcov_bin" --version >/dev/null 2>&1; then
+	echo "kcov already installed: $kcov_bin"
+	exit 0
+fi
+
 $as_root env DEBIAN_FRONTEND=noninteractive apt-get update
 
-kcov_bin="$KCOV_PREFIX/bin/kcov"
 if [ -x "$kcov_bin" ]; then
-	# A restored build: install only the runtime libraries it links against
-	# (see the header comment). The names carry Ubuntu 24.04's "t64" suffix,
+	# A restored build that won't run: install only the runtime libraries it
+	# links against (see the header comment). The names carry Ubuntu 24.04's "t64" suffix,
 	# which is safe here because the CI cache key includes the Ubuntu release;
 	# a fresh build (as in Dockerfile.crystal-coverage, on any Ubuntu) never
 	# gets here.

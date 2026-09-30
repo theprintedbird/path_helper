@@ -203,11 +203,23 @@ Each workflow also has one coverage job on `ubuntu-latest` (`coverage-ruby`, Rub
 `coverage-crystal`, Crystal latest, which installs kcov first -- built from source into
 `KCOV_PREFIX` under `$HOME` and cached across runs by `actions/cache`, keyed on the kcov version
 (`KCOV_VERSION`, the job's one source of truth for it), the runner OS/arch/Ubuntu release and
-`docker/install-kcov.sh` itself; on a hit `install-kcov.sh` installs only kcov's runtime libraries, and
-rebuilds if the cached binary is missing or its `--version` doesn't actually run):
+`docker/install-kcov.sh` itself; on a hit whose `kcov --version` runs, `install-kcov.sh` does nothing
+(not even `apt-get update`), otherwise it installs only kcov's runtime libraries, and rebuilds if the
+binary is missing or still doesn't run):
 `run-shell-tests` takes a `coverage:
 ruby|crystal` input that runs `spec/lib/coverage/run.sh` instead of the suite, appends `summary.md` to
 the job summary and exposes the report dir as the `coverage-dir` output for the artifact upload.
+
+Every Crystal job in `test-crystal.yml` caches `crystal env CRYSTAL_CACHE_DIR` (the compiler's own
+cache, not the binary) with `actions/cache/restore` before the build and `actions/cache/save` straight
+after it, under an exact key: OS, arch, a `cksum` of the full `crystal --version` (so `latest` and
+each libc target get their own) and `hashFiles('src/**', 'shard.yml')`. The compiler still parses,
+type-checks, generates IR and links; it reuses the cached `.o` only if the IR is byte-identical, so a
+hit only skips LLVM's `--release` optimisation and can't change what is tested. A `--release` build
+is one LLVM module, so a stale entry can never be partly reused -- hence no `restore-keys`.
+`coverage-crystal` only restores (its throwaway release build shares test-crystal's ubuntu/latest
+key). The Alpine job `apk add`s GNU `tar`, which `actions/cache` needs. `release.yml` deliberately
+uses no cache, so shipped binaries never come from a cache entry.
 
 A fourth workflow, `.github/workflows/lint.yml`, runs on `.github/**` changes only: it downloads a
 pinned, checksum-verified `actionlint` release and runs it over the four workflows (and the two

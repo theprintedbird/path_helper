@@ -980,8 +980,13 @@ branches (`test-crystal.yml` also runs on pushes to `claude/path-helper-crystal-
   full report is uploaded as the `coverage-ruby`/`coverage-crystal` artifact. It is a report, not a
   test: the job only fails if the suite does. `coverage-crystal` builds kcov from source into a
   prefix under `$HOME` and caches it with `actions/cache`, based on the kcov version, runner
-  OS/arch/Ubuntu release and `docker/install-kcov.sh`; a cache hit still installs kcov's runtime
-  libraries (cheap) and only rebuilds if the restored binary won't actually run.
+  OS/arch/Ubuntu release and `docker/install-kcov.sh`; a cache hit whose kcov runs does nothing
+  more, otherwise kcov's runtime libraries are installed and it only rebuilds if it still won't run.
+- **Compiler Cache**: every Crystal job caches the compiler's own cache (`crystal env
+  CRYSTAL_CACHE_DIR`) with `actions/cache`, keyed on the full `crystal --version` and the sources.
+  The build still runs in full and links fresh; the compiler reuses its cached object file only when
+  the LLVM IR it has just generated is byte-identical, which skips the `--release` optimisation.
+  The release workflow does not use it.
 - **Artifact Retention**: Test results are kept for 7 days, coverage reports for 14 days.
 - **Workflow Linting**: `lint.yml` runs [`actionlint`](https://github.com/rhysd/actionlint) (a pinned
   release, checksum-verified) over every workflow, triggered only when `.github/**` changes.
