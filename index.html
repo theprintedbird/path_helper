@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>path_helper</title>
+<meta name="description" content="A replacement for Apple's /usr/libexec/path_helper, in Ruby and Crystal: per-user paths, ordered ahead of the system's.">
+<script>
+// A theme chosen with the toggle wins over the system's, and is set before first paint.
+try {
+  var stored = localStorage.getItem("ph-theme");
+  if (stored === "dark" || stored === "light") document.documentElement.setAttribute("data-theme", stored);
+} catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=Archivo+Narrow:wght@600;700&display=swap">
+<style>
+:root{
+  --bg:#f3f2f2; --surface:#eae9e9; --code-bg:#eae9e9;
+  --ink:#201e1d; --muted:#605d5d;
+  --rule:color-mix(in srgb, #201e1d 40%, transparent);
+  --rule-strong:#201e1d;
+  --accent:#ec3013; --accent-ink:#ae1800; --accent-tint:#ffe0d9;
+  --inline-bg:#dfdbdb;
+  --draw-dur:3.8s;
+}
+[data-theme="dark"]{
+  --bg:#171615; --surface:#252322; --code-bg:#201e1d;
+  --ink:#f3f2f2; --muted:#bab6b6;
+  --rule:color-mix(in srgb, #f3f2f2 32%, transparent);
+  --rule-strong:#f3f2f2;
+  --accent:#ff563c; --accent-ink:#ff9783; --accent-tint:#4d170e;
+  --inline-bg:#332f2e;
+}
+/* The same dark tokens for a system set to dark, unless the toggle chose light. */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#171615; --surface:#252322; --code-bg:#201e1d;
+    --ink:#f3f2f2; --muted:#bab6b6;
+    --rule:color-mix(in srgb, #f3f2f2 32%, transparent);
+    --rule-strong:#f3f2f2;
+    --accent:#ff563c; --accent-ink:#ff9783; --accent-tint:#4d170e;
+    --inline-bg:#332f2e;
+  }
+}
+html{background:var(--bg);scroll-behavior:smooth;scroll-padding-top:84px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Archivo",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid var(--rule)}
+a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+/* !important because these elements set the same properties in their style attribute. */
+.ph-hover-accent:hover{color:var(--accent)!important}
+.ph-hover-outline:hover{border-color:var(--accent)!important;color:var(--accent)!important}
+.ph-hover-fill:hover{background:var(--accent-ink)!important}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+::selection{background:var(--accent-tint);color:var(--ink)}
+@keyframes ph-draw{from{stroke-dashoffset:2600}to{stroke-dashoffset:0}}
+@keyframes ph-fill{from{fill-opacity:0}to{fill-opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  [data-ph-draw],[data-ph-fill]{animation:none!important}
+  [data-ph-fill]{fill-opacity:1}
+  [data-ph-draw]{stroke-dashoffset:0!important}
+}
+</style>
+</head>
+<body>
+
+<div style="max-width:100%;font-size:16px;line-height:1.6">
+
+  <nav style="position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:2px solid var(--rule-strong)">
+    <div style="max-width:860px;margin:0 auto;padding:12px 24px;display:flex;flex-wrap:wrap;align-items:center;gap:16px">
+      <a href="#top" style="font-weight:800;font-size:15px;letter-spacing:-0.01em;border:0;color:var(--ink)">path_helper</a>
+      <div style="display:flex;flex-wrap:wrap;gap:14px;font-size:13px;font-weight:500;letter-spacing:0.02em">
+        <a href="#what" class="ph-hover-accent" style="border:0;color:var(--muted)">What it does</a>
+        <a href="#why" class="ph-hover-accent" style="border:0;color:var(--muted)">Why</a>
+        <a href="#install" class="ph-hover-accent" style="border:0;color:var(--muted)">Install</a>
+        <a href="#usage" class="ph-hover-accent" style="border:0;color:var(--muted)">Usage</a>
+        <a href="#config" class="ph-hover-accent" style="border:0;color:var(--muted)">Configuration</a>
+        <a href="#compare" class="ph-hover-accent" style="border:0;color:var(--muted)">vs Apple</a>
+        <a href="#faq" class="ph-hover-accent" style="border:0;color:var(--muted)">FAQ</a>
+        <a href="#contributing" class="ph-hover-accent" style="border:0;color:var(--muted)">Contributing</a>
+      </div>
+      <button type="button" id="theme-toggle" hidden class="ph-hover-outline" style="margin-left:auto;font-family:inherit;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink);background:transparent;border:2px solid var(--rule-strong);border-radius:0;padding:6px 12px;cursor:pointer;text-align:left">Dark</button>
+    </div>
+  </nav>
+
+  <div id="top" style="max-width:860px;margin:0 auto;padding:0 24px 96px">
+
+    <header style="padding:64px 0 48px;border-bottom:2px solid var(--rule-strong)">
+      <svg viewBox="0 0 442 132" role="img" aria-label="path_helper" style="display:block;width:100%;height:auto;max-width:520px;overflow:visible">
+        <text data-ph-draw="1" x="2" y="98" letter-spacing="-2.2" font-family="Archivo Narrow, Archivo, system-ui, sans-serif" font-size="98" font-weight="700" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round" style="stroke-dasharray:2600;stroke-dashoffset:2600;animation:ph-draw var(--draw-dur) ease-in-out forwards">path_helper</text>
+      </svg>
+      <p style="margin:28px 0 0;font-size:22px;line-height:1.35;font-weight:600;max-width:34ch;text-wrap:pretty">A better <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.92em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 6px">path_helper</span>. Your paths, in the order you actually asked for.</p>
+      <p style="margin:16px 0 0;font-size:17px;color:var(--muted);max-width:60ch;text-wrap:pretty">You would never hard-code a string in your program, yet your <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">PATH</span> is probably one long hard-coded line in a dotfile. This is a replacement for Apple's <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">/usr/libexec/path_helper</span> that keeps the good parts and fixes the rest. Available in Ruby and Crystal, and it runs on any unix-like system.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:32px">
+        <a href="https://github.com/theprintedbird/path_helper" style="border:0;background:var(--accent);color:#fff;font-weight:600;font-size:15px;padding:12px 18px;text-align:left" class="ph-hover-fill">Source on GitHub</a>
+        <a href="#install" style="border:2px solid var(--rule-strong);color:var(--ink);font-weight:600;font-size:15px;padding:10px 18px;text-align:left" class="ph-hover-outline">Install it</a>
+      </div>
+    </header>
+
+    <section id="what" style="padding:56px 0;border-bottom:2px solid var(--rule-strong)">
+      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;letter-spacing:0.14em;color:var(--accent-ink);margin-bottom:12px">01 / WHAT IT DOES</div>
+      <h2 style="margin:0 0 24px;font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-0.02em">Four things Apple left out</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:2px;background:var(--rule)">
+        <div style="background:var(--bg);padding:20px 20px 24px 0">
+          <h3 style="margin:0 0 8px;font-size:18px;font-weight:800">Per-user paths</h3>
+          <p style="margin:0;color:var(--muted);font-size:15px;text-wrap:pretty">Your paths, ordered ahead of the system's. No <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">sudo</span>, no editing files that belong to every account on the machine.</p>
+        </div>
+        <div style="background:var(--bg);padding:20px 20px 24px 20px">
+          <h3 style="margin:0 0 8px;font-size:18px;font-weight:800">More than PATH</h3>
+          <p style="margin:0;color:var(--muted);font-size:15px;text-wrap:pretty">Man pages, C includes, pkg-config and the dyld library and framework paths, all managed with the same pattern.</p>
+        </div>
+        <div style="background:var(--bg);padding:20px 20px 24px 0">
+          <h3 style="margin:0 0 8px;font-size:18px;font-weight:800">Debuggable</h3>
+          <p style="margin:0;color:var(--muted);font-size:15px;text-wrap:pretty">Ask it where a path came from and it tells you, file by file, duplicates marked.</p>
+        </div>
+        <div style="background:var(--bg);padding:20px 20px 24px 20px">
+          <h3 style="margin:0 0 8px;font-size:18px;font-weight:800">No side effects</h3>
+          <p style="margin:0;color:var(--muted);font-size:15px;text-wrap:pretty">It prints a string. You decide what to do with it. Nothing is <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">eval</span>'d behind your back.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="why" style="padding:56px 0;border-bottom:2px solid var(--rule-strong)">
+      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;letter-spacing:0.14em;color:var(--accent-ink);margin-bottom:12px">02 / WHY IT EXISTS</div>
+      <h2 style="margin:0 0 24px;font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-0.02em">Apple puts the system first. Always.</h2>
+      <p style="margin:0 0 20px;max-width:66ch;color:var(--ink);text-wrap:pretty">Apple's helper reads <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">/etc/paths</span> first and everything from <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">/etc/paths.d/</span> afterwards, so the system directories land at the front of your <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">PATH</span>:</p>
+      <pre style="margin:0 0 24px;background:var(--code-bg);padding:18px 20px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.7;color:var(--ink)">$ /usr/libexec/path_helper
+PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/local/go/bin:&lt;snip&gt;</pre>
+      <p style="margin:0 0 20px;max-width:66ch;text-wrap:pretty">Want the current OpenSSL you installed with MacPorts to win? Want your newer LLVM from pkgsrc to be found first? Apple says <em>too bad</em>. And that is only the ordering. The rest:</p>
+      <ul style="margin:0;padding-left:22px;max-width:66ch;color:var(--muted);display:grid;gap:10px">
+        <li>Everything lives in <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">/etc</span>, so adding or removing a path segment needs elevated permissions.</li>
+        <li>Being in <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">/etc</span> also makes every change system-wide, whether you wanted that or not.</li>
+        <li>It handles <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">PATH</span> and <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">MANPATH</span> only, while development and administration need headers, libraries and pkg-config just as often.</li>
+        <li>The string it returns is designed to be <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">eval</span>'d. <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">eval</span> is not always evil, but returning a plain string and letting you assign it is simpler and harder to get wrong.</li>
+      </ul>
+    </section>
+
+    <section id="install" style="padding:56px 0;border-bottom:2px solid var(--rule-strong)">
+      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;letter-spacing:0.14em;color:var(--accent-ink);margin-bottom:12px">03 / INSTALL</div>
+      <h2 style="margin:0 0 24px;font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-0.02em">Clone it, or grab a release</h2>
+      <p style="margin:0 0 24px;max-width:66ch;text-wrap:pretty">Clone the repository, or download a prebuilt Crystal binary from the <a href="https://github.com/theprintedbird/path_helper/releases">Releases page</a>. The Ruby version is a single script with no dependencies beyond Ruby itself, so there is nothing to build; the Crystal version compiles to a binary with <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">shards build</span>. It does not need to live in <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">/usr/local/bin</span> or anywhere special.</p>
+      <ol style="margin:0 0 28px;padding-left:22px;max-width:66ch;display:grid;gap:12px">
+        <li>Clone the repository, or download a build from Releases.</li>
+        <li>Make sure it is executable: <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:2px 6px">chmod +x path_helper</span></li>
+        <li>Read the help, because you are the sort of person who reads instructions: <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:2px 6px">path_helper -h</span></li>
+        <li>Run the setup and let it create the directories and files for you.</li>
+        <li>Paste the snippet setup prints into your <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">~/.zprofile</span> or <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">~/.bash_profile</span>.</li>
+      </ol>
+      <pre style="margin:0 0 12px;background:var(--code-bg);padding:18px 20px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.7;color:var(--ink)"># Mac, per-user paths under ~/Library, nothing touched in /etc
+path_helper --setup --no-config --no-etc
+
+# Linux, or if you prefer per-user paths under ~/.config/paths
+path_helper --setup --no-lib --no-etc</pre>
+      <p style="margin:0;color:var(--muted);font-size:15px;max-width:66ch;text-wrap:pretty">Note the <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">--lib</span> and <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">--config</span> switches and their <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">--no-</span> counterparts. Apple's helper stays where it is in <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">/usr/libexec</span>, untouched, so you can always go back.</p>
+    </section>
+
+    <section id="usage" style="padding:56px 0;border-bottom:2px solid var(--rule-strong)">
+      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;letter-spacing:0.14em;color:var(--accent-ink);margin-bottom:12px">04 / USAGE</div>
+      <h2 style="margin:0 0 24px;font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-0.02em">Ask for a path, get a path</h2>
+      <p style="margin:0 0 20px;max-width:66ch;text-wrap:pretty">It will not set your <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">PATH</span>. It returns one, and you set it:</p>
+      <pre style="margin:0 0 28px;background:var(--code-bg);padding:18px 20px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.7;color:var(--ink)">$ PATH=$(path_helper -p)
+$ export PATH</pre>
+      <h3 style="margin:0 0 12px;font-size:19px;font-weight:800">Keeping what is already there</h3>
+      <p style="margin:0 0 16px;max-width:66ch;text-wrap:pretty">With no argument you get a completely fresh <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">PATH</span>, built only from your files. Pass it the current path, or any path you want kept, and that is appended after the generated one, with anything already in it left out. The other switches take an argument in the same way.</p>
+      <pre style="margin:0 0 28px;background:var(--code-bg);padding:18px 20px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.7;color:var(--ink)">$ export PATH=$(path_helper -p "$PATH")</pre>
+      <h3 style="margin:0 0 12px;font-size:19px;font-weight:800">In your shell startup</h3>
+      <p style="margin:0 0 16px;max-width:66ch;text-wrap:pretty">This is what <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">--setup</span> prints for you at the end, here for the Ruby script installed in <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">~/bin</span> (the Crystal build prints the same lines without the leading <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">ruby</span>). Drop it in <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">~/.zprofile</span> or <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">~/.bash_profile</span>:</p>
+      <pre style="margin:0 0 28px;background:var(--code-bg);padding:18px 20px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.7;color:var(--ink)"># Put this in your ~/.bash_profile or your ~/.zprofile
+if [ -x '/Users/you/bin/path_helper' ]; then
+  export C_INCLUDE_PATH=$(ruby '/Users/you/bin/path_helper' -c)
+  export DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby '/Users/you/bin/path_helper' --dyld-fallback-fram)
+  export DYLD_FALLBACK_LIBRARY_PATH=$(ruby '/Users/you/bin/path_helper' --dyld-fallback-lib)
+  export DYLD_FRAMEWORK_PATH=$(ruby '/Users/you/bin/path_helper' --dyld-fram)
+  export DYLD_LIBRARY_PATH=$(ruby '/Users/you/bin/path_helper' --dyld-lib)
+  export MANPATH=$(ruby '/Users/you/bin/path_helper' -m)
+  export PKG_CONFIG_PATH=$(ruby '/Users/you/bin/path_helper' --pc)
+  export PATH=$(ruby '/Users/you/bin/path_helper' -p)
+fi</pre>
+      <h3 style="margin:0 0 12px;font-size:19px;font-weight:800">When something is wrong: <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.86em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">--debug</span></h3>
+      <p style="margin:0 0 16px;max-width:66ch;text-wrap:pretty">The flag you will actually thank us for. It shows the search order, every file that contributed, every path it contributed, marks duplicates with a cross, and ends with the finished value.</p>
+      <pre style="margin:0;background:var(--code-bg);padding:18px 20px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.7;color:var(--ink)">$ path_helper -p --debug
+Name: PATH
+Options: {name: "PATH", current_path: nil, debug: true, verbose: true}
+Search order: [:config, :etc]
+  /home/you/.config/paths/paths.d
+  /home/you/.config/paths/paths
+  /etc/paths.d
+  /etc/paths
+
+Results: (duplicates marked by ✗, dropped lines by ⊘)
+
+/home/you/.config/paths/paths.d/04-llvm
+ ├── /opt/local/libexec/llvm-11/bin
+ ├── /opt/pkg/bin
+ └── ~/Library/Frameworks/LLVM.framework/Programs
+/home/you/.config/paths/paths.d/05-pkgsrc
+ ├── /opt/pkg/bin ✗
+ ├── /opt/pkg/sbin
+ └── /opt/pkg/gnu/bin
+/home/you/.config/paths/paths.d/65-Rust
+ └── ~/.cargo/bin
+/home/you/.config/paths/paths
+/etc/paths
+ ├── /usr/local/bin
+ ├── /usr/bin
+ └── /bin
+
+Env var:
+/opt/local/libexec/llvm-11/bin:/opt/pkg/bin:/home/you/Library/Frameworks/LLVM.framework/Programs:/opt/pkg/sbin:/opt/pkg/gnu/bin:/home/you/.cargo/bin:/usr/local/bin:/usr/bin:/bin</pre>
+    </section>
+
+    <section id="config" style="padding:56px 0;border-bottom:2px solid var(--rule-strong)">
+      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;letter-spacing:0.14em;color:var(--accent-ink);margin-bottom:12px">05 / CONFIGURATION</div>
+      <h2 style="margin:0 0 24px;font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-0.02em">One path per line, in a file, in order</h2>
+      <p style="margin:0 0 24px;max-width:66ch;text-wrap:pretty">A path file is a list of directories, one per line. The order inside the file matters, and so does the order the files are read in, which is why numeric prefixes are worth the two seconds they cost.</p>
+      <pre style="margin:0 0 32px;background:var(--code-bg);padding:18px 20px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.7;color:var(--ink)">$ tree ~/.config/paths
+~/.config/paths
+├── paths
+└── paths.d
+    ├── 05-pkgsrc
+    ├── 08-homebrew
+    ├── 60-Crystal
+    ├── 62-Haskell
+    └── 65-Rust
+
+$ cat ~/.config/paths/paths.d/05-pkgsrc
+/opt/pkg/bin
+/opt/pkg/sbin</pre>
+      <h3 style="margin:0 0 12px;font-size:19px;font-weight:800">Search order</h3>
+      <p style="margin:0 0 16px;max-width:66ch;text-wrap:pretty">Files are read in this order, and anything missing is skipped. Your directories come first, which is the whole point:</p>
+      <ol style="margin:0 0 32px;padding-left:22px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13.5px;display:grid;gap:6px">
+        <li>~/Library/Paths/paths.d</li>
+        <li>~/Library/Paths/paths</li>
+        <li>~/.config/paths/paths.d</li>
+        <li>~/.config/paths/paths</li>
+        <li>/etc/paths.d</li>
+        <li>/etc/paths</li>
+      </ol>
+      <p style="margin:0 0 16px;max-width:66ch;color:var(--muted);font-size:15px;text-wrap:pretty">Only one of the two per-user locations is read by default: <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">~/Library/Paths</span> on a Mac, <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">~/.config/paths</span> everywhere else. Switch the other one on with <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">--config</span> or <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">--lib</span> (off a Mac, <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">~/.config/paths</span> is then read ahead of <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">~/Library/Paths</span>), and leave any of the three out with <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">--no-lib</span>, <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">--no-config</span> or <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">--no-etc</span>.</p>
+      <p style="margin:0 0 32px;max-width:66ch;color:var(--muted);font-size:15px;text-wrap:pretty">Files inside a <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">.d</span> directory are read in byte order, not the order <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">ls</span> or Finder use: upper case sorts before lower case, so <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">10-Zeta</span> comes before <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">10-alpha</span>, and digits are compared as characters, so <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">9-foo</span> comes after <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">10-bar</span>. A leading <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">~</span> in a path is expanded from <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">HOME</span>. Keeping one file per installed thing means uninstalling it is one <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">rm</span>, not a hunt through a dotfile for the bits you added a year ago.</p>
+      <h3 style="margin:0 0 12px;font-size:19px;font-weight:800">The other variables</h3>
+      <p style="margin:0 0 20px;max-width:66ch;text-wrap:pretty">Same pattern, different filename. That is why it is <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">~/Library/Paths/paths</span> and not <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">~/Library/paths</span> — the directory holds the whole family.</p>
+      <div style="border-top:2px solid var(--rule-strong)">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;padding:12px 0;border-bottom:1px solid var(--rule);font-size:12px;letter-spacing:0.1em;color:var(--muted);font-weight:600">
+          <div>VARIABLE</div><div>FILES</div>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px">
+          <div>PATH</div><div style="color:var(--muted)">paths, paths.d/</div>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px">
+          <div>MANPATH</div><div style="color:var(--muted)">manpaths, manpaths.d/</div>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px">
+          <div>C_INCLUDE_PATH</div><div style="color:var(--muted)">c_include_paths, c_include_paths.d/</div>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px">
+          <div>PKG_CONFIG_PATH</div><div style="color:var(--muted)">pkg_config_paths, pkg_config_paths.d/</div>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px">
+          <div>DYLD_FALLBACK_LIBRARY_PATH</div><div style="color:var(--muted)">dyld_fallback_library_paths, dyld_fallback_library_paths.d/</div>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px">
+          <div>DYLD_FALLBACK_FRAMEWORK_PATH</div><div style="color:var(--muted)">dyld_fallback_framework_paths, dyld_fallback_framework_paths.d/</div>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px">
+          <div>DYLD_LIBRARY_PATH</div><div style="color:var(--muted)">dyld_library_paths, dyld_library_paths.d/</div>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;padding:14px 0;border-bottom:2px solid var(--rule-strong);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px">
+          <div>DYLD_FRAMEWORK_PATH</div><div style="color:var(--muted)">dyld_framework_paths, dyld_framework_paths.d/</div>
+        </div>
+      </div>
+      <p style="margin:20px 0 0;color:var(--muted);font-size:15px;max-width:66ch;text-wrap:pretty">Each one is looked for in the same three places as <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">paths</span>, with the same defaults and switches. Typing <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">man</span> for something you just installed and getting the right page is a quietly excellent feeling.</p>
+    </section>
+
+    <section id="compare" style="padding:56px 0;border-bottom:2px solid var(--rule-strong)">
+      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;letter-spacing:0.14em;color:var(--accent-ink);margin-bottom:12px">06 / VS APPLE'S PATH_HELPER</div>
+      <h2 style="margin:0 0 28px;font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-0.02em">Side by side</h2>
+      <div style="border-top:2px solid var(--rule-strong);overflow-x:auto">
+        <div style="min-width:520px">
+          <div style="display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr);gap:16px;padding:12px 0;border-bottom:1px solid var(--rule);font-size:12px;letter-spacing:0.1em;color:var(--muted);font-weight:600">
+            <div></div><div>APPLE</div><div style="color:var(--accent-ink)">THIS ONE</div>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);font-size:15px">
+            <div style="font-weight:600">Per-user paths</div><div style="color:var(--muted)">No</div><div>Yes, and they come first</div>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);font-size:15px">
+            <div style="font-weight:600">Needs sudo to change</div><div style="color:var(--muted)">Yes, it all lives in /etc</div><div>Only if you choose /etc</div>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);font-size:15px">
+            <div style="font-weight:600">Variables covered</div><div style="color:var(--muted)">PATH, MANPATH</div><div>Those, plus includes, pkg-config and the four dyld paths</div>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);font-size:15px">
+            <div style="font-weight:600">Output</div><div style="color:var(--muted)">Shell commands to eval</div><div>A plain string you assign</div>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);font-size:15px">
+            <div style="font-weight:600">Explains itself</div><div style="color:var(--muted)">No</div><div>--debug, file by file</div>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr);gap:16px;padding:14px 0;border-bottom:2px solid var(--rule-strong);font-size:15px">
+            <div style="font-weight:600">Platforms</div><div style="color:var(--muted)">macOS</div><div>Any unix-like system</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" style="padding:56px 0;border-bottom:2px solid var(--rule-strong)">
+      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;letter-spacing:0.14em;color:var(--accent-ink);margin-bottom:12px">07 / FAQ</div>
+      <h2 style="margin:0 0 28px;font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-0.02em">Reasonable questions</h2>
+      <div style="display:grid;gap:24px;max-width:70ch">
+        <div>
+          <h3 style="margin:0 0 8px;font-size:18px;font-weight:800">Do I need a Mac?</h3>
+          <p style="margin:0;color:var(--muted);text-wrap:pretty">No. It should work on any unix-like system. The Ruby version needs Ruby 2.6 or above, which is the (deprecated) system Ruby macOS ships, so anything newer is fine. If yours is older, or you would rather not depend on Ruby at all, use the Crystal build.</p>
+        </div>
+        <div>
+          <h3 style="margin:0 0 8px;font-size:18px;font-weight:800">Ruby or Crystal?</h3>
+          <p style="margin:0;color:var(--muted);text-wrap:pretty">Both. The Ruby script is the easiest thing to drop onto a machine you do not control. The Crystal build is a compiled binary, which is nicer if you want no runtime dependency at shell startup.</p>
+        </div>
+        <div>
+          <h3 style="margin:0 0 8px;font-size:18px;font-weight:800">Will it change my PATH for me?</h3>
+          <p style="margin:0;color:var(--muted);text-wrap:pretty">No, and that is deliberate. It prints a string. You assign it: <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:2px 6px">PATH=$(path_helper -p)</span>.</p>
+        </div>
+        <div>
+          <h3 style="margin:0 0 8px;font-size:18px;font-weight:800">Does it interfere with Apple's one?</h3>
+          <p style="margin:0;color:var(--muted);text-wrap:pretty">Not at all. Apple's stays in <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">/usr/libexec</span> and is left alone. Install this anywhere you like and call it by its full path.</p>
+        </div>
+        <div>
+          <h3 style="margin:0 0 8px;font-size:18px;font-weight:800">My terminal fills up with Ruby warnings</h3>
+          <p style="margin:0;color:var(--muted);text-wrap:pretty">Recent Ruby versions are enthusiastic about warnings. Send them somewhere else: <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:2px 6px">PATH=$(ruby /path/to/path_helper -p 2&gt;/dev/null)</span></p>
+        </div>
+        <div>
+          <h3 style="margin:0 0 8px;font-size:18px;font-weight:800">Can my app add to the user's PATH with this?</h3>
+          <p style="margin:0;color:var(--muted);text-wrap:pretty">Yes, and please do. Write one file into the user's <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">paths.d/</span> with a sensible numeric prefix, and remove that file on uninstall. No munging someone else's dotfiles.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="contributing" style="padding:56px 0;border-bottom:2px solid var(--rule-strong)">
+      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;letter-spacing:0.14em;color:var(--accent-ink);margin-bottom:12px">08 / CONTRIBUTING</div>
+      <h2 style="margin:0 0 24px;font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-0.02em">Bring a spec or an example</h2>
+      <p style="margin:0 0 24px;max-width:66ch;text-wrap:pretty">Open an issue or send an email. Pull requests are welcome; if you want a feature or have found a bug, a spec or a small example makes it much quicker to act on. A Makefile drives Docker and Podman builds and tests across several versions of both Ruby and Crystal.</p>
+      <pre style="margin:0 0 20px;background:var(--code-bg);padding:18px 20px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.7;color:var(--ink)"># build and test everything, Ruby and Crystal
+make all
+
+# just the tests
+make test-all
+make test-crystal-all
+
+# one version at a time
+make test RUBY_VER=3.3
+make test-crystal CRYSTAL_VER=1.14.0
+
+# poke around inside a container
+make shell RUBY_VER=3.3
+
+# every target
+make help</pre>
+      <p style="margin:0;max-width:66ch;color:var(--muted);font-size:15px;text-wrap:pretty">GitHub Actions runs the same shell test suite against both implementations on pushes and pull requests to <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">master</span> and <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em;background:var(--inline-bg);border:1px solid var(--rule);padding:1px 5px">dev</span> across a matrix of Ruby and Crystal versions on Ubuntu, macOS and Alpine. Testing workflow changes locally with <a href="https://github.com/nektos/act">act</a> before pushing saves everyone a round trip.</p>
+    </section>
+
+    <footer style="padding:40px 0 0;display:flex;flex-wrap:wrap;gap:20px;align-items:baseline;justify-content:space-between">
+      <div style="font-size:14px;color:var(--muted)">
+        <a href="https://github.com/theprintedbird/path_helper">theprintedbird/path_helper</a> · See the LICENCE file in the repository.
+      </div>
+      <a href="#top" style="font-size:13px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;border:0;color:var(--accent-ink)" class="ph-hover-accent">↑ Back to top</a>
+    </footer>
+
+  </div>
+</div>
+<script>
+// The toggle is hidden in the markup and shown here, so without JS there is no dead button
+// and the page just follows the system's theme.
+(function () {
+  var root = document.documentElement;
+  var button = document.getElementById("theme-toggle");
+  var system = window.matchMedia("(prefers-color-scheme: dark)");
+
+  function current() {
+    return root.getAttribute("data-theme") || (system.matches ? "dark" : "light");
+  }
+
+  // The button names the theme it switches to.
+  function label() {
+    button.textContent = current() === "dark" ? "Light" : "Dark";
+  }
+
+  button.addEventListener("click", function () {
+    var theme = current() === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", theme);
+    try { localStorage.setItem("ph-theme", theme); } catch (e) {}
+    label();
+  });
+  if (system.addEventListener) system.addEventListener("change", label);
+
+  label();
+  button.hidden = false;
+})();
+</script>
+</body>
+</html>
