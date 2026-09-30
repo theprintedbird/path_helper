@@ -46,19 +46,23 @@ Language-Agnostic Infrastructure
 - Implement `test-go.yml` workflow (when Go implementation exists) <!-- backlog: 1763431283, complexity: 3, id: card_01M2CH87Y7YD0YB6R6775QFA1Q -->
 - Add test result reporting with PR comments <!-- backlog: 1763431283, complexity: 3, id: card_01M2CH88EHJRC4FXWBN7YA6MJG -->
 - Performance: compare Ruby and Crystal and catch regressions. Every test point already prints a `# Performance:` timing comment; collect them per implementation (a make target and/or a CI job), compare the two, and flag a run that is slower than baseline (merges "Add performance comparison between implementations"; see also "performance regression tests with timing bounds" in testing-list.md) <!-- backlog: 1763431283, complexity: 1, id: card_01M2CH887P2B0TDX1TD7VSZXR1 -->
-- Add SAST (static analysis security testing) <!-- backlog: 1763431283, complexity: 3, id: card_01M2CH87ZJEYVC2FYFV6WY084Y -->
 - Decide: generate the changelog automatically (e.g. from the `fix:`/`docs:` commit prefixes) or keep `CHANGES.md` hand-written, and drop this card if the latter <!-- complexity: 4, id: card_01M2CH87XM5GEB37EGFC1Z945V, ready: 1788877330 -->
 - Add golden file generation mode via `GENERATE_GOLDEN` environment variable <!-- backlog: 1789267516, complexity: 3, id: card_01M2CH884TEX2CZP8RM345J89Z -->
 
 ###### Ready
 
+- Add SAST (static analysis security testing). Minimal scope: zizmor + ShellCheck (no Ruby SAST engine; none exists for Crystal). See the SAST sub-cards below <!-- backlog: 1763431283, complexity: 3, id: card_01M2CH87ZJEYVC2FYFV6WY084Y, ready: 1790763453 -->
+- SAST 1/6: Add `.shellcheckrc` (shell=sh, disable=SC3043 for `local`, external-sources=true, source-path=SCRIPTDIR) and a `make shellcheck` target over `spec/**/*.sh` and `docker/*.sh` (found with `find`, same not-on-PATH guard as `actionlint`); wire it into `make check` and the help text. Part of card_01M2CH87ZJEYVC2FYFV6WY084Y <!-- id: card_01M3RY7FWVE57R9NJD9X9F92TN, ready: 1790764629 -->
+- SAST 2/6: Triage and fix the shellcheck findings in the harness, test files and docker scripts (targeted inline disables with a reason for deliberate cases; SC2154 for helper globals per file, not globally); then `make test RUBY_VER=3.3` and `make test-crystal CRYSTAL_VER=1.14.0` with musl and `CRYSTAL_LIBC=gnu`. Part of card_01M2CH87ZJEYVC2FYFV6WY084Y <!-- id: card_01M3RY7M35NV1MAGQQKNSFY5J4, ready: 1790764634 -->
+- SAST 3/6: Add a `make zizmor` target over `.github/` (workflows and composite actions; not-on-PATH guard with install hint) and wire it into `make check`. Part of card_01M2CH87ZJEYVC2FYFV6WY084Y <!-- id: card_01M3RY7QMNHJPSR77WK8XZB5S4, ready: 1790764637 -->
+- SAST 4/6: Triage and fix the zizmor findings: `persist-credentials: false` on every checkout, `${{ }}` in `run:` blocks moved into `env:`, review cache-poisoning on the Crystal/kcov caches, release.yml write permissions scoped to the job. Part of card_01M2CH87ZJEYVC2FYFV6WY084Y <!-- id: card_01M3RY7W8BB6CAS1PKD7VGN3XJ, ready: 1790764642 -->
+- SAST 5/6: lint.yml: rename to "Lint", widen the path filter to `spec/**/*.sh`, `docker/*.sh` and `.shellcheckrc`, and add a `shellcheck` job and a `zizmor` job (zizmorcore/zizmor-action pinned to a full SHA with `# vX.Y.Z`, `advanced-security: false`); run actionlint and zizmor over it. Part of card_01M2CH87ZJEYVC2FYFV6WY084Y <!-- id: card_01M3RY81A11YE70D7GTFEZFRF7, ready: 1790764647 -->
+- SAST 6/6: Docs: CLAUDE.md (`make check` bullet, lint.yml paragraph), README dev/CI section, CHANGES.md `dev_only:` entry. Part of card_01M2CH87ZJEYVC2FYFV6WY084Y <!-- id: card_01M3RY841NVDDA37SM8J96DX5R, ready: 1790764650 -->
+
 
 
 
 ###### In Progress
-
-
-
 
 ###### Done
 
