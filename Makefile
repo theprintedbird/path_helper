@@ -44,6 +44,9 @@ REPO := path_helper
 # every version its own.
 COVERAGE_RUBY_DIR ?= coverage/ruby
 COVERAGE_CRYSTAL_DIR ?= coverage/crystal
+# Coverage below this percentage (default 100) prints a warning, nothing more.
+# Handed to the container only when set, as make variable or environment.
+COVERAGE_THRESHOLD_ENV = $(if $(PATH_HELPER_COVERAGE_THRESHOLD),-e PATH_HELPER_COVERAGE_THRESHOLD=$(PATH_HELPER_COVERAGE_THRESHOLD))
 
 .PHONY: help
 help:
@@ -89,6 +92,7 @@ help:
 	@echo "  CONTAINER_RUNTIME         Override container runtime (podman or docker)"
 	@echo "  COVERAGE_RUBY_DIR         Report directory for 'coverage' (default: coverage/ruby)"
 	@echo "  COVERAGE_CRYSTAL_DIR      Report directory for 'coverage-crystal' (default: coverage/crystal)"
+	@echo "  PATH_HELPER_COVERAGE_THRESHOLD  Minimum line coverage %, below which the coverage targets warn (default: 100)"
 	@echo "  TESTS                     Test files to run, e.g. 'path error' (default: all; setup always runs)"
 	@echo ""
 	@echo "Examples:"
@@ -104,7 +108,7 @@ help:
 	@echo "Notes:"
 	@echo "  The test, shell and extract targets build the image they need first,"
 	@echo "  so there is no need to run a build target by hand beforehand."
-	@echo "  Coverage is a report, not a gate: its exit status is the suite's. Crystal"
+	@echo "  Coverage is a report, not a gate (below the threshold it only warns): its exit status is the suite's. Crystal"
 	@echo "  coverage always uses its own glibc image (Dockerfile.crystal-coverage),"
 	@echo "  whatever CRYSTAL_LIBC is, as kcov does not build against musl."
 	@echo "  coverage-all is not part of 'make all': coverage runs are slow, and the"
@@ -213,7 +217,7 @@ endif
 	@rm -rf "$(COVERAGE_RUBY_DIR)" && mkdir -p "$(COVERAGE_RUBY_DIR)"
 	@echo "Running tests with coverage for Ruby $(RUBY_VER)..."
 	@$(CONTAINER_RUNTIME) run --rm -v "$(abspath $(COVERAGE_RUBY_DIR))":/coverage:Z \
-		--entrypoint sh $(REPO):$(VERSION)-ruby$(RUBY_VER) \
+		$(COVERAGE_THRESHOLD_ENV) --entrypoint sh $(REPO):$(VERSION)-ruby$(RUBY_VER) \
 		spec/lib/coverage/run.sh ruby /coverage $(TESTS)
 	@echo "Coverage report: $(COVERAGE_RUBY_DIR)/summary.md"
 
@@ -399,6 +403,7 @@ endif
 	@echo "Running tests with coverage for Crystal $(CRYSTAL_VER) (gnu)..."
 	@$(CONTAINER_RUNTIME) run --rm --security-opt seccomp=unconfined \
 		-v "$(abspath $(COVERAGE_CRYSTAL_DIR))":/coverage:Z \
+		$(COVERAGE_THRESHOLD_ENV) \
 		$(REPO):$(VERSION)-crystal$(CRYSTAL_VER)-coverage $(TESTS)
 	@echo "Coverage report: $(COVERAGE_CRYSTAL_DIR)/summary.md (HTML: $(COVERAGE_CRYSTAL_DIR)/kcov/index.html)"
 

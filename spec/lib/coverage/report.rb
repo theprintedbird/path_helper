@@ -55,7 +55,30 @@ def summary title, files
     out << ""
     uncovered.each { |name, r| out << "- `#{name}`: #{r}" }
   end
-  out.join("\n") + "\n"
+  [out.join("\n") + "\n", total_covered, total_relevant]
+end
+
+# The one place the minimum line coverage lives: a percentage, 100 unless
+# PATH_HELPER_COVERAGE_THRESHOLD says otherwise. Below it there is a warning
+# only (see the end of this file); nothing fails on it yet.
+def threshold
+  value = ENV["PATH_HELPER_COVERAGE_THRESHOLD"].to_s.strip
+  value.empty? ? 100.0 : Float(value)
+rescue ArgumentError
+  warn "report.rb: ignoring PATH_HELPER_COVERAGE_THRESHOLD=#{ENV['PATH_HELPER_COVERAGE_THRESHOLD']}, not a number"
+  100.0
+end
+
+# The warning line, or nil when coverage is at or above the threshold (or
+# there is nothing to measure).
+def threshold_warning covered, relevant
+  return nil if relevant.zero?
+  min = threshold
+  return nil if 100.0 * covered >= min * relevant
+  shown = min == min.to_i ? min.to_i.to_s : min.to_s
+  missed = relevant - covered
+  "**Warning:** line coverage is #{percent(covered, relevant)}, below the #{shown}% " \
+    "threshold (#{missed} #{missed == 1 ? 'line' : 'lines'} uncovered)."
 end
 
 def percent covered, relevant
@@ -137,11 +160,18 @@ def display_name file, root
 end
 
 mode, title, out_dir, *rest = ARGV
-text =
+text, covered, relevant =
   case mode
   when "ruby" then ruby_report(title, out_dir, *rest)
   when "kcov" then kcov_report(title, out_dir, *rest)
   else abort "usage: report.rb ruby|kcov <title> <out dir> ..."
   end
-File.write(File.join(out_dir, "summary.md"), text)
+warning = threshold_warning(covered, relevant)
+File.write(File.join(out_dir, "summary.md"), warning ? "#{text}\n#{warning}\n" : text)
 print text
+# stdout and stderr share one file in run.sh, so the warning is printed once,
+# on stderr, after stdout is flushed to keep it last.
+if warning
+  $stdout.flush
+  warn warning
+end

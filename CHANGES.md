@@ -11,6 +11,10 @@
   `coverage-crystal-all` do one language. `coverage` and `coverage-crystal`
   take the report directory from `COVERAGE_RUBY_DIR` / `COVERAGE_CRYSTAL_DIR`
   (defaults unchanged). Coverage is deliberately not part of `make all`.
+- Coverage below 100% now prints a warning (a line in `summary.md`, a `#`
+  comment in the `make coverage` output, and a `Coverage` warning annotation in
+  the CI coverage jobs). `PATH_HELPER_COVERAGE_THRESHOLD` sets another
+  percentage. It is only a warning: the exit status is still the suite's.
 
 ### Fixes
 

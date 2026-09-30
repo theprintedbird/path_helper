@@ -30,7 +30,9 @@
 #
 # Coverage never changes what the executable prints or its exit status, so the
 # suite's results are the same as a plain run's. The exit status is the suite's,
-# or 1 if it passed but no report could be made. There is no threshold.
+# or 1 if it passed but no report could be made. Line coverage below 100% (or
+# PATH_HELPER_COVERAGE_THRESHOLD, a percentage) adds a warning line to the report,
+# and so to the TAP comments; it is only a warning, never a failure.
 #
 # Everything the executable touches lives in a world-readable work directory
 # (PATH_HELPER_COVERAGE_WORK, default /tmp/path_helper-coverage) rather than

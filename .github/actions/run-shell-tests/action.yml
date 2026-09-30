@@ -111,8 +111,9 @@ runs:
           echo "========================================"
         fi
 
-    # Informational only: there is no threshold, so low coverage never fails
-    # the job.
+    # Warning only: coverage below the threshold (report.rb; 100% unless
+    # PATH_HELPER_COVERAGE_THRESHOLD is set) puts a warning in summary.md, which
+    # is also raised here as an annotation. It never fails the job.
     - name: Add the coverage summary
       if: always() && inputs.coverage != ''
       shell: sh
@@ -121,6 +122,10 @@ runs:
       run: |
         if [ -f "$COVERAGE_DIR/summary.md" ]; then
           cat "$COVERAGE_DIR/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          warning=$(grep '^\*\*Warning:\*\* line coverage' "$COVERAGE_DIR/summary.md" | sed 's/\*\*//g') || true
+          if [ -n "$warning" ]; then
+            echo "::warning title=Coverage::$warning"
+          fi
         else
           echo ":warning: **No coverage report was made** - see the test output" >> "$GITHUB_STEP_SUMMARY"
         fi

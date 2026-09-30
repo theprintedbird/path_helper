@@ -779,8 +779,12 @@ and merged. `spec/lib/coverage/run.sh` does the work in either case:
   profile blocks, so that container runs with `--security-opt seccomp=unconfined`.
 
 Coverage doesn't change what the executable prints or its exit status, so the suite's
-results are the same as a plain run's. The exit status is the suite's, and there is no
-minimum coverage: it's a report, not a gate.
+results are the same as a plain run's. The exit status is the suite's: it's a report, not
+a gate. Total line coverage below 100% adds a warning line to the report (so to the output,
+as a `#` comment, and to `summary.md`), for example `**Warning:** line coverage is 98.75%,
+below the 100% threshold (3 lines uncovered).` Set `PATH_HELPER_COVERAGE_THRESHOLD` to
+another percentage to move the threshold (`make coverage RUBY_VER=3.3
+PATH_HELPER_COVERAGE_THRESHOLD=95`). A partial run (`TESTS=path`) will naturally warn.
 
 **List available images:**
 
@@ -1001,7 +1005,8 @@ branches (`test-crystal.yml` also runs on pushes to `claude/path-helper-crystal-
   Crystal latest, both on `ubuntu-latest`) runs the suite with line coverage on, as
   [`make coverage`](#to-run-the-specs) does locally. The summary goes to the job summary and the
   full report is uploaded as the `coverage-ruby`/`coverage-crystal` artifact. It is a report, not a
-  test: the job only fails if the suite does. `coverage-crystal` builds kcov from source into a
+  test: the job only fails if the suite does. Below 100% it adds a warning to the summary and a
+  `Coverage` warning annotation. `coverage-crystal` builds kcov from source into a
   prefix under `$HOME` and caches it with `actions/cache`, based on the kcov version, runner
   OS/arch/Ubuntu release and `docker/install-kcov.sh`; a cache hit whose kcov runs does nothing
   more, otherwise kcov's runtime libraries are installed and it only rebuilds if it still won't run.

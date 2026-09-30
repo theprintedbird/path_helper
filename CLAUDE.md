@@ -57,7 +57,13 @@ The Makefile picks podman or docker, whichever is on `PATH`.
 **Coverage** (`spec/lib/coverage/run.sh <ruby|crystal> <report dir> [test file]...`) wraps the suite
 rather than changing it: each run of the executable is its own process, so counts are collected per
 process and merged by `report.rb` into `summary.md` (per-file lines, %, uncovered line ranges; also
-printed as TAP comments after the plan). The exit status is the suite's; there is no threshold.
+printed as TAP comments after the plan). The exit status is the suite's; there is no gate.
+  `report.rb` compares total line coverage with a threshold (`threshold` in `report.rb`: 100, or
+  `PATH_HELPER_COVERAGE_THRESHOLD`, which the Makefile passes to the container only when set) and,
+  below it, appends `**Warning:** line coverage is X%, below the N% threshold (M lines uncovered).`
+  to `summary.md` and prints it on stderr (`run.sh` merges that into the report it prints as TAP
+  comments). The run-shell-tests summary step turns it into a `::warning title=Coverage::` annotation.
+  Warning only; making it a gate later means changing the exit status.
 - Ruby: `ruby_coverage.rb` goes in via `RUBYOPT=-r...` and uses stdlib `Coverage` -- no gem, the
   executable untouched. For a process whose `$0` is `path_helper` it starts `Coverage` and `load`s the
   script itself, since before Ruby 3 `Coverage` ignores the main program; the script's own `exit`
