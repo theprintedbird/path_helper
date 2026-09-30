@@ -1018,6 +1018,8 @@ branches (`test-crystal.yml` also runs on pushes to `claude/path-helper-crystal-
 - **Artifact Retention**: Test results are kept for 7 days, coverage reports for 14 days.
 - **Workflow Linting**: `lint.yml` runs [`actionlint`](https://github.com/rhysd/actionlint) (a pinned
   release, checksum-verified) over every workflow, triggered only when `.github/**` changes.
+- **Automated Dependency Updates**: Dependabot checks for updates to GitHub Actions weekly and proposes
+  PRs to update them, targeting the `dev` branch (the primary development branch).
 
 ### Workflow Structure
 

@@ -1,0 +1,18 @@
+version: 2
+updates:
+  # GitHub Actions: update workflow files and composite actions that use actions
+  # directory: "/" covers .github/workflows/. Since neither composite action in
+  # .github/actions/ contains `uses:`, we only need "/". Dependabot will update
+  # third-party actions pinned to commit SHAs (keeping the version comment),
+  # and actions/* that are on major version tags.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      github-actions-all:
+        patterns: ["*"]
+    commit-message:
+      prefix: "dev_only:"
+    # Development happens on dev; PRs are opened against dev, not master
+    target-branch: dev

@@ -54,7 +54,6 @@ Language-Agnostic Infrastructure
 ###### Ready
 
 - README "An example install" section (around line 447) shows a stale `--setup` snippet: it names `~/.bash_profile`/`~/.zprofile`, uses separate `export` lines after `fi`; update it to match what `--setup` prints <!-- backlog: 1790738912, complexity: 5, id: card_01M3R5PNGJEASE6TAEHNNZBY1P, ready: 1790743900 -->
-- Add automated dependency updates (Dependabot) <!-- backlog: 1763431283, complexity: 5, id: card_01M2CH88150PJWM0KRN0QF0Z3T, ready: 1790743964 -->
 
 
 ###### In Progress
@@ -182,3 +181,4 @@ Language-Agnostic Infrastructure
 - Fix: the `--setup` snippet leaves the executable's path unquoted in `[ -x ... ]` and `$(...)`, so an install path containing a space breaks it. Quote it in both implementations and extend `shell_test.sh` to cover it <!-- backlog: 1790738911, complexity: 4, done: 1790745402, id: card_01M3R5PKYDYAHQV0Z0HBX8GE6J, in_progress: 1790744540, ready: 1790743909 -->
 - Add a `coverage-all` make target (every Ruby and Crystal version), or fold the coverage targets into `make all` <!-- backlog: 1790332765, complexity: 4, done: 1790746023, id: card_01M3C2C1FN2VCDEJQ9Z1SEN9ZQ, in_progress: 1790745616, ready: 1790743933 -->
 - Coverage threshold: print a non-blocking warning when line coverage drops below 100% in `make coverage`/`make coverage-crystal` and the CI coverage jobs; later turn it into a gate <!-- backlog: 1790332754, complexity: 4, done: 1790746403, id: card_01M3C2BPC4C1QR07EEQP8SA7RY, in_progress: 1790746181, ready: 1790743941 -->
+- Add automated dependency updates (Dependabot) <!-- backlog: 1763431283, complexity: 5, done: 1790747240, id: card_01M2CH88150PJWM0KRN0QF0Z3T, ready: 1790743964 -->

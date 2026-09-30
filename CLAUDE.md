@@ -263,7 +263,7 @@ A fourth workflow, `.github/workflows/lint.yml`, runs on `.github/**` changes on
 pinned, checksum-verified `actionlint` release and runs it over the four workflows (and the two
 composite actions, as far as a workflow references them). Third-party actions across all four
 workflows (anything not under `actions/`) are pinned to a full commit SHA with a trailing `# vX.Y.Z`
-comment naming the release it resolves to, kept in step by hand; `actions/*` stays on its major tag.
+comment naming the release it resolves to; Dependabot proposes updates to both. `actions/*` stays on its major tag.
 
 ## Core logic (mirrored in both implementations)
 

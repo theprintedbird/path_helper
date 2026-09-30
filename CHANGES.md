@@ -4,6 +4,9 @@
 
 ### Dev tooling
 
+- Dependabot now automatically checks for updates to GitHub Actions weekly and
+  proposes pull requests to the `dev` branch, keeping third-party action SHAs
+  and version comments in sync without manual intervention.
 - `make coverage-all` runs the coverage suite for every version in
   `RUBY_VERSIONS` and `CRYSTAL_VERSIONS`, each into its own directory
   (`coverage/ruby-<ver>/`, `coverage/crystal-<ver>/`), carrying on past a
