@@ -1079,7 +1079,10 @@ test suite. It triggers on `v*.*.*` tags (or manually, with a `tag_name` input);
 compiles a static (`--static`) Crystal binary on `ubuntu-latest` for Linux x86_64, and plain
 `--release --no-debug` binaries on `macos-15-intel` and `macos-14` for the two macOS architectures,
 then tars and checksums each one. Its `release` job downloads all three, and publishes them as assets
-on a GitHub Release created from the tag (`softprops/action-gh-release`).
+on a GitHub Release for the tag, using the runner's own `gh` rather than a third-party action. If
+the release already exists (a re-run, say) its assets are replaced and it is retitled, given the new
+notes and published; otherwise it is created, and on a manual run whose tag doesn't exist yet the tag
+is made at the commit that was built.
 
 A fourth workflow, `.github/workflows/lint.yml`, runs three jobs:
 

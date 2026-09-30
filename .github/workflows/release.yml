@@ -174,14 +174,24 @@ jobs:
           } > release_notes.md
 
       - name: Create Release
-        # zizmor: ignore[superfluous-actions] -- the runner's `gh release create` could do this; kept for now, SHA-pinned, as the release step is out of this change's scope
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
-        with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: Release ${{ steps.version.outputs.tag }}
-          body_path: release_notes.md
-          draft: false
-          prerelease: false
-          files: release-assets/*
+        # The runner's own gh, so no third-party action holds the write token.
+        # A release that already exists (a re-run, or one made by hand) has its
+        # assets replaced and is then retitled, given these notes and published,
+        # as softprops/action-gh-release did; otherwise it is created, published
+        # (not a draft or prerelease).
+        # --target only matters when the tag doesn't exist yet (a manual run,
+        # or a draft left without one): the tag is then made at the commit that
+        # was built, not the default branch's head. GitHub ignores it otherwise.
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" release-assets/* --clobber
+            gh release edit "$TAG" --title "Release $TAG" --notes-file release_notes.md \
+              --draft=false --prerelease=false --target "$GITHUB_SHA"
+          else
+            gh release create "$TAG" release-assets/* --title "Release $TAG" \
+              --notes-file release_notes.md --target "$GITHUB_SHA"
+          fi

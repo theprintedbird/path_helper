@@ -289,8 +289,13 @@ zizmor` is `--offline`. `.github/zizmor.yml` encodes the pinning policy below as
 rule (`actions/*: ref-pin`, `*: hash-pin`). The same audit is why every `actions/checkout` sets
 `persist-credentials: false`, no `${{ }}` expression sits in a `run:` (it goes through `env:`),
 `release.yml` has workflow-level `contents: read` with `contents: write` on the `release` job alone, and
-Dependabot has a `cooldown` of 7 days. The one inline `# zizmor: ignore[superfluous-actions]` is on
-`softprops/action-gh-release`, which a backlog card replaces with `gh release create`. The Crystal/kcov
+Dependabot has a `cooldown` of 7 days. There are no inline zizmor ignores: `release.yml`'s last step
+uses the runner's own `gh` (`GH_TOKEN` from `github.token`, via `env:`) rather than a third-party
+action, so nothing outside `actions/` holds the `contents: write` token. It updates a release that
+already exists (`gh release upload --clobber`, then `gh release edit` to retitle, replace the notes
+and publish) and otherwise runs `gh release create`, both with `--target "$GITHUB_SHA"` so a tag that
+doesn't exist yet is made at the built commit (GitHub ignores it for an existing tag), much as
+`softprops/action-gh-release` did before it. The Crystal/kcov
 caches were reviewed for cache poisoning and not flagged (exact keys, push/PR only, nothing shipped from
 them). Third-party actions across all four workflows (anything not under `actions/`) are pinned to a full
 commit SHA with a trailing `# vX.Y.Z` comment naming the release it resolves to; Dependabot proposes
