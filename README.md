@@ -446,26 +446,19 @@ but you'll probably use the helpful instructions `--setup` provides at the end o
 
 ```shell
 # Put this in your ~/.bash_profile or your ~/.zprofile
-if [ -x PATH_TO_THE_EXE/path_helper ]; then
-  C_INCLUDE_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -c)
-  DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fallback-fram)
-  DYLD_FALLBACK_LIBRARY_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fallback-lib)
-  DYLD_FRAMEWORK_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fram)
-  DYLD_LIBRARY_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-lib)
-  MANPATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -m)
-  PKG_CONFIG_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --pc)
-  PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -p)
+if [ -x '/Users/you/bin/path_helper' ]; then
+  export C_INCLUDE_PATH=$(ruby '/Users/you/bin/path_helper' -c --no-etc --no-lib)
+  export DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby '/Users/you/bin/path_helper' --dyld-fallback-fram --no-etc --no-lib)
+  export DYLD_FALLBACK_LIBRARY_PATH=$(ruby '/Users/you/bin/path_helper' --dyld-fallback-lib --no-etc --no-lib)
+  export DYLD_FRAMEWORK_PATH=$(ruby '/Users/you/bin/path_helper' --dyld-fram --no-etc --no-lib)
+  export DYLD_LIBRARY_PATH=$(ruby '/Users/you/bin/path_helper' --dyld-lib --no-etc --no-lib)
+  export MANPATH=$(ruby '/Users/you/bin/path_helper' -m --no-etc --no-lib)
+  export PKG_CONFIG_PATH=$(ruby '/Users/you/bin/path_helper' --pc --no-etc --no-lib)
+  export PATH=$(ruby '/Users/you/bin/path_helper' -p --no-etc --no-lib)
 fi
-
-export C_INCLUDE_PATH
-export DYLD_FALLBACK_FRAMEWORK_PATH
-export DYLD_FALLBACK_LIBRARY_PATH
-export DYLD_FRAMEWORK_PATH
-export DYLD_LIBRARY_PATH
-export MANPATH
-export PKG_CONFIG_PATH
-export PATH
 ```
+
+The `--no-etc --no-lib` on each line are the segment switches given to `--setup` above.
 
 That is the Ruby version. The Crystal build prints the same lines without the leading `ruby`, e.g. `export PATH=$('/path/to/path_helper' -p)`.
 
@@ -503,7 +496,7 @@ Search order: [:config, :etc]
   /etc/paths.d
   /etc/paths
 
-Results: (duplicates marked by ✗)
+Results: (duplicates marked by ✗, dropped lines by ⊘)
 
 /root/.config/paths/paths.d/03-libiconv
  └── ~/Library/Frameworks/Libiconv.framework/Versions/Current/bin
