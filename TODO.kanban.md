@@ -51,7 +51,6 @@ Language-Agnostic Infrastructure
 
 ###### Ready
 
-- README: the per-user config paths are wrong in "Per user paths" and "Ordering" and in the MANPATH / C_INCLUDE_PATH / PKG_CONFIG_PATH lists. They give `~/.config/paths.d` and `~/.config/<name>` but the code reads `~/.config/paths/<name>.d` and `~/.config/paths/<name>` (the DYLD lists are already right) <!-- backlog: 1790849564, id: card_01M3VF7G4JDN7Q4M0G6PNS2JFJ, ready: 1790859604 -->
 - README: the C_INCLUDE_PATH section names the files `include_paths` and `include_paths.d` but the code and fixtures use `c_include_paths` and `c_include_paths.d` <!-- backlog: 1790849567, id: card_01M3VF7JSRQT4SXEXY0VQSC35G, ready: 1790859607 -->
 - README: "Ordering" lists all six locations as if always read. Say that only one per-user segment is on by default (`~/Library/Paths` on macOS and `~/.config/paths` elsewhere) and that `--lib` or `--config` enables the other (config before lib off a Mac) <!-- backlog: 1790849571, id: card_01M3VF7Q0AA2C9WC70G21756EH, ready: 1790859609 -->
 - README: the `--setup` snippet in "An example install" is out of date. Setup prints `export VAR=$(ruby 'PATH' switch)` lines with the single-quoted path inside one `if [ -x 'PATH' ]` block and no separate export lines. Also the debug sample has the old `Results` header (now `duplicates marked by ✗ and dropped lines by ⊘`) <!-- backlog: 1790849575, id: card_01M3VF7T33Q7XQ16J7V37KZPPQ, ready: 1790859617 -->
@@ -65,6 +64,7 @@ Language-Agnostic Infrastructure
 
 
 ###### In Progress
+
 
 
 
@@ -205,3 +205,4 @@ Language-Agnostic Infrastructure
 - release.yml: replace `softprops/action-gh-release` with the runner's preinstalled `gh release create "$TAG" --title ... --notes-file release_notes.md <artifacts>` (with `GH_TOKEN: ${{ github.token }}` in the step's `env:`), so no third-party action holds the `contents: write` token. Remove the `# zizmor: ignore[superfluous-actions]` comment on that step, and check the release comes out the same: tag, title, notes, the tarballs and `.sha256` files, and what happens when the release already exists <!-- backlog: 1790765751, done: 1790768125, id: card_01M3RZ9PX8FASVJZV2W4DAT5RV, in_progress: 1790767944, ready: 1790767795 -->
 - Put the `gh release create` command (see the release.yml card to replace `softprops/action-gh-release`) into a script in the repo, so a release can be cut by hand without remembering the invocation: tag, title, notes file and assets; document it in the README's release section <!-- backlog: 1790765755, done: 1790768583, id: card_01M3RZ9TRXSHVPKG3DBR6QW44C, in_progress: 1790768130, ready: 1790767789 -->
 - Add Github pages. <!-- backlog: 1790846866, done: 1790847464, id: card_01M3VCN4SMTWFYGWJMTFFVEK58, in_progress: 1790847170, ready: 1790846874 -->
+- README: the per-user config paths are wrong in "Per user paths" and "Ordering" and in the MANPATH / C_INCLUDE_PATH / PKG_CONFIG_PATH lists. They give `~/.config/paths.d` and `~/.config/<name>` but the code reads `~/.config/paths/<name>.d` and `~/.config/paths/<name>` (the DYLD lists are already right) <!-- backlog: 1790849564, done: 1790860017, id: card_01M3VF7G4JDN7Q4M0G6PNS2JFJ, in_progress: 1790859853, ready: 1790859604 -->

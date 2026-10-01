@@ -197,8 +197,8 @@ On macOS:
 
 On Linux:
 
-- `~/.config/paths.d/` and
-- `~/.config/paths`
+- `~/.config/paths/paths.d/` and
+- `~/.config/paths/paths`
 
 You can use the `--setup` switch to have the path_helper set up the directory layout and files, you just have to fill them! It also prints a snippet to paste into your shell profile. The executable's path in that snippet is always single-quoted (an embedded `'` is written `'\''`), so it works wherever path_helper is installed, even in a directory with spaces in its name. Any of `--etc`, `--lib`, `--config` or their `--no-` counterparts given to `--setup` are carried into the snippet, after the switch on each `export` line and always in that order (`--etc`, `--lib`, `--config`) whatever order you typed them in, so the profile reads the same segments that were set up. For example `path_helper --setup --config --no-etc` prints lines like `export PATH=$(ruby '/path/to/path_helper' -p --no-etc --config)`. Segments you didn't mention are left to their defaults, and `--dry-run` and `--quiet` are not carried.
 
@@ -285,8 +285,8 @@ path_helper will read files in this order:
 
 1. `~/Library/Paths/paths.d`
 2. `~/Library/Paths/paths`
-3. `~/.config/paths.d`
-4. `~/.config/paths`
+3. `~/.config/paths/paths.d`
+4. `~/.config/paths/paths`
 5. `/etc/paths.d`
 6. `/etc/paths`
 
@@ -310,8 +310,8 @@ Apple has already dictated that `/etc/manpaths` and `/etc/manpaths.d/` are the d
 
 - `~/Library/Paths/manpaths.d/`
 - `~/Library/Paths/manpaths`
-- `~/.config/manpaths.d/`
-- `~/.config/manpaths`
+- `~/.config/paths/manpaths.d/`
+- `~/.config/paths/manpaths`
 - `/etc/manpaths.d/`
 - `/etc/manpaths`
 
@@ -371,8 +371,8 @@ Same again for `C_INCLUDE_PATH`:
 
 - `~/Library/Paths/include_paths.d/`
 - `~/Library/Paths/include_paths`
-- `~/.config/include_paths.d/`
-- `~/.config/include_paths`
+- `~/.config/paths/include_paths.d/`
+- `~/.config/paths/include_paths`
 - `/etc/include_paths.d/`
 - `/etc/include_paths`
 
@@ -382,8 +382,8 @@ Did you know that there's a `PKG_CONFIG_PATH`? There is, check the man page, it'
 
 - `~/Library/Paths/pkg_config_paths.d/`
 - `~/Library/Paths/pkg_config_paths`
-- `~/.config/pkg_config_paths.d/`
-- `~/.config/pkg_config_paths`
+- `~/.config/paths/pkg_config_paths.d/`
+- `~/.config/paths/pkg_config_paths`
 - `/etc/pkg_config_paths.d/`
 - `/etc/pkg_config_paths`
 
