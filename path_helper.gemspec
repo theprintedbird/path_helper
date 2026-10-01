@@ -16,14 +16,14 @@ Gem::Specification.new do |spec|
     DYLD_FALLBACK_LIBRARY_PATH, DYLD_FALLBACK_FRAMEWORK_PATH), helpful debugging output,
     and no side effects (returns paths without eval or setting variables internally).
   DESC
-  spec.homepage      = "https://github.com/yb66/path_helper"
+  spec.homepage      = "https://github.com/theprintedbird/path_helper"
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 2.6"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/yb66/path_helper"
-  spec.metadata["changelog_uri"] = "https://github.com/yb66/path_helper/blob/master/CHANGES.md"
-  spec.metadata["bug_tracker_uri"] = "https://github.com/yb66/path_helper/issues"
+  spec.metadata["source_code_uri"] = "https://github.com/theprintedbird/path_helper"
+  spec.metadata["changelog_uri"] = "https://github.com/theprintedbird/path_helper/blob/master/CHANGES.md"
+  spec.metadata["bug_tracker_uri"] = "https://github.com/theprintedbird/path_helper/issues"
 
   # Specify which files should be added to the gem when it is released.
   spec.files = Dir[

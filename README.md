@@ -53,7 +53,7 @@ and one more for luck
 
 It's just a script with no dependencies other than Ruby.
 
-- Download it (e.g. `git clone` or a download link, you can even just copy and paste the [script](https://raw.githubusercontent.com/yb66/path_helper/master/exe/path_helper))
+- Download it (e.g. `git clone` or a download link, you can even just copy and paste the [script](https://raw.githubusercontent.com/theprintedbird/path_helper/master/exe/path_helper))
 - Make sure it has the correct permissions (`chmod +x`)
 - Have a look at the help by running it with `-h`.
 - Run the `--setup` (take note of the `--lib` and `--config` and their `--no-` counterparts)
@@ -66,7 +66,7 @@ See [An example install](#an-example-install) for more.
 
 ## <a name="how-does-the-apple-one-work-">How does the Apple one work?</a>
 
-Segments of the path are defined in text files under `/etc/paths.d` and in `/etc/path`. For example, on my machine:
+Segments of the path are defined in text files under `/etc/paths.d` and in `/etc/paths`. For example, on my machine:
 
 ```shell
 $ tree /etc/paths.d
@@ -281,14 +281,23 @@ Once you start installing various things it makes sense to keep their paths in t
 
 ## <a name="ordering">Ordering</a>
 
-path_helper will read files in this order:
+There are three places path_helper can look, and I call each one a segment: `~/Library/Paths` (`--lib`), `~/.config/paths` (`--config`) and `/etc` (`--etc`). Within a segment the `paths.d` directory is read first, then the `paths` file.
+
+Only one of the two per-user segments is on by default, the one that suits the platform, so on a Mac path_helper reads:
 
 1. `~/Library/Paths/paths.d`
 2. `~/Library/Paths/paths`
-3. `~/.config/paths/paths.d`
-4. `~/.config/paths/paths`
-5. `/etc/paths.d`
-6. `/etc/paths`
+3. `/etc/paths.d`
+4. `/etc/paths`
+
+and everywhere else it reads:
+
+1. `~/.config/paths/paths.d`
+2. `~/.config/paths/paths`
+3. `/etc/paths.d`
+4. `/etc/paths`
+
+Pass `--config` on a Mac, or `--lib` elsewhere, to turn the other per-user segment on as well. On a Mac `~/Library/Paths` still comes first; elsewhere `~/.config/paths` is read ahead of `~/Library/Paths`. Either way `/etc` comes last. Any segment can be left out with `--no-lib`, `--no-config` or `--no-etc`.
 
 If you don't have them, they are skipped. Files within the `.d` dirs are read in byte order (C locale order), not the order Finder or `ls` use, upper-case letters sort before lower-case, e.g. `10-Zeta` comes before `10-alpha`, and treated as characters, e.g. `9-foo` comes after `10-bar`.
 
@@ -369,12 +378,12 @@ And System Integrity Protection strips every `DYLD_*` variable from the environm
 
 Same again for `C_INCLUDE_PATH`:
 
-- `~/Library/Paths/include_paths.d/`
-- `~/Library/Paths/include_paths`
-- `~/.config/paths/include_paths.d/`
-- `~/.config/paths/include_paths`
-- `/etc/include_paths.d/`
-- `/etc/include_paths`
+- `~/Library/Paths/c_include_paths.d/`
+- `~/Library/Paths/c_include_paths`
+- `~/.config/paths/c_include_paths.d/`
+- `~/.config/paths/c_include_paths`
+- `/etc/c_include_paths.d/`
+- `/etc/c_include_paths`
 
 ### <a name="pkg-config-path">PKG_CONFIG_PATH</a>
 
@@ -446,32 +455,25 @@ but you'll probably use the helpful instructions `--setup` provides at the end o
 
 ```shell
 # Put this in your ~/.bash_profile or your ~/.zprofile
-if [ -x PATH_TO_THE_EXE/path_helper ]; then
-  C_INCLUDE_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -c)
-  DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fallback-fram)
-  DYLD_FALLBACK_LIBRARY_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fallback-lib)
-  DYLD_FRAMEWORK_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-fram)
-  DYLD_LIBRARY_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --dyld-lib)
-  MANPATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -m)
-  PKG_CONFIG_PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper --pc)
-  PATH=$(ruby /Users/$USER/Projects/path_helper/exe/path_helper -p)
+if [ -x '/Users/you/bin/path_helper' ]; then
+  export C_INCLUDE_PATH=$(ruby '/Users/you/bin/path_helper' -c --no-etc --no-lib)
+  export DYLD_FALLBACK_FRAMEWORK_PATH=$(ruby '/Users/you/bin/path_helper' --dyld-fallback-fram --no-etc --no-lib)
+  export DYLD_FALLBACK_LIBRARY_PATH=$(ruby '/Users/you/bin/path_helper' --dyld-fallback-lib --no-etc --no-lib)
+  export DYLD_FRAMEWORK_PATH=$(ruby '/Users/you/bin/path_helper' --dyld-fram --no-etc --no-lib)
+  export DYLD_LIBRARY_PATH=$(ruby '/Users/you/bin/path_helper' --dyld-lib --no-etc --no-lib)
+  export MANPATH=$(ruby '/Users/you/bin/path_helper' -m --no-etc --no-lib)
+  export PKG_CONFIG_PATH=$(ruby '/Users/you/bin/path_helper' --pc --no-etc --no-lib)
+  export PATH=$(ruby '/Users/you/bin/path_helper' -p --no-etc --no-lib)
 fi
-
-export C_INCLUDE_PATH
-export DYLD_FALLBACK_FRAMEWORK_PATH
-export DYLD_FALLBACK_LIBRARY_PATH
-export DYLD_FRAMEWORK_PATH
-export DYLD_LIBRARY_PATH
-export MANPATH
-export PKG_CONFIG_PATH
-export PATH
 ```
+
+The `--no-etc --no-lib` on each line are the segment switches given to `--setup` above.
 
 That is the Ruby version. The Crystal build prints the same lines without the leading `ruby`, e.g. `export PATH=$('/path/to/path_helper' -p)`.
 
 ### NOTE!
 
-Remember, it **won't set the PATH**, it *returns* a path, **you have to set the path** with it e.g. `PATH=$(/path/to/path_helper.rb -p)`. Call `/path/to/path_helper -h` to see all the options.
+Remember, it **won't set the PATH**, it *returns* a path, **you have to set the path** with it e.g. `PATH=$(/path/to/path_helper -p)`. Call `/path/to/path_helper -h` to see all the options.
 
 ### Another NOTE!
 
@@ -503,7 +505,7 @@ Search order: [:config, :etc]
   /etc/paths.d
   /etc/paths
 
-Results: (duplicates marked by ✗)
+Results: (duplicates marked by ✗, dropped lines by ⊘)
 
 /root/.config/paths/paths.d/03-libiconv
  └── ~/Library/Frameworks/Libiconv.framework/Versions/Current/bin
