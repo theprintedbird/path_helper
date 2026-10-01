@@ -369,12 +369,12 @@ And System Integrity Protection strips every `DYLD_*` variable from the environm
 
 Same again for `C_INCLUDE_PATH`:
 
-- `~/Library/Paths/include_paths.d/`
-- `~/Library/Paths/include_paths`
-- `~/.config/include_paths.d/`
-- `~/.config/include_paths`
-- `/etc/include_paths.d/`
-- `/etc/include_paths`
+- `~/Library/Paths/c_include_paths.d/`
+- `~/Library/Paths/c_include_paths`
+- `~/.config/c_include_paths.d/`
+- `~/.config/c_include_paths`
+- `/etc/c_include_paths.d/`
+- `/etc/c_include_paths`
 
 ### <a name="pkg-config-path">PKG_CONFIG_PATH</a>
 
