@@ -281,14 +281,23 @@ Once you start installing various things it makes sense to keep their paths in t
 
 ## <a name="ordering">Ordering</a>
 
-path_helper will read files in this order:
+There are three places path_helper can look, and I call each one a segment: `~/Library/Paths` (`--lib`), `~/.config/paths` (`--config`) and `/etc` (`--etc`). Within a segment the `paths.d` directory is read first, then the `paths` file.
+
+Only one of the two per-user segments is on by default, the one that suits the platform, so on a Mac path_helper reads:
 
 1. `~/Library/Paths/paths.d`
 2. `~/Library/Paths/paths`
-3. `~/.config/paths.d`
-4. `~/.config/paths`
-5. `/etc/paths.d`
-6. `/etc/paths`
+3. `/etc/paths.d`
+4. `/etc/paths`
+
+and everywhere else it reads:
+
+1. `~/.config/paths/paths.d`
+2. `~/.config/paths/paths`
+3. `/etc/paths.d`
+4. `/etc/paths`
+
+Pass `--config` on a Mac, or `--lib` elsewhere, to turn the other per-user segment on as well. On a Mac `~/Library/Paths` still comes first; elsewhere `~/.config/paths` is read ahead of `~/Library/Paths`. Either way `/etc` comes last. Any segment can be left out with `--no-lib`, `--no-config` or `--no-etc`.
 
 If you don't have them, they are skipped. Files within the `.d` dirs are read in byte order (C locale order), not the order Finder or `ls` use, upper-case letters sort before lower-case, e.g. `10-Zeta` comes before `10-alpha`, and treated as characters, e.g. `9-foo` comes after `10-bar`.
 
