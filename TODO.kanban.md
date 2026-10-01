@@ -55,7 +55,6 @@ Language-Agnostic Infrastructure
 - README: the C_INCLUDE_PATH section names the files `include_paths` and `include_paths.d` but the code and fixtures use `c_include_paths` and `c_include_paths.d` <!-- backlog: 1790849567, id: card_01M3VF7JSRQT4SXEXY0VQSC35G, ready: 1790859607 -->
 - README: "Ordering" lists all six locations as if always read. Say that only one per-user segment is on by default (`~/Library/Paths` on macOS and `~/.config/paths` elsewhere) and that `--lib` or `--config` enables the other (config before lib off a Mac) <!-- backlog: 1790849571, id: card_01M3VF7Q0AA2C9WC70G21756EH, ready: 1790859609 -->
 - README: the `--setup` snippet in "An example install" is out of date. Setup prints `export VAR=$(ruby 'PATH' switch)` lines with the single-quoted path inside one `if [ -x 'PATH' ]` block and no separate export lines. Also the debug sample has the old `Results` header (now `duplicates marked by ✗ and dropped lines by ⊘`) <!-- backlog: 1790849575, id: card_01M3VF7T33Q7XQ16J7V37KZPPQ, ready: 1790859617 -->
-- README and gemspec: links use the old repo name `yb66/path_helper` which redirects to `theprintedbird/path_helper`. Update the raw-script link in the README and the homepage / source / changelog / bug tracker URIs in `path_helper.gemspec` <!-- backlog: 1790849578, id: card_01M3VF7X8T4F3FTEJSQRGM44HE, ready: 1790859619 -->
 - README typos: `/etc/path` should be `/etc/paths` in "How does the Apple one work?" and `path_helper.rb` in the NOTE under "An example install" should be `path_helper` (the `--help` banner in both implementations says `path_helper.rb` too) <!-- backlog: 1790849581, id: card_01M3VF80EYX239GJBNG3RBKQ69, ready: 1790859623 -->
 
 
@@ -65,6 +64,7 @@ Language-Agnostic Infrastructure
 
 
 ###### In Progress
+
 
 
 
@@ -205,3 +205,4 @@ Language-Agnostic Infrastructure
 - release.yml: replace `softprops/action-gh-release` with the runner's preinstalled `gh release create "$TAG" --title ... --notes-file release_notes.md <artifacts>` (with `GH_TOKEN: ${{ github.token }}` in the step's `env:`), so no third-party action holds the `contents: write` token. Remove the `# zizmor: ignore[superfluous-actions]` comment on that step, and check the release comes out the same: tag, title, notes, the tarballs and `.sha256` files, and what happens when the release already exists <!-- backlog: 1790765751, done: 1790768125, id: card_01M3RZ9PX8FASVJZV2W4DAT5RV, in_progress: 1790767944, ready: 1790767795 -->
 - Put the `gh release create` command (see the release.yml card to replace `softprops/action-gh-release`) into a script in the repo, so a release can be cut by hand without remembering the invocation: tag, title, notes file and assets; document it in the README's release section <!-- backlog: 1790765755, done: 1790768583, id: card_01M3RZ9TRXSHVPKG3DBR6QW44C, in_progress: 1790768130, ready: 1790767789 -->
 - Add Github pages. <!-- backlog: 1790846866, done: 1790847464, id: card_01M3VCN4SMTWFYGWJMTFFVEK58, in_progress: 1790847170, ready: 1790846874 -->
+- README and gemspec: links use the old repo name `yb66/path_helper` which redirects to `theprintedbird/path_helper`. Update the raw-script link in the README and the homepage / source / changelog / bug tracker URIs in `path_helper.gemspec` <!-- backlog: 1790849578, done: 1790860100, id: card_01M3VF7X8T4F3FTEJSQRGM44HE, in_progress: 1790859859, ready: 1790859619 -->
