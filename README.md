@@ -66,7 +66,7 @@ See [An example install](#an-example-install) for more.
 
 ## <a name="how-does-the-apple-one-work-">How does the Apple one work?</a>
 
-Segments of the path are defined in text files under `/etc/paths.d` and in `/etc/path`. For example, on my machine:
+Segments of the path are defined in text files under `/etc/paths.d` and in `/etc/paths`. For example, on my machine:
 
 ```shell
 $ tree /etc/paths.d
@@ -471,7 +471,7 @@ That is the Ruby version. The Crystal build prints the same lines without the le
 
 ### NOTE!
 
-Remember, it **won't set the PATH**, it *returns* a path, **you have to set the path** with it e.g. `PATH=$(/path/to/path_helper.rb -p)`. Call `/path/to/path_helper -h` to see all the options.
+Remember, it **won't set the PATH**, it *returns* a path, **you have to set the path** with it e.g. `PATH=$(/path/to/path_helper -p)`. Call `/path/to/path_helper -h` to see all the options.
 
 ### Another NOTE!
 

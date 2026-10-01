@@ -29,7 +29,7 @@ normalize_path = ->(path) {
 }
 begin
   OptionParser.new do |opts|
-    opts.banner = "Usage: path_helper.rb [options]"
+    opts.banner = "Usage: path_helper [options]"
     opts.on("-p", "--path [PATH]", "To get a completely fresh PATH pass an empty string or nothing at all (the default).","  To append something to the generated path pass the current path, or a path you wish appended."
     ) do |path|
       options[:name] = "PATH"
