@@ -23,21 +23,32 @@ jobs:
   build:
     name: Build ${{ matrix.os }}
     runs-on: ${{ matrix.runner }}
+    # Empty for the macOS builds, which then run on the runner itself.
+    container: ${{ matrix.container }}
     strategy:
       matrix:
         include:
+          # Built in the Alpine image, against musl, so --static gives a
+          # binary with no runtime dependencies at all. A static glibc build
+          # still needs the build host's glibc shared libraries at run time
+          # for getpwuid_r (the home directory lookup), which the linker
+          # warns about. The image supplies Crystal and the static libraries;
+          # crystal-lang/install-crystal has no Alpine support. The job is
+          # root with no bash, as in test-crystal-alpine.
           - os: linux-x86_64
             runner: ubuntu-latest
-            crystal: latest
+            container: crystallang/crystal:latest-alpine
             artifact_name: path_helper-linux-x86_64
             build_flags: --static
           - os: macos-x86_64
             runner: macos-15-intel
+            container: ""
             crystal: latest
             artifact_name: path_helper-macos-x86_64
             build_flags: ""
           - os: macos-arm64
             runner: macos-14
+            container: ""
             crystal: latest
             artifact_name: path_helper-macos-arm64
             build_flags: ""
@@ -49,12 +60,20 @@ jobs:
           persist-credentials: false
 
       - name: Install Crystal
+        if: matrix.container == ''
         uses: crystal-lang/install-crystal@d8ef131ecec0352ce0e39b81b0a6d95def58fe2f # v1.9.2
         with:
           crystal: ${{ matrix.crystal }}
 
+      # For "Verify binary"; the Alpine image has no file(1).
+      - name: Install file
+        if: matrix.container != ''
+        run: apk add --no-cache file
+
+      # Not --production: that requires a committed shard.lock, and the shard
+      # has no dependencies to lock, so there isn't one.
       - name: Install dependencies
-        run: shards install --production
+        run: shards install
 
       - name: Build release binary
         env:
@@ -114,6 +133,18 @@ jobs:
           find artifacts -type f \( -name "*.tar.gz" -o -name "*.sha256" \) -exec cp {} release-assets/ \;
           ls -lah release-assets/
 
+      # The Ruby implementation is one self-contained script, so it is shipped
+      # as it is in the checkout, in the same shape as the binaries: a tarball
+      # holding just `path_helper` (still executable), and a checksum file made
+      # beside the tarball so it names it without a directory.
+      - name: Package the Ruby script
+        run: |
+          ruby exe/path_helper --version
+          tar -czf path_helper-ruby.tar.gz -C exe path_helper
+          sha256sum path_helper-ruby.tar.gz > path_helper-ruby.tar.gz.sha256
+          mv path_helper-ruby.tar.gz path_helper-ruby.tar.gz.sha256 release-assets/
+          ls -lah release-assets/
+
       - name: Extract version from tag
         id: version
         run: |
@@ -146,6 +177,12 @@ jobs:
           - **Linux (x86_64)**: `path_helper-linux-x86_64.tar.gz`
           - **macOS (Intel)**: `path_helper-macos-x86_64.tar.gz`
           - **macOS (Apple Silicon)**: `path_helper-macos-arm64.tar.gz`
+
+          ## Ruby Script
+
+          The Ruby implementation, for any platform with Ruby 2.6 or later:
+          `path_helper-ruby.tar.gz`. It behaves identically to the binaries and
+          installs the same way.
 
           ### Installation
 

@@ -1080,9 +1080,13 @@ The Alpine jobs take their Ruby or Crystal from the image, since `ruby/setup-rub
 
 A third workflow, `.github/workflows/release.yml`, builds release binaries rather than running the
 test suite. It triggers on `v*.*.*` tags (or manually, with a `tag_name` input); its `build` job
-compiles a static (`--static`) Crystal binary on `ubuntu-latest` for Linux x86_64, and plain
-`--release --no-debug` binaries on `macos-15-intel` and `macos-14` for the two macOS architectures,
-then tars and checksums each one. Its `release` job downloads all three, and publishes them as assets
+compiles a static (`--static`) Crystal binary for Linux x86_64 in the `crystallang/crystal:latest-alpine`
+container, and plain `--release --no-debug` binaries on `macos-15-intel` and `macos-14` for the two
+macOS architectures, then tars and checksums each one. The Linux build is against musl rather than
+glibc so that the binary has no runtime dependencies: a static glibc binary still loads the build
+host's glibc at run time to look up the home directory. Its `release` job downloads all three, packages the Ruby
+script the same way (`path_helper-ruby.tar.gz`, holding just `exe/path_helper` as `path_helper`, with
+its own `.sha256`), and publishes them all as assets
 on a GitHub Release for the tag with `script/release.sh`, which uses the runner's own `gh` rather
 than a third-party action. If the release already exists (a re-run, say) its assets are replaced and
 it is retitled, given the new notes and published; otherwise it is created, and on a manual run whose

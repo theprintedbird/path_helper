@@ -274,7 +274,13 @@ hit only skips LLVM's `--release` optimisation and can't change what is tested. 
 is one LLVM module, so a stale entry can never be partly reused -- hence no `restore-keys`.
 `coverage-crystal` only restores (its throwaway release build shares test-crystal's ubuntu/latest
 key). The Alpine job `apk add`s GNU `tar`, which `actions/cache` needs. `release.yml` deliberately
-uses no cache, so shipped binaries never come from a cache entry.
+uses no cache, so shipped binaries never come from a cache entry. Its Linux binary is built `--static`
+in the `crystallang/crystal:latest-alpine` container (the matrix's `container`, empty for the two macOS
+builds, which use `install-crystal` on the runner): against musl it has no runtime dependencies, where a
+static glibc build still loads the build host's glibc for `getpwuid_r`. It runs plain `shards install`,
+not `--production`, which needs a committed `shard.lock` and the shard has no dependencies to lock.
+The `release` job also packages the Ruby script as `path_helper-ruby.tar.gz` (just `exe/path_helper`,
+as `path_helper`) with a `.sha256`, so each release carries four tarballs and four checksums.
 
 A fourth workflow, `.github/workflows/lint.yml` ("Lint"), runs on changes to `.github/**`,
 `spec/**/*.sh`, `docker/*.sh`, `script/*.sh`, `.shellcheckrc` and `Makefile` (one YAML anchor shared by `push` and
