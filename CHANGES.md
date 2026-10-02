@@ -1,147 +1,11 @@
 # CHANGES #
 
-## Tuesday the 29th of September 2026 ##
-
-### Dev tooling
-
-- `make check` now runs four checks: `lint`, `actionlint`, and two new ones,
-  `make shellcheck` (every `*.sh` under `spec/` and `docker/`, configured by
-  `.shellcheckrc`) and `make zizmor` (an offline security audit of the
-  workflows and composite actions, policy in `.github/zizmor.yml`). `lint.yml`
-  runs all three tools as separate jobs, triggered also by changes to the
-  shell scripts, `.shellcheckrc` and the `Makefile`. What they found is fixed:
-  unquoted expansions in the harness, `cd ... || exit 1` in the Docker install
-  scripts, `persist-credentials: false` on every checkout, `${{ }}`
-  expressions moved out of `run:` into `env:`, write permission in
-  `release.yml` scoped to the `release` job, and a 7-day Dependabot cooldown.
-- Dependabot now automatically checks for updates to GitHub Actions weekly and
-  proposes pull requests to the `dev` branch, keeping third-party action SHAs
-  and version comments in sync without manual intervention.
-- `make coverage-all` runs the coverage suite for every version in
-  `RUBY_VERSIONS` and `CRYSTAL_VERSIONS`, each into its own directory
-  (`coverage/ruby-<ver>/`, `coverage/crystal-<ver>/`), carrying on past a
-  failing version like `test-all` does; `coverage-ruby-all` and
-  `coverage-crystal-all` do one language. `coverage` and `coverage-crystal`
-  take the report directory from `COVERAGE_RUBY_DIR` / `COVERAGE_CRYSTAL_DIR`
-  (defaults unchanged). Coverage is deliberately not part of `make all`.
-- Coverage below 100% now prints a warning (a line in `summary.md`, a `#`
-  comment in the `make coverage` output, and a `Coverage` warning annotation in
-  the CI coverage jobs). `PATH_HELPER_COVERAGE_THRESHOLD` sets another
-  percentage. It is only a warning: the exit status is still the suite's.
-- A test file that is missing or unreadable is now a `Bail out!` naming it
-  with exit 1, instead of a "not found" per file, `1..0` and exit 0.
-
-### Fixes
-
-- The snippet `--setup` prints ignored the segment switches given to it, so
-  `--setup --config` on a Mac created `~/.config/paths` but printed lines that
-  would never read it, and `--no-etc` was forgotten too. Both implementations
-  now append the `--etc`/`--lib`/`--config` switches (or their `--no-`
-  forms) that were given to `--setup` to each `export` line, after the
-  variable's own switch and always in that order, e.g.
-  `export PATH=$(ruby '/x/path_helper' -p --no-etc --config)`. With none given
-  the output is unchanged. `shell_test.sh` checks the export lines and sources
-  a snippet made with segment switches.
-- The snippet `--setup` prints put the executable's path into the shell
-  unquoted, so an install path containing a space (or any other shell
-  metacharacter) broke it. Both implementations now always POSIX
-  single-quote the path in the `if [ -x ... ]` test and in every `export`
-  line, writing an embedded `'` as `'\''`, with identical output. The rest of
-  the snippet is unchanged. `shell_test.sh` now sources the snippet of a copy
-  installed in a directory with spaces and quotes in its name.
-- Ruby stored an empty `-p`/`-m`/etc. argument as `""` rather than `nil`, so
-  `-p '' --debug` showed `current_path: ""` where Crystal (and a bare `-p
-  --debug`) showed `nil`. All eight path switches now normalise an absent or
-  empty argument to `nil` through one shared lambda, matching Crystal.
-- Removed the dead `ENV[name]`/`ENV[name]?` fallback in both `CLI#initialize`s:
-  every path switch always sets `:current_path`, so the fallback could never
-  be reached from the CLI in either implementation.
-- A lone `-` given as a path switch's argument (`-p -`, `--path -`, `-m -`,
-  etc.) is now refused as `Unexpected argument: -` in both implementations,
-  rather than being accepted as the path on Ruby >= 3.2 and in Crystal while
-  Ruby <= 3.1 already refused it. Ruby's `normalize_path` and Crystal's
-  `path_argument` both now raise the same error the leftover-argument guard
-  uses, so all three agree.
-
-### Docs
-
-- README now explains that duplicate path lines are dropped by comparing
-  the line's text, not the directory it names, and the consequence of that
-  on a case-insensitive APFS volume: two differently-cased spellings of the
-  same directory both survive and both reach `PATH`.
-- README now says `.d` fragments are read in byte order (upper case before
-  lower case, `10-` before `9-`), replacing the wrong "file system order", and
-  recommends lower-case, zero-padded names.
-
-## Monday the 28th of September 2026 ##
-
-### Fixes
-
-- `--setup` in the Ruby implementation made a directory with
-  `system("mkdir", "-p", path)`, which never raises: a refused directory got
-  mkdir's own message on stderr, a `Created <dir>` line on stdout, and no
-  entry under `Your account does not have permissions for:`. It now uses
-  `FileUtils.mkdir_p`, so a permission failure is caught the same way the
-  Crystal implementation (`Dir.mkdir_p`, which raises `File::AccessDeniedError`)
-  already caught it. The permission tests in `spec/lib/test_helpers.sh` were
-  tightened to check for this: with directories missing, each `<name>.d` is
-  now also required in the permissions list, and stdout is required empty in
-  both cases.
-- Crystal's `--setup` indented the closing advice ("Consider whether you need
-  to install these." and the two lines after it) by two spaces: the
-  `<<-WARNING` heredoc in `src/path_helper/setup.cr` had its body indented
-  further than the closing `WARNING`, and Crystal's `<<-` only strips the
-  closing delimiter's own indentation, unlike Ruby's `<<~`. The body is now
-  flush with the closing delimiter, so the two implementations' advice is
-  byte for byte identical. `test_setup_without_permission` in
-  `spec/lib/test_helpers.sh` now compares the whole permissions report byte
-  for byte, built in the test rather than checked by grep, so a regression
-  like this one would be caught directly.
-
-## Friday the 25th of September 2026 ##
-
-### Code coverage (development only)
-
-- `make coverage RUBY_VER=<ver>` and `make coverage-crystal CRYSTAL_VER=<ver>`
-  run the shell suite with line coverage of the implementation under test and
-  write a report to `coverage/ruby/` or `coverage/crystal/`: a Markdown
-  summary (per-file percentage and the uncovered line numbers), plus a
-  SimpleCov-style `.resultset.json` and annotated source for Ruby, and kcov's
-  HTML and Cobertura output for Crystal. Ruby uses the standard library's
-  `Coverage` loaded through `RUBYOPT` (no gem, nothing in `exe/path_helper`,
-  works back to 2.6); Crystal runs a debug build under kcov, which is built
-  from source and so is glibc only. Nothing changes for a plain `make test`.
-- CI gained a `coverage-ruby` (Ruby 3.3) and a `coverage-crystal` (Crystal
-  latest) job on `ubuntu-latest`, which put the summary in the job summary and
-  upload the report as an artifact. There is no minimum yet, so coverage never
-  fails the build.
-- As of this change the suite covers 93.5% of the Ruby script's lines and
-  93.6% of the Crystal sources'.
-
-### Ruby minimum lowered to 2.6
-
-- Tested against macOS's system Ruby (`/usr/bin/ruby`, 2.6.10p210, deprecated
-  by Apple but still what a shell profile finds before any Ruby version
-  manager has put a newer one on `PATH`). The full suite passes unchanged, so
-  `spec.required_ruby_version` is lowered from `>= 2.7` to `>= 2.6` and
-  `make test RUBY_VER=2.6` is a supported (if not default) target, built from
-  `ruby:2.6-alpine3.15` -- the same patch level as macOS ships. CI gained a
-  `macos-latest` Ruby job that runs the suite against `/usr/bin/ruby`
-  directly rather than a `ruby/setup-ruby`-installed version, to catch a
-  future macOS Ruby bump for real.
-
-### dev_only: Dropped redundant setup from `docker/install-ruby.sh`
-
-- `docker/install-ruby.sh` no longer runs `--setup --no-lib` and copies the
-  fixtures into `~/.config/paths` at image build time. `spec/tests/setup_test.sh`
-  already does both -- for both home segments -- when the suite runs, and its
-  own cleanup `rm -rf`s the trees afterwards anyway, so the build-time copy was
-  dead weight. `docker/install-crystal.sh` already omitted this step;
-  `install-ruby.sh` now ends with the same closing note.
-
-## Tuesday the 8th of September 2026 ##
+## Friday the 2nd of October 2026 ##
 
 ### v5.0.0
+
+There is no v4.0.0 release: that number was used for development only and was
+never tagged, so this release follows v3.1.0.
 
 - **Breaking:** `--dyld-fram` and `--dyld-lib` now mean `DYLD_FRAMEWORK_PATH` and
   `DYLD_LIBRARY_PATH`, the vars whose names they actually read as. The fallback
@@ -155,7 +19,7 @@
   `PKG_CONFIG_PATH` to the PATH with `c` appended. It is `--pc` now.
 - Fixed blank lines in a path file, which were read as components. An empty
   line joined into the output as a stray `::`, and a `::` in `PATH` means the
-  current working directory -- so a fragment with one newline too many put
+  current working directory, so a fragment with one newline too many put
   whatever directory you happened to be in on your path. Blank lines are now
   dropped as the files are read, so they reach neither the output nor the
   `--debug` report. A line of nothing but spaces or tabs counts as blank too;
@@ -188,7 +52,7 @@
 - Fixed the Crystal build refusing `--` straight after a path switch with
   `Invalid option: --`. It now ends the options there, as the Ruby script
   always has.
-- Fixed a fragment file that cannot be read -- one with the wrong mode, say --
+- Fixed a fragment file that cannot be read, e.g. the wrong mode,
   taking the whole run down with a `Permission denied` error, which left
   `export PATH=$(path_helper -p)` with nothing to export. It is now passed over
   like any other entry that is not a file.
@@ -202,6 +66,135 @@
   `current path - does not exist!` and left out its components. They are now
   listed under `current path`, after everything the search found, with any
   that the search had already found marked as duplicates.
+
+#### Ruby minimum lowered to 2.6
+
+- Tested against macOS's system Ruby (`/usr/bin/ruby`, 2.6.10p210, deprecated
+  by Apple but still what a shell profile finds before any Ruby version
+  manager has put a newer one on `PATH`). The full suite passes unchanged, so
+  `spec.required_ruby_version` is lowered from `>= 2.7` to `>= 2.6` and
+  `make test RUBY_VER=2.6` is a supported (if not default) target, built from
+  `ruby:2.6-alpine3.15`, the same patch level as macOS ships. CI gained a
+  `macos-latest` Ruby job that runs the suite against `/usr/bin/ruby`
+  directly rather than a `ruby/setup-ruby` installed version, to catch a
+  future macOS Ruby bump for real.
+
+#### Fixes
+
+- `--setup` ignored the segment switches given to it, so
+  `--setup --config` on a Mac created `~/.config/paths` but printed lines that
+  would never read it, and `--no-etc` was ignored too. Both implementations
+  now append the `--etc`/`--lib`/`--config` switches (or their `--no-`
+  forms) that were given to `--setup` to each `export` line, after the
+  variable's own switch and always in that order, e.g.
+  `export PATH=$(ruby '/x/path_helper' -p --no-etc --config)`. With none given
+  the output is unchanged. `shell_test.sh` checks the export lines and sources
+  a snippet made with segment switches.
+- The snippet `--setup` prints put the executable's path into the shell
+  unquoted, so an install path containing a space (or any other shell
+  metacharacter) broke it. Both implementations now always POSIX
+  single-quote the path in the `if [ -x ... ]` test and in every `export`
+  line, writing an embedded `'` as `'\''`, with identical output. The rest of
+  the snippet is unchanged. `shell_test.sh` now sources  spaces and quotes.
+- Ruby stored an empty `-p`/`-m`/etc. argument as `""` rather than `nil`, so
+  `-p '' --debug` showed `current_path: ""` where Crystal (and a bare `-p
+  --debug`) showed `nil`. All eight path switches now normalise an absent or
+  empty argument to `nil`, matching Crystal.
+- Removed the dead `ENV[name]`/`ENV[name]?` fallback in both `CLI#initialize`:
+  every path switch always sets `:current_path`, as the fallback could never
+  be reached from the CLI in either implementation.
+- A lone `-` given as a path switch's argument (`-p -`, `--path -`, `-m -`,
+  etc.) is now refused as `Unexpected argument: -` in both implementations,
+  rather than being accepted as the path on Ruby >= 3.2 and in Crystal while
+  Ruby <= 3.1 already refused it. Ruby's `normalize_path` and Crystal's
+  `path_argument` both now raise the same error the leftover-argument guard
+  uses, so all three agree.
+- `--setup` in the Ruby implementation made a directory with
+  `system("mkdir", "-p", path)`, which never raises: a refused directory got
+  mkdir's own message on stderr, a `Created <dir>` line on stdout, and no
+  entry under `Your account does not have permissions for:`. It now uses
+  `FileUtils.mkdir_p`, so a permission failure is caught the same way the
+  Crystal implementation (`Dir.mkdir_p`, which raises `File::AccessDeniedError`)
+  was already doing. Permission tests in `spec/lib/test_helpers.sh` have been
+  tightened to check for this: with directories missing, each `<name>.d` is
+  now also required in the permissions list, and stdout is required empty in
+  both cases.
+- Crystal's `--setup` indented the closing advice ("Consider whether you need
+  to install these." and the two lines after it) by two spaces: the
+  `<<-WARNING` heredoc in `src/path_helper/setup.cr` had its body indented
+  further than the closing `WARNING`, and Crystal's `<<-` only strips the
+  closing delimiter's own indentation, unlike Ruby's `<<~`. The body is now
+  flush with the closing delimiter, so the two implementations' advice is
+  byte for byte identical. `test_setup_without_permission` in
+  `spec/lib/test_helpers.sh` now compares the whole permissions report byte
+  for byte, built in the test rather than checked by grep, so a regression
+  like this one would be caught directly.
+
+#### Docs
+
+- README now explains that duplicate path lines are dropped by comparing
+  the line's text, not the directory it names, and the consequence of that
+  on a case-insensitive APFS volume: two differently-cased spellings of the
+  same directory both survive and both reach `PATH`.
+- README now says `.d` fragments are read in byte order (upper case before
+  lower case, `10-` before `9-`), replacing the wrong "file system order", and
+  recommends lower-case, zero-padded names.
+
+#### Dev tooling
+
+- `make check` now runs four checks: `lint`, `actionlint`, and two new ones,
+  `make shellcheck` (every `*.sh` under `spec/` and `docker/`, configured by
+  `.shellcheckrc`) and `make zizmor` (an offline security audit of the
+  workflows and composite actions, policy in `.github/zizmor.yml`). `lint.yml`
+  runs all three tools as separate jobs, triggered also by changes to the
+  shell scripts, `.shellcheckrc` and the `Makefile`. What they found is fixed:
+  unquoted expansions in the harness, `cd ... || exit 1` in the Docker install
+  scripts, `persist-credentials: false` on every checkout, `${{ }}`
+  expressions moved out of `run:` into `env:`, write permission in
+  `release.yml` scoped to the `release` job, and a 7-day Dependabot cooldown.
+- Dependabot now automatically checks for updates to GitHub Actions weekly and
+  proposes pull requests to the `dev` branch, keeping third-party action SHAs
+  and version comments in sync without manual intervention.
+- `make coverage-all` runs the coverage suite for every version in
+  `RUBY_VERSIONS` and `CRYSTAL_VERSIONS`, each into its own directory
+  (`coverage/ruby-<ver>/`, `coverage/crystal-<ver>/`), carrying on past a
+  failing version like `test-all` does; `coverage-ruby-all` and
+  `coverage-crystal-all` do one language. `coverage` and `coverage-crystal`
+  take the report directory from `COVERAGE_RUBY_DIR` / `COVERAGE_CRYSTAL_DIR`
+  (defaults unchanged). Coverage is deliberately not part of `make all`.
+- Coverage below 100% now prints a warning (a line in `summary.md`, a `#`
+  comment in the `make coverage` output, and a `Coverage` warning annotation in
+  the CI coverage jobs). `PATH_HELPER_COVERAGE_THRESHOLD` sets another
+  percentage. It is only a warning: the exit status is still the suite's.
+- A test file that is missing or unreadable is now a `Bail out!` naming it
+  with exit 1, instead of a "not found" per file, `1..0` and exit 0.
+
+#### Code coverage (development only)
+
+- `make coverage RUBY_VER=<ver>` and `make coverage-crystal CRYSTAL_VER=<ver>`
+  run the shell suite with line coverage of the implementation under test and
+  write a report to `coverage/ruby/` or `coverage/crystal/`: a Markdown
+  summary (per-file percentage and the uncovered line numbers), plus a
+  SimpleCov-style `.resultset.json` and annotated source for Ruby, and kcov's
+  HTML and Cobertura output for Crystal. Ruby uses the standard library's
+  `Coverage` loaded through `RUBYOPT` (no gem, nothing in `exe/path_helper`,
+  works back to 2.6); Crystal runs a debug build under kcov, which is built
+  from source and so is glibc only. Nothing changes for a plain `make test`.
+- CI gained a `coverage-ruby` (Ruby 3.3) and a `coverage-crystal` (Crystal
+  latest) job on `ubuntu-latest`, which puts the summary in the job summary and
+  upload the report as an artifact. There is no minimum yet, so coverage never
+  fails the build.
+- As of this change the suite covers 100% of the Ruby script's lines and
+  100% of the Crystal sources'.
+
+#### dev_only: Dropped redundant setup from `docker/install-ruby.sh`
+
+- `docker/install-ruby.sh` no longer runs `--setup --no-lib` and copies the
+  fixtures into `~/.config/paths` at image build time. `spec/tests/setup_test.sh`
+  already does both, for both home segments, when the suite runs, and its
+  own cleanup `rm -rf`s the trees afterwards anyway, so the build-time copy was
+  dead weight. `docker/install-crystal.sh` already omitted this step;
+  `install-ruby.sh` now ends with the same closing note.
 
 
 ## Tuesday the 19th of May 2020 ##
