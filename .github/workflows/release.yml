@@ -61,7 +61,7 @@ jobs:
 
       - name: Install Crystal
         if: matrix.container == ''
-        uses: crystal-lang/install-crystal@36a22e9145188eec527c96e5a789ce4b832af587 # v1.9.5
+        uses: crystal-lang/install-crystal@47f17b5ecff0cc09e96fa95f5220311329bf4bc8 # v1.10.0
         with:
           crystal: ${{ matrix.crystal }}
 
